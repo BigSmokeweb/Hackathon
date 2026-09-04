@@ -13,6 +13,7 @@ import { RecommendationEngineModule } from './modules/recommendation-engine/reco
 import { AiReasoningModule } from './modules/ai-reasoning/ai-reasoning.module';
 import { ReviewsModule } from './modules/reviews/reviews.module';
 import { AdminModule } from './modules/admin/admin.module';
+import { TripSessionModule } from './modules/trip-session/trip-session.module';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { AdminModule } from './modules/admin/admin.module';
     AiReasoningModule,
     ReviewsModule,
     AdminModule,
+    TripSessionModule,
   ],
   providers: [
     {

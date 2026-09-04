@@ -53,6 +53,18 @@ enum KycDocumentType {
   GST_CERTIFICATE
 }
 
+enum TripSessionStatus {
+  ACTIVE
+  COMPLETED
+  ABANDONED
+}
+
+enum WeatherTag {
+  INDOOR
+  OUTDOOR
+  WEATHER_DEPENDENT
+}
+
 model User {
   id              String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   email           String            @unique
@@ -69,6 +81,7 @@ model User {
   providerProfile ProviderProfile?
   reviews         Review[]
   interactions    Interaction[]
+  tripSessions    TripSession[]
 
   @@map("users")
 }
@@ -135,6 +148,7 @@ model Experience {
   ratingAverage      Float                                @default(0.0) @map("rating_average")
   reviewCount        Int                                  @default(0) @map("review_count")
   authenticityRating Float                                @default(0.85) @map("authenticity_rating")
+  weatherTag         WeatherTag                           @default(WEATHER_DEPENDENT) @map("weather_tag")
   isActive           Boolean                              @default(true) @map("is_active")
   createdAt          DateTime                             @default(now()) @map("created_at")
   updatedAt          DateTime                             @updatedAt @map("updated_at")
@@ -202,4 +216,47 @@ model RecommendationLog {
   @@index([locationHash])
   @@index([createdAt])
   @@map("recommendation_logs")
+}
+
+// ─── TripSession ────────────────────────────────────────────────────────────
+// Ephemeral-by-intent but persisted for resumability and analytics.
+// Abandoned session precise GPS is purged by the cleanup cron after
+// SESSION_ABANDON_HOURS inactivity (see trip-session.cleanup.service.ts).
+model TripSession {
+  id                       String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId                   String            @map("user_id") @db.Uuid
+  status                   TripSessionStatus @default(ACTIVE)
+
+  // Locations — precise GPS needed for active session functionality.
+  // NEVER written to RecommendationLog in raw form; use coarsenLocation() before any log write.
+  startLocation            Unsupported("geography(Point,4326)") @map("start_location")
+  currentLocation          Unsupported("geography(Point,4326)") @map("current_location")
+
+  startTime                DateTime          @map("start_time")
+  remainingTimeMinutes     Int               @map("remaining_time_minutes")
+  totalBudget              Float             @map("total_budget")
+  remainingBudget          Float             @map("remaining_budget")
+  groupSize                Int               @default(1) @map("group_size")
+  accessibilityRequirements String[]         @default([]) @map("accessibility_requirements")
+  interests                Category[]        @default([])
+
+  // Ordered list of selected experience UUIDs
+  selectedExperienceIds    String[]          @default([]) @map("selected_experience_ids") @db.Uuid
+  selectedCategories       Category[]        @default([]) @map("selected_categories")
+
+  // Rejection data — SESSION-SCOPED ONLY.
+  // TODO(consent): Do NOT promote rejectedCategories to TravelerProfile.interests without
+  // a separate explicit opt-in consent flow (DPDP compliance).
+  rejectedExperienceIds    String[]          @default([]) @map("rejected_experience_ids") @db.Uuid
+  rejectedCategories       Category[]        @default([]) @map("rejected_categories")
+
+  lastActivityAt           DateTime          @default(now()) @map("last_activity_at")
+  createdAt                DateTime          @default(now()) @map("created_at")
+  updatedAt                DateTime          @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status])
+  @@index([lastActivityAt]) // used by cleanup cron
+  @@map("trip_sessions")
 }

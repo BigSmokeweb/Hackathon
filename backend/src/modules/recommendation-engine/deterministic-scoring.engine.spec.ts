@@ -1,5 +1,5 @@
-import { DeterministicScoringEngine, RawCandidateInput } from './deterministic-scoring.engine';
-import { Category, BudgetBand } from '@experience-platform/shared';
+import { DeterministicScoringEngine, RawCandidateInput, computeBearing, bearingDiff } from './deterministic-scoring.engine';
+import { Category, BudgetBand, SessionScoringContext } from '@experience-platform/shared';
 import { DEFAULT_RECOMMENDATION_WEIGHTS } from './recommendation.config';
 
 describe('DeterministicScoringEngine (Pure Unit Tests)', () => {
@@ -78,6 +78,8 @@ describe('DeterministicScoringEngine (Pure Unit Tests)', () => {
     },
   ];
 
+  // ─── EXISTING TESTS (untouched) ──────────────────────────────────────────
+
   describe('Layer 1: Hard Filters', () => {
     it('should exclude candidates exceeding maximum distance radius', () => {
       const filtered = DeterministicScoringEngine.applyHardFilters(mockCandidates, {
@@ -155,6 +157,332 @@ describe('DeterministicScoringEngine (Pure Unit Tests)', () => {
       expect(score.finalScore).toBeLessThanOrEqual(1.0);
       expect(score.locationMatch).toBeGreaterThan(0.8);
       expect(score.budgetFit).toBe(1.0);
+    });
+  });
+
+  // ─── NEW TESTS: Session-aware scoring factors ────────────────────────────
+  // These are appended below. Existing tests above are NOT modified.
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Helper: bearing geometry — concrete coords to verify the math
+  // ─────────────────────────────────────────────────────────────────────────
+  describe('Bearing utilities', () => {
+    it('computeBearing: Colaba → Bandra is north-north-east (~5°)', () => {
+      // Colaba: 18.9067 N, 72.8154 E  →  Bandra: 19.0596 N, 72.8295 E
+      // Δlat = +0.1529, Δlng = +0.0141 → Heading mostly North, slight East (~5°)
+      const bearing = computeBearing(18.9067, 72.8154, 19.0596, 72.8295);
+      expect(bearing).toBeGreaterThan(0);
+      expect(bearing).toBeLessThan(15);
+    });
+
+    it('computeBearing: Bandra → Colaba is south-south-west (~185°)', () => {
+      // Bandra: 19.0596 N, 72.8295 E  →  Colaba: 18.9067 N, 72.8154 E
+      // Heading mostly South, slight West (~185°)
+      const bearing = computeBearing(19.0596, 72.8295, 18.9067, 72.8154);
+      expect(bearing).toBeGreaterThan(180);
+      expect(bearing).toBeLessThan(195);
+    });
+
+    it('bearingDiff: opposite bearings should return ~180', () => {
+      expect(bearingDiff(0, 180)).toBe(180);
+      expect(bearingDiff(90, 270)).toBe(180);
+    });
+
+    it('bearingDiff: same bearing should return 0', () => {
+      expect(bearingDiff(45, 45)).toBe(0);
+    });
+
+    it('bearingDiff: wraps correctly across 0/360 boundary', () => {
+      // 350° and 10° are 20° apart
+      expect(bearingDiff(350, 10)).toBe(20);
+    });
+  });
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // computeRouteContinuityScore — concrete Mumbai coordinate test cases
+  // ─────────────────────────────────────────────────────────────────────────
+  describe('computeRouteContinuityScore', () => {
+    /**
+     * Concrete test: the "zig-zag prevention" scenario described in addendum Section 3.1.
+     *
+     * Trip path so far:  Gateway of India → Sassoon Dock (moving south, ~180°)
+     * Candidate A: Colaba Market       (south of Sassoon Dock — continues south)
+     * Candidate B: CST / Bori Bunder   (north of Sassoon Dock — backtracks)
+     *
+     * Expectation: Candidate A (continues south) scores higher than Candidate B (backtracks).
+     *
+     * Real coordinates:
+     *   Gateway of India:  18.9220, 72.8347
+     *   Sassoon Dock:      18.9137, 72.8258  (current location after stop 1)
+     *   Colaba Market:     18.9082, 72.8179  (further south — good continuity)
+     *   CST Station:       18.9400, 72.8356  (north — backtrack)
+     */
+    it('should score a southward candidate higher than a northward backtrack (Mumbai corridor)', () => {
+      const gatewayLat = 18.9220;
+      const gatewayLng = 72.8347;
+      const sassoonLat = 18.9137;
+      const sassoonLng = 72.8258;
+
+      const session: SessionScoringContext = {
+        currentLocationLat: sassoonLat,
+        currentLocationLng: sassoonLng,
+        previousLocationLat: gatewayLat,
+        previousLocationLng: gatewayLng,
+        selectedCategories: [Category.CULTURE],
+        rejectedCategories: [],
+        rejectedExperienceIds: [],
+      };
+
+      // Candidate A: Colaba Market (continues southward)
+      const colabaMarket: RawCandidateInput = {
+        ...mockCandidates[0],
+        id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+        title: 'Colaba Market',
+        candidateLat: 18.9082,
+        candidateLng: 72.8179,
+      };
+
+      // Candidate B: CST Station (backtracks northward)
+      const cstStation: RawCandidateInput = {
+        ...mockCandidates[0],
+        id: 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
+        title: 'CST Station',
+        candidateLat: 18.9400,
+        candidateLng: 72.8356,
+      };
+
+      const scoreA = DeterministicScoringEngine.computeRouteContinuityScore(colabaMarket, session);
+      const scoreB = DeterministicScoringEngine.computeRouteContinuityScore(cstStation, session);
+
+      expect(scoreA).toBeGreaterThan(scoreB);
+      expect(scoreA).toBeGreaterThan(0.5); // continuing south → good score
+      expect(scoreB).toBeLessThan(0.5);    // backtracking north → penalised
+    });
+
+    it('should return 0.5 (neutral) when no previous location is known (first stop)', () => {
+      const sessionFirstStop: SessionScoringContext = {
+        currentLocationLat: 18.9220,
+        currentLocationLng: 72.8347,
+        // No previous location
+        selectedCategories: [],
+        rejectedCategories: [],
+        rejectedExperienceIds: [],
+      };
+      const score = DeterministicScoringEngine.computeRouteContinuityScore(
+        { ...mockCandidates[0], candidateLat: 18.9137, candidateLng: 72.8258 },
+        sessionFirstStop,
+      );
+      expect(score).toBe(0.5);
+    });
+
+    it('should return 0.0 when candidate has no lat/lng populated', () => {
+      const session: SessionScoringContext = {
+        currentLocationLat: 18.9137,
+        currentLocationLng: 72.8258,
+        previousLocationLat: 18.9220,
+        previousLocationLng: 72.8347,
+        selectedCategories: [],
+        rejectedCategories: [],
+        rejectedExperienceIds: [],
+      };
+      const score = DeterministicScoringEngine.computeRouteContinuityScore(
+        mockCandidates[0], // no candidateLat/Lng
+        session,
+      );
+      expect(score).toBe(0.0);
+    });
+  });
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // computeDiversityScore
+  // ─────────────────────────────────────────────────────────────────────────
+  describe('computeDiversityScore', () => {
+    it('should return 1.0 when category has not been selected yet', () => {
+      const score = DeterministicScoringEngine.computeDiversityScore(
+        mockCandidates[0], // FOOD
+        [Category.CULTURE, Category.WORKSHOPS],
+      );
+      expect(score).toBe(1.0);
+    });
+
+    it('should return 1.0 when category has been selected only once', () => {
+      const score = DeterministicScoringEngine.computeDiversityScore(
+        mockCandidates[0], // FOOD
+        [Category.FOOD, Category.CULTURE],
+      );
+      expect(score).toBe(1.0);
+    });
+
+    it('should return 0.5 when category has been selected twice (mild soft penalty)', () => {
+      const score = DeterministicScoringEngine.computeDiversityScore(
+        mockCandidates[0], // FOOD
+        [Category.FOOD, Category.FOOD, Category.CULTURE],
+      );
+      expect(score).toBe(0.5);
+    });
+
+    it('should return 0.2 when category appears 3+ times (strong soft penalty)', () => {
+      const score = DeterministicScoringEngine.computeDiversityScore(
+        mockCandidates[0], // FOOD
+        [Category.FOOD, Category.FOOD, Category.FOOD, Category.CULTURE],
+      );
+      expect(score).toBe(0.2);
+    });
+
+    it('should not penalise other categories even if one category is heavily repeated', () => {
+      const workshops = DeterministicScoringEngine.computeDiversityScore(
+        mockCandidates[2], // WORKSHOPS
+        [Category.FOOD, Category.FOOD, Category.FOOD],
+      );
+      expect(workshops).toBe(1.0);
+    });
+  });
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // computeRejectionPenalty
+  // ─────────────────────────────────────────────────────────────────────────
+  describe('computeRejectionPenalty', () => {
+    it('should return 0.0 for non-rejected experience with non-rejected category', () => {
+      const penalty = DeterministicScoringEngine.computeRejectionPenalty(
+        mockCandidates[0], // FOOD
+        [],
+        [],
+      );
+      expect(penalty).toBe(0.0);
+    });
+
+    it('should return 1.0 for a directly rejected experience ID', () => {
+      const penalty = DeterministicScoringEngine.computeRejectionPenalty(
+        mockCandidates[0],
+        [],
+        ['11111111-1111-1111-1111-111111111111'],
+      );
+      expect(penalty).toBe(1.0);
+    });
+
+    it('should return 0.5 for a candidate whose category was rejected once', () => {
+      const penalty = DeterministicScoringEngine.computeRejectionPenalty(
+        mockCandidates[0], // FOOD
+        [Category.FOOD],
+        [],
+      );
+      expect(penalty).toBe(0.5);
+    });
+
+    it('should return 0.8 for a candidate whose category was rejected twice', () => {
+      const penalty = DeterministicScoringEngine.computeRejectionPenalty(
+        mockCandidates[0], // FOOD
+        [Category.FOOD, Category.FOOD],
+        [],
+      );
+      expect(penalty).toBe(0.8);
+    });
+
+    it('should not penalise a different category from the rejected one', () => {
+      const penalty = DeterministicScoringEngine.computeRejectionPenalty(
+        mockCandidates[2], // WORKSHOPS — not rejected
+        [Category.FOOD],   // only FOOD rejected
+        [],
+      );
+      expect(penalty).toBe(0.0);
+    });
+  });
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // calculateScore — session context integration
+  // ─────────────────────────────────────────────────────────────────────────
+  describe('calculateScore — session context gating', () => {
+    const baseContext = {
+      userCategories: [Category.FOOD],
+      userBudgetBand: BudgetBand.MODERATE,
+      maxSearchRadiusKm: 20,
+    };
+
+    it('should produce identical finalScore without sessionContext (single-shot path unchanged)', () => {
+      const scoreWithout = DeterministicScoringEngine.calculateScore(
+        mockCandidates[0],
+        baseContext,
+        DEFAULT_RECOMMENDATION_WEIGHTS,
+        // No sessionContext
+      );
+      // Snapshot the exact value — proves the formula is unchanged
+      expect(scoreWithout.finalScore).toBeGreaterThan(0.6);
+      expect(scoreWithout.routeContinuityScore).toBe(0);
+      expect(scoreWithout.diversityScore).toBe(0);
+      expect(scoreWithout.rejectionPenalty).toBe(0);
+    });
+
+    it('should lower finalScore when category is rejected (session context active)', () => {
+      const scoreBase = DeterministicScoringEngine.calculateScore(
+        mockCandidates[0], // FOOD
+        baseContext,
+        DEFAULT_RECOMMENDATION_WEIGHTS,
+      );
+      const sessionCtx: SessionScoringContext = {
+        currentLocationLat: 23.0225,
+        currentLocationLng: 72.5714,
+        selectedCategories: [],
+        rejectedCategories: [Category.FOOD], // FOOD rejected
+        rejectedExperienceIds: [],
+      };
+      const scoreWithRejection = DeterministicScoringEngine.calculateScore(
+        mockCandidates[0],
+        baseContext,
+        DEFAULT_RECOMMENDATION_WEIGHTS,
+        sessionCtx,
+      );
+
+      expect(scoreWithRejection.finalScore).toBeLessThan(scoreBase.finalScore);
+      expect(scoreWithRejection.rejectionPenalty).toBe(0.5);
+    });
+
+    it('should lower finalScore when category is over-represented in session selections', () => {
+      const sessionCtxFresh: SessionScoringContext = {
+        currentLocationLat: 23.0225,
+        currentLocationLng: 72.5714,
+        selectedCategories: [], // 0 selections
+        rejectedCategories: [],
+        rejectedExperienceIds: [],
+      };
+      const sessionCtxRepeated: SessionScoringContext = {
+        currentLocationLat: 23.0225,
+        currentLocationLng: 72.5714,
+        selectedCategories: [Category.WORKSHOPS, Category.WORKSHOPS], // WORKSHOPS 2x already
+        rejectedCategories: [],
+        rejectedExperienceIds: [],
+      };
+      const workshopContext = {
+        userCategories: [Category.WORKSHOPS],
+        userBudgetBand: BudgetBand.MODERATE,
+        maxSearchRadiusKm: 20,
+      };
+      const scoreFresh = DeterministicScoringEngine.calculateScore(
+        mockCandidates[2], // WORKSHOPS
+        workshopContext,
+        DEFAULT_RECOMMENDATION_WEIGHTS,
+        sessionCtxFresh,
+      );
+      const scoreRepeated = DeterministicScoringEngine.calculateScore(
+        mockCandidates[2],
+        workshopContext,
+        DEFAULT_RECOMMENDATION_WEIGHTS,
+        sessionCtxRepeated,
+      );
+      expect(scoreRepeated.finalScore).toBeLessThan(scoreFresh.finalScore);
+      expect(scoreRepeated.diversityScore).toBe(0.5);
+      expect(scoreFresh.diversityScore).toBe(1.0);
+    });
+
+    it('existing single-shot rankCandidates produces same results without sessionContext', () => {
+      const ranked = DeterministicScoringEngine.rankCandidates(
+        mockCandidates,
+        { maxDistanceKm: 20, userCategories: [Category.FOOD], userBudgetBand: BudgetBand.MODERATE },
+        DEFAULT_RECOMMENDATION_WEIGHTS,
+        // No sessionContext
+      );
+      expect(ranked[0].id).toBe('11111111-1111-1111-1111-111111111111');
+      expect(ranked[0].scoreBreakdown.rejectionPenalty).toBe(0);
+      expect(ranked[0].scoreBreakdown.routeContinuityScore).toBe(0);
     });
   });
 });

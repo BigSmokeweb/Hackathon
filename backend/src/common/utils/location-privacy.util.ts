@@ -14,3 +14,7 @@ export class LocationPrivacy {
     return crypto.createHash('sha256').update(rawContext).digest('hex').substring(0, 16);
   }
 }
+
+export function coarsenLocation(latitude: number, longitude: number, city?: string): string {
+  return LocationPrivacy.anonymizeCoordinateContext(latitude, longitude, city);
+}

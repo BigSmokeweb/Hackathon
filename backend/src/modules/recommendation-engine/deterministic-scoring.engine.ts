@@ -7,6 +7,8 @@ import {
   BudgetBand,
   CandidateScoreBreakdown,
   RecommendationCandidateDto,
+  SessionScoringContext,
+  WeatherTag,
 } from '@experience-platform/shared';
 
 export interface RawCandidateInput {
@@ -28,6 +30,11 @@ export interface RawCandidateInput {
     openTime: string;
     closeTime: string;
   }>;
+  // Distance from current session location (injected by service for session calls)
+  distanceFromCurrentKm?: number;
+  candidateLat?: number;
+  candidateLng?: number;
+  weatherTag?: WeatherTag;
 }
 
 export interface FilterCriteria {
@@ -37,6 +44,42 @@ export interface FilterCriteria {
   requiredAccessibilityTags?: string[];
   targetDayOfWeek?: number; // 0-6
   targetTimeMinutes?: number; // minutes from midnight (e.g. 14:30 = 870)
+}
+
+// Re-export so spec and service can import from the engine module directly.
+export type { SessionScoringContext };
+
+// ─── Haversine helper (used by route-continuity score) ─────────────────────
+function toRad(deg: number): number {
+  return (deg * Math.PI) / 180;
+}
+
+/**
+ * Calculates the compass bearing (0–360°) from point A to point B.
+ */
+export function computeBearing(
+  fromLat: number,
+  fromLng: number,
+  toLat: number,
+  toLng: number,
+): number {
+  const dLng = toRad(toLng - fromLng);
+  const lat1 = toRad(fromLat);
+  const lat2 = toRad(toLat);
+  const y = Math.sin(dLng) * Math.cos(lat2);
+  const x =
+    Math.cos(lat1) * Math.sin(lat2) -
+    Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLng);
+  const bearing = (Math.atan2(y, x) * 180) / Math.PI;
+  return (bearing + 360) % 360;
+}
+
+/**
+ * Angular difference between two bearings (0–180°).
+ */
+export function bearingDiff(a: number, b: number): number {
+  const diff = Math.abs(a - b) % 360;
+  return diff > 180 ? 360 - diff : diff;
 }
 
 export class DeterministicScoringEngine {
@@ -95,8 +138,127 @@ export class DeterministicScoringEngine {
     });
   }
 
+  // ─── Session-aware pure scoring functions ─────────────────────────────────
+  // Each is a pure static function with no side effects, independently testable.
+  // The session context is NEVER persisted inside these functions.
+
   /**
-   * Layer 2: Pure Weighted Scoring (deterministic, configurable weights)
+   * Route Continuity Score (addendum Section 3.1).
+   *
+   * Rewards candidates that continue in roughly the same geographic direction
+   * as the last 1–2 moves. Prevents GPS zig-zagging (e.g. Colaba → Bandra → Colaba).
+   *
+   * Algorithm:
+   *  1. Compute bearing from previous stop → current stop (the "travel direction so far").
+   *  2. Compute bearing from current stop → candidate.
+   *  3. Score = 1 - (angularDiff / 180), clamped to [0, 1].
+   *     → Perfect alignment (same direction) → 1.0
+   *     → Exact backtrack (180° reversal)    → 0.0
+   *     → No prior bearing available          → 0.5 (neutral, no reward/penalty)
+   *
+   * Returns 0.0 when candidateLat/Lng are missing (service must populate them).
+   */
+  static computeRouteContinuityScore(
+    candidate: RawCandidateInput,
+    session: SessionScoringContext,
+  ): number {
+    if (
+      candidate.candidateLat === undefined ||
+      candidate.candidateLng === undefined
+    ) {
+      return 0.0;
+    }
+
+    // No prior move — can't compute bearing consistency; return neutral.
+    if (
+      session.previousLocationLat === undefined ||
+      session.previousLocationLng === undefined
+    ) {
+      return 0.5;
+    }
+
+    // Bearing of the last move: previous → current
+    const travelBearing = computeBearing(
+      session.previousLocationLat,
+      session.previousLocationLng,
+      session.currentLocationLat,
+      session.currentLocationLng,
+    );
+
+    // Bearing toward this candidate: current → candidate
+    const candidateBearing = computeBearing(
+      session.currentLocationLat,
+      session.currentLocationLng,
+      candidate.candidateLat,
+      candidate.candidateLng,
+    );
+
+    const diff = bearingDiff(travelBearing, candidateBearing);
+    return Math.max(0, 1.0 - diff / 180);
+  }
+
+  /**
+   * Diversity Score (addendum Section 3.2).
+   *
+   * Soft penalty when a candidate's category has already appeared 2+ times
+   * in the session's selected stops. Allows food-focused trips while nudging
+   * variety. Returns a score in [0, 1] to be multiplied by w9.
+   *
+   *  occurrences = 0 or 1 → score 1.0 (no penalty)
+   *  occurrences = 2       → score 0.5 (mild soft penalty)
+   *  occurrences ≥ 3       → score 0.2 (strong soft penalty, not a hard block)
+   */
+  static computeDiversityScore(
+    candidate: RawCandidateInput,
+    selectedCategories: Category[],
+  ): number {
+    const occurrences = selectedCategories.filter(
+      (cat) => cat === candidate.category,
+    ).length;
+
+    if (occurrences <= 1) return 1.0;
+    if (occurrences === 2) return 0.5;
+    return 0.2;
+  }
+
+  /**
+   * Rejection Penalty (addendum Section 3.3).
+   *
+   * Session-scoped only. Returns a penalty score (positive value, subtracted
+   * in the final formula via w10). Categories/experiences the user has explicitly
+   * rejected get a high penalty; un-rejected ones get 0.
+   *
+   * NOTE: This data is NEVER promoted to TravelerProfile without explicit consent.
+   * See TODO(consent) comments in trip-session.service.ts.
+   */
+  static computeRejectionPenalty(
+    candidate: RawCandidateInput,
+    rejectedCategories: Category[],
+    rejectedExperienceIds: string[],
+  ): number {
+    // Direct experience rejection: full penalty
+    if (rejectedExperienceIds.includes(candidate.id)) {
+      return 1.0;
+    }
+    // Category rejection: proportional penalty based on how many times this
+    // category appears in the rejection list (same category rejected twice → stronger signal)
+    const categoryRejections = rejectedCategories.filter(
+      (cat) => cat === candidate.category,
+    ).length;
+
+    if (categoryRejections === 0) return 0.0;
+    if (categoryRejections === 1) return 0.5;
+    return 0.8; // Repeated category rejection — strong penalty, still not a hard block
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /**
+   * Layer 2: Pure Weighted Scoring (deterministic, configurable weights).
+   *
+   * sessionContext is optional. When undefined, w8/w9/w10 contribute exactly
+   * 0.0 to rawScore, making single-shot behavior provably identical to the
+   * pre-addendum implementation. Existing tests pass unchanged.
    */
   static calculateScore(
     candidate: RawCandidateInput,
@@ -106,6 +268,7 @@ export class DeterministicScoringEngine {
       maxSearchRadiusKm: number;
     },
     weights: RecommendationWeights = DEFAULT_RECOMMENDATION_WEIGHTS,
+    sessionContext?: SessionScoringContext,
   ): CandidateScoreBreakdown {
     // Proximity score (1.0 = right here, 0.0 = edge of radius)
     const normalizedDistance = Math.min(candidate.distanceKm / (context.maxSearchRadiusKm || 20), 1.0);
@@ -139,6 +302,21 @@ export class DeterministicScoringEngine {
     // Distance penalty
     const distancePenalty = normalizedDistance * 0.5;
 
+    // ── Session-aware factors (all 0.0 when sessionContext is undefined) ────
+    let routeContinuityScore = 0.0;
+    let diversityScore = 0.0;
+    let rejectionPenalty = 0.0;
+
+    if (sessionContext) {
+      routeContinuityScore = this.computeRouteContinuityScore(candidate, sessionContext);
+      diversityScore = this.computeDiversityScore(candidate, sessionContext.selectedCategories);
+      rejectionPenalty = this.computeRejectionPenalty(
+        candidate,
+        sessionContext.rejectedCategories,
+        sessionContext.rejectedExperienceIds,
+      );
+    }
+
     // Final weighted score calculation
     const rawScore =
       weights.w1_locationMatch * locationMatch +
@@ -147,7 +325,10 @@ export class DeterministicScoringEngine {
       weights.w4_timeAvailability * timeAvailability +
       weights.w5_rating * ratingScore +
       weights.w6_authenticity * authenticityScore -
-      weights.w7_distancePenalty * distancePenalty;
+      weights.w7_distancePenalty * distancePenalty +
+      weights.w8_routeContinuity * routeContinuityScore +
+      weights.w9_diversity * diversityScore -
+      weights.w10_rejectionPenalty * rejectionPenalty;
 
     const finalScore = Math.round(Math.max(0, Math.min(1.0, rawScore)) * 1000) / 1000;
 
@@ -159,6 +340,9 @@ export class DeterministicScoringEngine {
       ratingScore: Math.round(ratingScore * 100) / 100,
       authenticityScore: Math.round(authenticityScore * 100) / 100,
       distancePenalty: Math.round(distancePenalty * 100) / 100,
+      routeContinuityScore: Math.round(routeContinuityScore * 100) / 100,
+      diversityScore: Math.round(diversityScore * 100) / 100,
+      rejectionPenalty: Math.round(rejectionPenalty * 100) / 100,
       finalScore,
     };
   }
@@ -174,6 +358,7 @@ export class DeterministicScoringEngine {
       limit?: number;
     },
     weights: RecommendationWeights = DEFAULT_RECOMMENDATION_WEIGHTS,
+    sessionContext?: SessionScoringContext,
   ): RecommendationCandidateDto[] {
     const filtered = this.applyHardFilters(candidates, criteria);
 
@@ -186,6 +371,7 @@ export class DeterministicScoringEngine {
           maxSearchRadiusKm: criteria.maxDistanceKm,
         },
         weights,
+        sessionContext,
       );
 
       return {

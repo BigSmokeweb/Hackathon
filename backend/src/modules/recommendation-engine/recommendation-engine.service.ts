@@ -29,6 +29,9 @@ export class RecommendationEngineService {
       w5_rating: Number(this.configService.get('REC_WEIGHT_RATING', DEFAULT_RECOMMENDATION_WEIGHTS.w5_rating)),
       w6_authenticity: Number(this.configService.get('REC_WEIGHT_AUTH', DEFAULT_RECOMMENDATION_WEIGHTS.w6_authenticity)),
       w7_distancePenalty: Number(this.configService.get('REC_WEIGHT_DIST_PENALTY', DEFAULT_RECOMMENDATION_WEIGHTS.w7_distancePenalty)),
+      w8_routeContinuity: Number(this.configService.get('REC_WEIGHT_ROUTE_CONTINUITY', DEFAULT_RECOMMENDATION_WEIGHTS.w8_routeContinuity)),
+      w9_diversity: Number(this.configService.get('REC_WEIGHT_DIVERSITY', DEFAULT_RECOMMENDATION_WEIGHTS.w9_diversity)),
+      w10_rejectionPenalty: Number(this.configService.get('REC_WEIGHT_REJECTION_PENALTY', DEFAULT_RECOMMENDATION_WEIGHTS.w10_rejectionPenalty)),
     };
   }
 
