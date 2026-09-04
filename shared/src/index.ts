@@ -1,0 +1,289 @@
+import { z } from 'zod';
+
+// ==========================================
+// 1. ENUMS & CONSTANTS
+// ==========================================
+export enum Role {
+  TRAVELER = 'TRAVELER',
+  PROVIDER = 'PROVIDER',
+  ADMIN = 'ADMIN',
+}
+
+export enum VerificationStatus {
+  UNVERIFIED = 'UNVERIFIED',
+  PENDING_REVIEW = 'PENDING_REVIEW',
+  VERIFIED = 'VERIFIED',
+  REJECTED = 'REJECTED',
+}
+
+export enum Category {
+  FOOD = 'FOOD',
+  CULTURE = 'CULTURE',
+  ADVENTURE = 'ADVENTURE',
+  HIDDEN_GEMS = 'HIDDEN_GEMS',
+  NIGHTLIFE = 'NIGHTLIFE',
+  EVENTS = 'EVENTS',
+  WORKSHOPS = 'WORKSHOPS',
+  SHOPPING = 'SHOPPING',
+}
+
+export enum EventType {
+  VIEW = 'VIEW',
+  SAVE = 'SAVE',
+  CLICK = 'CLICK',
+  COMPLETE = 'COMPLETE',
+}
+
+export enum BudgetBand {
+  BUDGET = 'BUDGET',       // ₹ (0 - 500)
+  MODERATE = 'MODERATE',   // ₹₹ (500 - 1500)
+  PREMIUM = 'PREMIUM',     // ₹₹₹ (1500 - 4000)
+  LUXURY = 'LUXURY',       // ₹₹₹₹ (4000+)
+}
+
+// ==========================================
+// 2. AUTH & USER SCHEMAS / DTOS
+// ==========================================
+export const RegisterTravelerSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
+  name: z.string().min(2),
+  homeCity: z.string().optional(),
+  interests: z.array(z.nativeEnum(Category)).default([]),
+  budgetBand: z.nativeEnum(BudgetBand).default(BudgetBand.MODERATE),
+  travelStyle: z.string().optional(),
+});
+
+export type RegisterTravelerDto = z.infer<typeof RegisterTravelerSchema>;
+
+export const RegisterProviderSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
+  name: z.string().min(2),
+  businessName: z.string().min(2),
+  phone: z.string().regex(/^\+?[1-9]\d{1,14}$/, 'Valid phone number with country code is required'),
+  businessType: z.string().min(2),
+  city: z.string().min(2),
+});
+
+export type RegisterProviderDto = z.infer<typeof RegisterProviderSchema>;
+
+export const LoginSchema = z.object({
+  email: z.string().email(),
+  password: z.string(),
+  mfaCode: z.string().length(6).optional(),
+});
+
+export type LoginDto = z.infer<typeof LoginSchema>;
+
+export const MfaVerifySchema = z.object({
+  mfaCode: z.string().length(6),
+});
+
+export type MfaVerifyDto = z.infer<typeof MfaVerifySchema>;
+
+export const RefreshTokenSchema = z.object({
+  refreshToken: z.string().min(1),
+});
+
+export type RefreshTokenDto = z.infer<typeof RefreshTokenSchema>;
+
+export interface AuthTokensResponse {
+  accessToken: string;
+  refreshToken: string;
+  expiresIn: number;
+  user: {
+    id: string;
+    email: string;
+    role: Role;
+    name: string;
+    mfaEnabled: boolean;
+    verificationStatus?: VerificationStatus;
+  };
+}
+
+// ==========================================
+// 3. KYC SCHEMAS / DTOS
+// ==========================================
+export const RequestKycUploadUrlSchema = z.object({
+  documentType: z.enum(['BUSINESS_REGISTRATION', 'GOVERNMENT_ID', 'GST_CERTIFICATE']),
+  fileName: z.string().min(1),
+  mimeType: z.enum(['application/pdf', 'image/jpeg', 'image/png']),
+});
+
+export type RequestKycUploadUrlDto = z.infer<typeof RequestKycUploadUrlSchema>;
+
+export const SubmitKycVerificationSchema = z.object({
+  documentType: z.enum(['BUSINESS_REGISTRATION', 'GOVERNMENT_ID', 'GST_CERTIFICATE']),
+  documentStorageKey: z.string().min(5),
+  notes: z.string().max(500).optional(),
+});
+
+export type SubmitKycVerificationDto = z.infer<typeof SubmitKycVerificationSchema>;
+
+// ==========================================
+// 4. EXPERIENCE SCHEMAS & DTOS
+// ==========================================
+export const GeoLocationSchema = z.object({
+  latitude: z.number().min(-90).max(90),
+  longitude: z.number().min(-180).max(180),
+});
+
+export type GeoLocation = z.infer<typeof GeoLocationSchema>;
+
+export const AvailabilityRuleSchema = z.object({
+  daysOfWeek: z.array(z.number().int().min(0).max(6)), // 0 = Sunday, 6 = Saturday
+  openTime: z.string().regex(/^([01]\d|2[0-3]):?([0-5]\d)$/, 'Format HH:MM'),
+  closeTime: z.string().regex(/^([01]\d|2[0-3]):?([0-5]\d)$/, 'Format HH:MM'),
+  slotDurationMinutes: z.number().int().positive().default(60),
+  maxCapacityPerSlot: z.number().int().positive().default(10),
+});
+
+export type AvailabilityRule = z.infer<typeof AvailabilityRuleSchema>;
+
+export const CreateExperienceSchema = z.object({
+  title: z.string().min(3).max(150),
+  description: z.string().min(20).max(4000),
+  category: z.nativeEnum(Category),
+  location: GeoLocationSchema,
+  address: z.string().min(5),
+  city: z.string().min(2),
+  state: z.string().min(2),
+  country: z.string().default('India'),
+  priceMin: z.number().nonnegative(),
+  priceMax: z.number().nonnegative(),
+  currency: z.string().default('INR'),
+  budgetBand: z.nativeEnum(BudgetBand),
+  accessibilityTags: z.array(z.string()).default([]),
+  mediaUrls: z.array(z.string().url()).min(1),
+  availabilityRules: z.array(AvailabilityRuleSchema).min(1),
+  durationMinutes: z.number().int().positive().default(120),
+});
+
+export type CreateExperienceDto = z.infer<typeof CreateExperienceSchema>;
+
+export const UpdateExperienceSchema = CreateExperienceSchema.partial();
+export type UpdateExperienceDto = z.infer<typeof UpdateExperienceSchema>;
+
+export const SearchExperiencesQuerySchema = z.object({
+  latitude: z.coerce.number().min(-90).max(90).optional(),
+  longitude: z.coerce.number().min(-180).max(180).optional(),
+  radiusKm: z.coerce.number().positive().max(100).default(25),
+  city: z.string().optional(),
+  category: z.nativeEnum(Category).optional(),
+  budgetBand: z.nativeEnum(BudgetBand).optional(),
+  minRating: z.coerce.number().min(0).max(5).optional(),
+  page: z.coerce.number().int().positive().default(1),
+  limit: z.coerce.number().int().positive().max(50).default(20), // strict pagination cap
+});
+
+export type SearchExperiencesQueryDto = z.infer<typeof SearchExperiencesQuerySchema>;
+
+export interface PaginatedResult<T> {
+  data: T[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+// ==========================================
+// 5. RECOMMENDATION & AI CONTRACTS
+// ==========================================
+export const RecommendationRequestSchema = z.object({
+  latitude: z.number().min(-90).max(90),
+  longitude: z.number().min(-180).max(180),
+  radiusKm: z.number().positive().max(100).default(20),
+  categories: z.array(z.nativeEnum(Category)).optional(),
+  budgetBand: z.nativeEnum(BudgetBand).optional(),
+  groupSize: z.number().int().positive().default(1),
+  timeOfDay: z.enum(['MORNING', 'AFTERNOON', 'EVENING', 'NIGHT']).optional(),
+  userIntent: z.string().max(200).optional(), // e.g. "authentic street food with friends"
+  limit: z.number().int().positive().max(20).default(10),
+});
+
+export type RecommendationRequestDto = z.infer<typeof RecommendationRequestSchema>;
+
+export interface CandidateScoreBreakdown {
+  locationMatch: number;      // 0.0 - 1.0
+  intentMatch: number;        // 0.0 - 1.0
+  budgetFit: number;          // 0.0 - 1.0
+  timeAvailability: number;   // 0.0 - 1.0
+  ratingScore: number;        // 0.0 - 1.0
+  authenticityScore: number;  // 0.0 - 1.0
+  distancePenalty: number;    // 0.0 - 1.0
+  finalScore: number;         // 0.0 - 1.0
+}
+
+export interface RecommendationCandidateDto {
+  id: string;
+  title: string;
+  category: Category;
+  city: string;
+  distanceKm: number;
+  priceMin: number;
+  priceMax: number;
+  budgetBand: BudgetBand;
+  ratingAverage: number;
+  reviewCount: number;
+  authenticityRating: number;
+  accessibilityTags: string[];
+  mediaUrls: string[];
+  scoreBreakdown: CandidateScoreBreakdown;
+  aiExplanation?: string;
+}
+
+export interface RecommendationResponseDto {
+  requestId: string;
+  recommendations: RecommendationCandidateDto[];
+  locationContextHash: string; // anonymized coarse location hash, never raw coordinates
+  generatedAt: string;
+}
+
+// AI Reasoning Output Contract
+export interface AiExplanationResult {
+  experienceId: string;
+  whyThis: string;
+  highlightHook: string;
+}
+
+export interface AiReasoningPayload {
+  userIntent?: string;
+  groupSize: number;
+  budgetBand?: BudgetBand;
+  candidates: Array<{
+    id: string;
+    title: string;
+    category: Category;
+    city: string;
+    distanceKm: number;
+    priceMin: number;
+    priceMax: number;
+    ratingAverage: number;
+    authenticityRating: number;
+    accessibilityTags: string[];
+  }>;
+}
+
+// ==========================================
+// 6. REVIEWS & INTERACTIONS SCHEMAS
+// ==========================================
+export const LogInteractionSchema = z.object({
+  experienceId: z.string().uuid(),
+  eventType: z.nativeEnum(EventType),
+  metadata: z.record(z.unknown()).optional(),
+});
+
+export type LogInteractionDto = z.infer<typeof LogInteractionSchema>;
+
+export const CreateReviewSchema = z.object({
+  experienceId: z.string().uuid(),
+  ratingOverall: z.number().int().min(1).max(5),
+  ratingAuthenticity: z.number().int().min(1).max(5),
+  ratingValue: z.number().int().min(1).max(5),
+  ratingExperience: z.number().int().min(1).max(5),
+  ratingAccessibility: z.number().int().min(1).max(5),
+  text: z.string().min(10).max(2000),
+});
+
+export type CreateReviewDto = z.infer<typeof CreateReviewSchema>;

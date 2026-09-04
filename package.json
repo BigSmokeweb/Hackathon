@@ -1,0 +1,33 @@
+{
+  "name": "local-experience-intelligence-platform",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Production-grade Local Experience Intelligence Platform (Traveler & Provider Marketplace)",
+  "workspaces": [
+    "shared",
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "dev:backend": "npm run start:dev --workspace=backend",
+    "dev:frontend": "npm run dev --workspace=frontend",
+    "build": "npm run build --workspaces",
+    "test": "npm run test --workspaces",
+    "test:cov": "npm run test:cov --workspace=backend",
+    "lint": "npm run lint --workspaces",
+    "audit:ci": "npm audit --audit-level=high",
+    "docker:up": "docker-compose -f infra/docker-compose.yml up -d",
+    "docker:down": "docker-compose -f infra/docker-compose.yml down",
+    "db:migrate": "npm run db:migrate --workspace=backend",
+    "db:seed": "npm run db:seed --workspace=backend"
+  },
+  "keywords": [
+    "marketplace",
+    "recommendation-engine",
+    "postgis",
+    "ai-reasoning",
+    "experience-intelligence"
+  ],
+  "author": "Engineering Team",
+  "license": "UNLICENSED"
+}

@@ -1,0 +1,41 @@
+# Dependencies
+node_modules/
+*/node_modules/
+.pnp
+.pnp.js
+
+# Build and Transpiled outputs
+dist/
+build/
+.next/
+out/
+backend/dist/
+shared/dist/
+*.tsbuildinfo
+
+# Environment & Secrets (CRITICAL)
+.env
+.env*.local
+.env.production
+.env.staging
+*.env
+backend/.env
+!.env.example
+!backend/.env.example
+
+# Coverage & Tests
+coverage/
+.nyc_output
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# System & IDE files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

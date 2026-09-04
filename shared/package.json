@@ -1,0 +1,22 @@
+{
+  "name": "@experience-platform/shared",
+  "version": "1.0.0",
+  "description": "Shared TypeScript DTOs, interfaces, and validation schemas for Local Experience Intelligence Platform",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "lint": "eslint \"src/**/*.ts\"",
+    "clean": "rimraf dist"
+  },
+  "dependencies": {
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.5",
+    "rimraf": "^5.0.7",
+    "eslint": "^8.57.0",
+    "@typescript-eslint/parser": "^7.10.0",
+    "@typescript-eslint/eslint-plugin": "^7.10.0"
+  }
+}
