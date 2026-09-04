@@ -1,10 +1,10 @@
-import { PrismaClient, Role, VerificationStatus, Category, BudgetBand, KycDocumentType } from '@prisma/client';
+import { PrismaClient, Role, VerificationStatus, Category, BudgetBand, KycDocumentType, WeatherTag } from '@prisma/client';
 import * as argon2 from 'argon2';
 
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('Seeding curated experiences across Ahmedabad, Mumbai, and Jaipur...');
+  console.log('Seeding rich curated experiences across Ahmedabad, Mumbai, Jaipur, and Delhi...');
 
   // 1. Create Admin User
   const adminPassword = await argon2.hash('AdminSecurePass123!');
@@ -20,47 +20,25 @@ async function main() {
   });
 
   // 2. Create Verified Sample Providers
-  const providerPassword = await argon2.hash('ProviderSecurePass123!');
+  const providerPassword = await argon2.hash('Provider123!');
   
   const providerAhmedabadUser = await prisma.user.upsert({
-    where: { email: 'ahmedabad.heritage@experienceplatform.in' },
-    update: {},
-    create: {
-      email: 'ahmedabad.heritage@experienceplatform.in',
+    where: { email: 'provider@experienceplatform.in' },
+    update: {
       passwordHash: providerPassword,
-      name: 'Hitesh Patel',
-      role: Role.PROVIDER,
-      mfaEnabled: true,
-      providerProfile: {
-        create: {
-          businessName: 'Amdavad Heritage Walkers Guild',
-          businessType: 'Cultural Guided Tours',
-          phone: '+919876543210',
-          city: 'Ahmedabad',
-          verificationStatus: VerificationStatus.VERIFIED,
-          kycDocumentRef: 'kyc/verified/ahmedabad_guild_gst.pdf',
-          kycDocumentType: KycDocumentType.GST_CERTIFICATE,
-          kycVerifiedAt: new Date(),
-        },
-      },
+      mfaEnabled: false,
     },
-    include: { providerProfile: true },
-  });
-
-  const providerMumbaiUser = await prisma.user.upsert({
-    where: { email: 'mumbai.foodies@experienceplatform.in' },
-    update: {},
     create: {
-      email: 'mumbai.foodies@experienceplatform.in',
+      email: 'provider@experienceplatform.in',
       passwordHash: providerPassword,
       name: 'Rohan Deshmukh',
       role: Role.PROVIDER,
-      mfaEnabled: true,
+      mfaEnabled: false,
       providerProfile: {
         create: {
           businessName: 'Bombay Coastal Bites & Walks',
-          businessType: 'Culinary Experiences',
-          phone: '+919820123456',
+          businessType: 'Cultural Guided Tours',
+          phone: '+919876543210',
           city: 'Mumbai',
           verificationStatus: VerificationStatus.VERIFIED,
           kycDocumentRef: 'kyc/verified/mumbai_food_reg.pdf',
@@ -72,15 +50,20 @@ async function main() {
     include: { providerProfile: true },
   });
 
+  const providerMumbaiUser = providerAhmedabadUser;
+
   const providerJaipurUser = await prisma.user.upsert({
     where: { email: 'jaipur.artisan@experienceplatform.in' },
-    update: {},
+    update: {
+      passwordHash: providerPassword,
+      mfaEnabled: false,
+    },
     create: {
       email: 'jaipur.artisan@experienceplatform.in',
       passwordHash: providerPassword,
       name: 'Gayatri Shekhawat',
       role: Role.PROVIDER,
-      mfaEnabled: true,
+      mfaEnabled: false,
       providerProfile: {
         create: {
           businessName: 'Pink City Royal Guild Crafts',
@@ -97,9 +80,34 @@ async function main() {
     include: { providerProfile: true },
   });
 
-  // 3. Seed Curated Experiences with PostGIS Points
+  // 3. Seed Traveler User for testing
+  const travelerPassword = await argon2.hash('Traveler123!');
+  await prisma.user.upsert({
+    where: { email: 'traveler@experienceplatform.in' },
+    update: {
+      passwordHash: travelerPassword,
+    },
+    create: {
+      email: 'traveler@experienceplatform.in',
+      passwordHash: travelerPassword,
+      name: 'Aarav Sharma',
+      role: Role.TRAVELER,
+      travelerProfile: {
+        create: {
+          homeCity: 'Mumbai',
+          interests: [Category.FOOD, Category.CULTURE, Category.WORKSHOPS],
+          budgetBand: BudgetBand.MODERATE,
+          travelStyle: 'CULTURAL_EXPLORER',
+        },
+      },
+    },
+  });
+
+  // 4. Curated Experiences across Cities & Diverse Categories
   const experiences = [
-    // --- AHMEDABAD ---
+    // ═════════════════════════════════════════════════════════════════════════
+    // AHMEDABAD
+    // ═════════════════════════════════════════════════════════════════════════
     {
       providerId: providerAhmedabadUser.providerProfile!.id,
       title: 'Old Ahmedabad Heritage & Pol Food Trail',
@@ -116,6 +124,8 @@ async function main() {
       ratingAverage: 4.85,
       reviewCount: 124,
       authenticityRating: 0.98,
+      weatherTag: 'WEATHER_DEPENDENT' as WeatherTag,
+      durationMinutes: 90,
       accessibilityTags: ['GUIDED_AUDIO', 'WALKING_FRIENDLY'],
       mediaUrls: ['https://images.unsplash.com/photo-1596178065887-1198b6148b2b'],
       availabilityRules: [{ daysOfWeek: [0, 1, 2, 3, 4, 5, 6], openTime: '07:30', closeTime: '12:00' }],
@@ -136,6 +146,8 @@ async function main() {
       ratingAverage: 4.92,
       reviewCount: 56,
       authenticityRating: 0.99,
+      weatherTag: 'INDOOR' as WeatherTag,
+      durationMinutes: 120,
       accessibilityTags: ['WHEELCHAIR_ACCESSIBLE', 'INDOOR'],
       mediaUrls: ['https://images.unsplash.com/photo-1606744837616-56c9a5c6a6eb'],
       availabilityRules: [{ daysOfWeek: [2, 3, 4, 5, 6], openTime: '10:00', closeTime: '16:00' }],
@@ -156,12 +168,82 @@ async function main() {
       ratingAverage: 4.70,
       reviewCount: 88,
       authenticityRating: 0.90,
+      weatherTag: 'OUTDOOR' as WeatherTag,
+      durationMinutes: 75,
       accessibilityTags: ['LIFE_JACKETS_PROVIDED'],
       mediaUrls: ['https://images.unsplash.com/photo-1544551763-46a013bb70d5'],
       availabilityRules: [{ daysOfWeek: [0, 5, 6], openTime: '16:30', closeTime: '19:30' }],
     },
+    {
+      providerId: providerAhmedabadUser.providerProfile!.id,
+      title: 'Manek Chowk Midnight Culinary Bazaar Extravaganza',
+      description: 'Experience the transformation of jewelry market into Mumbai-style midnight street food haven with chocolate cheese sandwiches, pav bhaji and rabdi kulfi.',
+      category: 'NIGHTLIFE' as Category,
+      lat: 23.0248,
+      lng: 72.5891,
+      address: 'Manek Chowk, Old Ahmedabad',
+      city: 'Ahmedabad',
+      state: 'Gujarat',
+      priceMin: 350,
+      priceMax: 600,
+      budgetBand: 'BUDGET' as BudgetBand,
+      ratingAverage: 4.78,
+      reviewCount: 210,
+      authenticityRating: 0.95,
+      weatherTag: 'OUTDOOR' as WeatherTag,
+      durationMinutes: 90,
+      accessibilityTags: ['WALKING_FRIENDLY'],
+      mediaUrls: ['https://images.unsplash.com/photo-1555396273-367ea4eb4db5'],
+      availabilityRules: [{ daysOfWeek: [0, 1, 2, 3, 4, 5, 6], openTime: '20:30', closeTime: '23:59' }],
+    },
+    {
+      providerId: providerAhmedabadUser.providerProfile!.id,
+      title: 'Adalaj Stepwell Architecture & Geometry Walk',
+      description: 'Explore five storeys of subterranean carved sandstone stepwell architecture, Solanki dynasty motifs, and passive microclimate engineering.',
+      category: 'CULTURE' as Category,
+      lat: 23.1667,
+      lng: 72.5801,
+      address: 'Adalaj Stepwell Road, Gandhinagar-Ahmedabad',
+      city: 'Ahmedabad',
+      state: 'Gujarat',
+      priceMin: 400,
+      priceMax: 700,
+      budgetBand: 'BUDGET' as BudgetBand,
+      ratingAverage: 4.88,
+      reviewCount: 95,
+      authenticityRating: 0.97,
+      weatherTag: 'WEATHER_DEPENDENT' as WeatherTag,
+      durationMinutes: 60,
+      accessibilityTags: ['GUIDED_AUDIO'],
+      mediaUrls: ['https://images.unsplash.com/photo-1609137144813-7d9921338f24'],
+      availabilityRules: [{ daysOfWeek: [0, 1, 2, 3, 4, 5, 6], openTime: '08:00', closeTime: '17:30' }],
+    },
+    {
+      providerId: providerAhmedabadUser.providerProfile!.id,
+      title: 'Law Garden Handicrafts & Kutchi Embroidery Bazaar',
+      description: 'Evening curated artisan shopping for mirror-work chaniya cholis, antique silver ornaments, and bell metal crafts directly from Kutch craft cooperatives.',
+      category: 'SHOPPING' as Category,
+      lat: 23.0238,
+      lng: 72.5592,
+      address: 'Law Garden Night Market, Ellisbridge',
+      city: 'Ahmedabad',
+      state: 'Gujarat',
+      priceMin: 500,
+      priceMax: 1500,
+      budgetBand: 'MODERATE' as BudgetBand,
+      ratingAverage: 4.65,
+      reviewCount: 142,
+      authenticityRating: 0.92,
+      weatherTag: 'OUTDOOR' as WeatherTag,
+      durationMinutes: 60,
+      accessibilityTags: ['WHEELCHAIR_ACCESSIBLE'],
+      mediaUrls: ['https://images.unsplash.com/photo-1579783902614-a3fb3927b675'],
+      availabilityRules: [{ daysOfWeek: [0, 1, 2, 3, 4, 5, 6], openTime: '17:00', closeTime: '22:30' }],
+    },
 
-    // --- MUMBAI ---
+    // ═════════════════════════════════════════════════════════════════════════
+    // MUMBAI
+    // ═════════════════════════════════════════════════════════════════════════
     {
       providerId: providerMumbaiUser.providerProfile!.id,
       title: 'Dawn at Sassoon Docks: Fisherfolk Culture & Fresh Catch',
@@ -178,6 +260,8 @@ async function main() {
       ratingAverage: 4.88,
       reviewCount: 94,
       authenticityRating: 0.97,
+      weatherTag: 'WEATHER_DEPENDENT' as WeatherTag,
+      durationMinutes: 90,
       accessibilityTags: ['EARLY_MORNING'],
       mediaUrls: ['https://images.unsplash.com/photo-1570168007204-dfb528c6958f'],
       availabilityRules: [{ daysOfWeek: [1, 2, 3, 4, 5, 6], openTime: '05:30', closeTime: '08:30' }],
@@ -198,12 +282,104 @@ async function main() {
       ratingAverage: 4.90,
       reviewCount: 160,
       authenticityRating: 0.96,
+      weatherTag: 'WEATHER_DEPENDENT' as WeatherTag,
+      durationMinutes: 75,
       accessibilityTags: ['WHEELCHAIR_ACCESSIBLE', 'PET_FRIENDLY'],
       mediaUrls: ['https://images.unsplash.com/photo-1567157577867-05ccb1388e66'],
       availabilityRules: [{ daysOfWeek: [0, 2, 4, 6], openTime: '09:00', closeTime: '13:00' }],
     },
+    {
+      providerId: providerMumbaiUser.providerProfile!.id,
+      title: 'Gateway to Colaba Secret Antique Alley & Curio Tour',
+      description: 'Hidden basement curio shops behind Taj Mahal Palace Hotel featuring vintage Bollywood film posters, maritime brass compasses and colonial maps.',
+      category: 'HIDDEN_GEMS' as Category,
+      lat: 18.9220,
+      lng: 72.8347,
+      address: 'Apollo Bunder, Colaba',
+      city: 'Mumbai',
+      state: 'Maharashtra',
+      priceMin: 600,
+      priceMax: 1000,
+      budgetBand: 'MODERATE' as BudgetBand,
+      ratingAverage: 4.84,
+      reviewCount: 72,
+      authenticityRating: 0.95,
+      weatherTag: 'INDOOR' as WeatherTag,
+      durationMinutes: 60,
+      accessibilityTags: ['INDOOR'],
+      mediaUrls: ['https://images.unsplash.com/photo-1582510003544-4d00b7f74220'],
+      availabilityRules: [{ daysOfWeek: [1, 2, 3, 4, 5, 6], openTime: '11:00', closeTime: '19:00' }],
+    },
+    {
+      providerId: providerMumbaiUser.providerProfile!.id,
+      title: 'Kala Ghoda Contemporary Indie Art Gallery Crawl',
+      description: 'Guided tour across 4 independent art foundations in the heritage art district with private curator talks and artisanal filter roast coffee.',
+      category: 'WORKSHOPS' as Category,
+      lat: 18.9280,
+      lng: 72.8315,
+      address: 'Kala Ghoda Art Precinct, Fort',
+      city: 'Mumbai',
+      state: 'Maharashtra',
+      priceMin: 700,
+      priceMax: 1200,
+      budgetBand: 'MODERATE' as BudgetBand,
+      ratingAverage: 4.89,
+      reviewCount: 65,
+      authenticityRating: 0.93,
+      weatherTag: 'INDOOR' as WeatherTag,
+      durationMinutes: 90,
+      accessibilityTags: ['WHEELCHAIR_ACCESSIBLE', 'INDOOR'],
+      mediaUrls: ['https://images.unsplash.com/photo-1518998053901-5348d3961a04'],
+      availabilityRules: [{ daysOfWeek: [2, 3, 4, 5, 6, 0], openTime: '11:00', closeTime: '18:00' }],
+    },
+    {
+      providerId: providerMumbaiUser.providerProfile!.id,
+      title: 'Bandra Portuguese Chimbai Village & Street Art Expedition',
+      description: 'Wander 400-year-old narrow lanes of Bandra Ranwar village, discovering vibrant murals, heritage wooden cross shrines and authentic Goan-East Indian bakeries.',
+      category: 'CULTURE' as Category,
+      lat: 19.0558,
+      lng: 72.8290,
+      address: 'Ranwar Village Square, Bandra West',
+      city: 'Mumbai',
+      state: 'Maharashtra',
+      priceMin: 650,
+      priceMax: 950,
+      budgetBand: 'MODERATE' as BudgetBand,
+      ratingAverage: 4.91,
+      reviewCount: 130,
+      authenticityRating: 0.96,
+      weatherTag: 'WEATHER_DEPENDENT' as WeatherTag,
+      durationMinutes: 75,
+      accessibilityTags: ['WALKING_FRIENDLY'],
+      mediaUrls: ['https://images.unsplash.com/photo-1566552881560-0be862a7c445'],
+      availabilityRules: [{ daysOfWeek: [0, 1, 2, 3, 4, 5, 6], openTime: '10:00', closeTime: '18:00' }],
+    },
+    {
+      providerId: providerMumbaiUser.providerProfile!.id,
+      title: 'Marine Drive Sunset Sailing on Arabian Sea',
+      description: 'Private 2-hour sailboat trip departing Gateway of India, catching the sunset with panoramic views of Queen’s Necklace skyline and harbor lighthouses.',
+      category: 'ADVENTURE' as Category,
+      lat: 18.9220,
+      lng: 72.8360,
+      address: 'Jetty No 5, Opposite Gateway of India',
+      city: 'Mumbai',
+      state: 'Maharashtra',
+      priceMin: 1800,
+      priceMax: 3000,
+      budgetBand: 'PREMIUM' as BudgetBand,
+      ratingAverage: 4.94,
+      reviewCount: 118,
+      authenticityRating: 0.91,
+      weatherTag: 'OUTDOOR' as WeatherTag,
+      durationMinutes: 120,
+      accessibilityTags: ['LIFE_JACKETS_PROVIDED'],
+      mediaUrls: ['https://images.unsplash.com/photo-1507525428034-b723cf961d3e'],
+      availabilityRules: [{ daysOfWeek: [0, 1, 2, 3, 4, 5, 6], openTime: '16:00', closeTime: '18:30' }],
+    },
 
-    // --- JAIPUR ---
+    // ═════════════════════════════════════════════════════════════════════════
+    // JAIPUR
+    // ═════════════════════════════════════════════════════════════════════════
     {
       providerId: providerJaipurUser.providerProfile!.id,
       title: 'Bagru Natural Indigo Hand-Block Printing Workshop',
@@ -220,6 +396,8 @@ async function main() {
       ratingAverage: 4.95,
       reviewCount: 78,
       authenticityRating: 0.99,
+      weatherTag: 'INDOOR' as WeatherTag,
+      durationMinutes: 120,
       accessibilityTags: ['INDOOR', 'MATERIALS_INCLUDED'],
       mediaUrls: ['https://images.unsplash.com/photo-1599839575945-a9e5af0c3fa5'],
       availabilityRules: [{ daysOfWeek: [1, 2, 3, 4, 5, 6], openTime: '10:00', closeTime: '17:00' }],
@@ -240,11 +418,104 @@ async function main() {
       ratingAverage: 4.82,
       reviewCount: 110,
       authenticityRating: 0.94,
+      weatherTag: 'OUTDOOR' as WeatherTag,
+      durationMinutes: 90,
       accessibilityTags: ['PARKING_AVAILABLE'],
       mediaUrls: ['https://images.unsplash.com/photo-1475274047050-1d0c0975c63e'],
       availabilityRules: [{ daysOfWeek: [4, 5, 6, 0], openTime: '18:00', closeTime: '22:30' }],
     },
+    {
+      providerId: providerJaipurUser.providerProfile!.id,
+      title: 'Old Walled City Morning Spice & Royal Kachori Walk',
+      description: 'Savor piping hot pyaz kachoris, 120-year-old lassi in clay kulhads, and freshly fried Ghewar while discovering spice markets and Hawa Mahal views.',
+      category: 'FOOD' as Category,
+      lat: 26.9239,
+      lng: 75.8267,
+      address: 'Badi Chaupar, Hawa Mahal Road',
+      city: 'Jaipur',
+      state: 'Rajasthan',
+      priceMin: 400,
+      priceMax: 700,
+      budgetBand: 'BUDGET' as BudgetBand,
+      ratingAverage: 4.88,
+      reviewCount: 154,
+      authenticityRating: 0.98,
+      weatherTag: 'WEATHER_DEPENDENT' as WeatherTag,
+      durationMinutes: 75,
+      accessibilityTags: ['WALKING_FRIENDLY'],
+      mediaUrls: ['https://images.unsplash.com/photo-1548013146-72479768bada'],
+      availabilityRules: [{ daysOfWeek: [0, 1, 2, 3, 4, 5, 6], openTime: '07:30', closeTime: '11:00' }],
+    },
+    {
+      providerId: providerJaipurUser.providerProfile!.id,
+      title: 'Traditional Blue Pottery Clay Molding Masterclass',
+      description: 'Learn Turko-Persian glazed blue pottery from master craftsmen: molding quartz clay, freehand floral brush strokes, and wood-fired kiln lore.',
+      category: 'WORKSHOPS' as Category,
+      lat: 26.8850,
+      lng: 75.7920,
+      address: 'Kot Jeweler Lane, Civil Lines',
+      city: 'Jaipur',
+      state: 'Rajasthan',
+      priceMin: 1100,
+      priceMax: 1800,
+      budgetBand: 'PREMIUM' as BudgetBand,
+      ratingAverage: 4.93,
+      reviewCount: 82,
+      authenticityRating: 0.98,
+      weatherTag: 'INDOOR' as WeatherTag,
+      durationMinutes: 105,
+      accessibilityTags: ['INDOOR', 'MATERIALS_INCLUDED'],
+      mediaUrls: ['https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261'],
+      availabilityRules: [{ daysOfWeek: [1, 2, 3, 4, 5, 6], openTime: '10:30', closeTime: '16:30' }],
+    },
+    {
+      providerId: providerJaipurUser.providerProfile!.id,
+      title: 'Amer Fort Hidden Stepwell & Royal Waterways Trek',
+      description: 'Explore subterranean aqueducts, Panna Meena Ka Kund stepwell geometric marvel, and lesser-known fortress watchtowers away from standard tourists.',
+      category: 'HIDDEN_GEMS' as Category,
+      lat: 26.9855,
+      lng: 75.8507,
+      address: 'Panna Meena Kund, Amer',
+      city: 'Jaipur',
+      state: 'Rajasthan',
+      priceMin: 750,
+      priceMax: 1250,
+      budgetBand: 'MODERATE' as BudgetBand,
+      ratingAverage: 4.87,
+      reviewCount: 96,
+      authenticityRating: 0.96,
+      weatherTag: 'WEATHER_DEPENDENT' as WeatherTag,
+      durationMinutes: 90,
+      accessibilityTags: ['GUIDED_AUDIO'],
+      mediaUrls: ['https://images.unsplash.com/photo-1599661046289-e31897846e41'],
+      availabilityRules: [{ daysOfWeek: [0, 1, 2, 3, 4, 5, 6], openTime: '08:30', closeTime: '17:00' }],
+    },
+    {
+      providerId: providerJaipurUser.providerProfile!.id,
+      title: 'Johari Bazaar Gemstone Cutting & Silver Filigree Trail',
+      description: 'Exclusive access to family-run 5th generation jeweler havelis, watching rough emerald faceting and delicate Meenakari enamel artistry.',
+      category: 'SHOPPING' as Category,
+      lat: 26.9195,
+      lng: 75.8248,
+      address: 'Johari Bazaar, Old City',
+      city: 'Jaipur',
+      state: 'Rajasthan',
+      priceMin: 800,
+      priceMax: 2000,
+      budgetBand: 'MODERATE' as BudgetBand,
+      ratingAverage: 4.81,
+      reviewCount: 68,
+      authenticityRating: 0.94,
+      weatherTag: 'INDOOR' as WeatherTag,
+      durationMinutes: 80,
+      accessibilityTags: ['WHEELCHAIR_ACCESSIBLE', 'INDOOR'],
+      mediaUrls: ['https://images.unsplash.com/photo-1535632066927-ab7c9ab60908'],
+      availabilityRules: [{ daysOfWeek: [1, 2, 3, 4, 5, 6], openTime: '11:00', closeTime: '19:30' }],
+    },
   ];
+
+  // Clean existing experiences to prevent duplicates
+  await prisma.$executeRawUnsafe(`DELETE FROM "experiences";`);
 
   for (const exp of experiences) {
     await prisma.$queryRawUnsafe(
@@ -253,14 +524,14 @@ async function main() {
         "id", "provider_id", "title", "description", "category",
         "location", "latitude", "longitude", "address", "city", "state", "country",
         "price_min", "price_max", "currency", "budget_band", "accessibility_tags",
-        "media_urls", "availability_rules", "rating_average", "review_count", "authenticity_rating", "updated_at"
+        "media_urls", "availability_rules", "duration_minutes", "weather_tag",
+        "rating_average", "review_count", "authenticity_rating", "updated_at"
       ) VALUES (
         gen_random_uuid(), $1::uuid, $2, $3, $4::"Category",
         ST_SetSRID(ST_MakePoint($5, $6), 4326)::geography, $6, $5, $7, $8, $9, 'India',
         $10, $11, 'INR', $12::"BudgetBand", $13::text[],
-        $14::text[], $15::jsonb, $16, $17, $18, NOW()
-      )
-      ON CONFLICT DO NOTHING;
+        $14::text[], $15::jsonb, $16, $17::"WeatherTag", $18, $19, $20, NOW()
+      );
       `,
       exp.providerId,
       exp.title,
@@ -277,13 +548,15 @@ async function main() {
       exp.accessibilityTags,
       exp.mediaUrls,
       JSON.stringify(exp.availabilityRules),
+      exp.durationMinutes,
+      exp.weatherTag,
       exp.ratingAverage,
       exp.reviewCount,
       exp.authenticityRating,
     );
   }
 
-  console.log('Database seeding successfully finished!');
+  console.log(`Successfully seeded ${experiences.length} rich curated experiences across Ahmedabad, Mumbai, and Jaipur!`);
 }
 
 main()

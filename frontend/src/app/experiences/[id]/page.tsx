@@ -1,10 +1,11 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
+import { API_BASE } from '@/lib/api-client';
 
 async function getExperience(id: string) {
   try {
-    const res = await fetch(`http://localhost:4000/api/v1/experiences/${id}`, {
+    const res = await fetch(`${API_BASE}/experiences/${id}`, {
       cache: 'no-store',
     });
     if (!res.ok) return null;

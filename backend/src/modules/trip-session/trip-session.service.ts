@@ -59,12 +59,12 @@ export class TripSessionService {
         start_time, remaining_time_minutes,
         total_budget, remaining_budget,
         group_size, accessibility_requirements,
-        interests, last_activity_at
+        interests, last_activity_at, updated_at
       ) VALUES (
         gen_random_uuid(), $1::uuid, 'ACTIVE',
         ST_SetSRID(ST_MakePoint($2, $3), 4326)::geography,
         ST_SetSRID(ST_MakePoint($2, $3), 4326)::geography,
-        NOW(), $4, $5, $5, $6, $7::text[], $8::"Category"[], NOW()
+        NOW(), $4, $5, $5, $6, $7::text[], $8::"Category"[], NOW(), NOW()
       ) RETURNING id;
       `,
       userId,
@@ -159,7 +159,8 @@ export class TripSessionService {
     const isAdverseWeather = this.weather.isAdverse(weatherCondition);
 
     // 2. Query candidates within budget and approx radius from DB
-    const radiusKm = 10; // tight radius for itinerary continuity
+    // Expanded to 50km to comfortably cover entire metropolitan regions (e.g., MMR/Mumbai, Ahmedabad metro)
+    const radiusKm = 50;
     const rawCandidates = await this.fetchCandidatesNear(
       currentLat,
       currentLng,

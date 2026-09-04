@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { API_BASE } from '@/lib/api-client';
 import { TripStateBar } from '@/components/TripStateBar';
 import { ItineraryStopCard } from '@/components/ItineraryStopCard';
 
@@ -120,7 +121,7 @@ export default function TripSessionLoopPage() {
 
     try {
       // 1. Fetch current session detail (with selected experiences)
-      const sessionRes = await fetch(`http://localhost:4000/api/v1/trip-sessions/${sessionId}`, {
+      const sessionRes = await fetch(`${API_BASE}/trip-sessions/${sessionId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -142,7 +143,7 @@ export default function TripSessionLoopPage() {
       }
 
       // 2. Fetch next recommendations
-      const recRes = await fetch(`http://localhost:4000/api/v1/trip-sessions/${sessionId}/recommend`, {
+      const recRes = await fetch(`${API_BASE}/trip-sessions/${sessionId}/recommend`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -157,7 +158,7 @@ export default function TripSessionLoopPage() {
         setWrapUpPrompt(recData.wrapUpPrompt);
         setWeatherAdaptPrompt(recData.weatherAdaptPrompt);
 
-        if (recData.sessionState.stopCondition?.shouldStop) {
+        if (recData.sessionState.stopCondition?.shouldStop && (sessionData.selectedExperiences?.length ?? 0) > 0) {
           setIsCompleted(true);
         }
       } else {
@@ -182,7 +183,7 @@ export default function TripSessionLoopPage() {
     const token = getAuthToken();
 
     try {
-      const res = await fetch(`http://localhost:4000/api/v1/trip-sessions/${sessionId}/select`, {
+      const res = await fetch(`${API_BASE}/trip-sessions/${sessionId}/select`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -218,7 +219,7 @@ export default function TripSessionLoopPage() {
     const token = getAuthToken();
 
     try {
-      const res = await fetch(`http://localhost:4000/api/v1/trip-sessions/${sessionId}/reject`, {
+      const res = await fetch(`${API_BASE}/trip-sessions/${sessionId}/reject`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -251,7 +252,7 @@ export default function TripSessionLoopPage() {
     const token = getAuthToken();
 
     try {
-      const res = await fetch(`http://localhost:4000/api/v1/trip-sessions/${sessionId}/stops/${experienceId}`, {
+      const res = await fetch(`${API_BASE}/trip-sessions/${sessionId}/stops/${experienceId}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -275,7 +276,7 @@ export default function TripSessionLoopPage() {
     const token = getAuthToken();
 
     try {
-      await fetch(`http://localhost:4000/api/v1/trip-sessions/${sessionId}/complete`, {
+      await fetch(`${API_BASE}/trip-sessions/${sessionId}/complete`, {
         method: 'PATCH',
         headers: { Authorization: `Bearer ${token}` },
       });

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { API_BASE } from '@/lib/api-client';
 
 export const metadata: Metadata = {
   title: 'Explore Authentic Experiences in India — Local Experience Platform',
@@ -8,7 +9,7 @@ export const metadata: Metadata = {
 
 async function getFeaturedExperiences() {
   try {
-    const res = await fetch('http://localhost:4000/api/v1/experiences/search?limit=3', {
+    const res = await fetch(`${API_BASE}/experiences/search?limit=9`, {
       cache: 'no-store',
     });
     if (!res.ok) return [];
@@ -64,6 +65,34 @@ export default async function HomePage() {
             Explore
           </button>
         </form>
+
+        {/* Itinerary Builder Feature Callout */}
+        <div className="mt-8 max-w-3xl mx-auto bg-gradient-to-r from-orange-500/10 via-amber-500/10 to-orange-500/10 border border-orange-200/80 rounded-2xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4 text-left shadow-sm">
+          <div className="flex items-center gap-3.5">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white text-2xl shadow-md flex-shrink-0">
+              🗺️
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="font-bold text-slate-900 text-sm sm:text-base">
+                  Conversational Adaptive Itinerary Builder
+                </h3>
+                <span className="bg-orange-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                  New
+                </span>
+              </div>
+              <p className="text-xs text-slate-600 mt-0.5">
+                Real-time multi-stop planning with directional route continuity, weather adaptation & budget tracking.
+              </p>
+            </div>
+          </div>
+          <Link
+            href="/trip"
+            className="w-full sm:w-auto flex-shrink-0 bg-orange-600 hover:bg-orange-700 text-white font-semibold text-xs sm:text-sm px-5 py-2.5 rounded-xl shadow-md hover:shadow transition text-center whitespace-nowrap"
+          >
+            Start Itinerary →
+          </Link>
+        </div>
       </section>
 
       {/* Featured Experiences with Live Database Query */}

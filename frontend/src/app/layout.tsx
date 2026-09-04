@@ -54,6 +54,10 @@ export default function RootLayout({
             </div>
             <nav className="flex items-center space-x-6 text-sm font-medium text-slate-600">
               <a href="/explore" className="hover:text-orange-600 transition">Explore</a>
+              <a href="/trip" className="flex items-center gap-1.5 text-orange-600 font-semibold hover:text-orange-700 transition">
+                <span className="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></span>
+                🗺️ Itinerary Builder
+              </a>
               <a href="/cities/ahmedabad" className="hover:text-orange-600 transition">Cities</a>
               <a href="/provider/portal" className="text-slate-900 bg-slate-100 hover:bg-slate-200 px-3.5 py-1.5 rounded-lg transition">For Providers</a>
               <a href="/auth/login" className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-1.5 rounded-lg shadow-sm transition">Sign In</a>

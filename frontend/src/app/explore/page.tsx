@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { API_BASE } from '@/lib/api-client';
 
 export const metadata: Metadata = {
   title: 'Explore All Experiences — Local Experience Platform',
@@ -14,7 +15,7 @@ async function getExperiences(searchParams: { city?: string; cat?: string; budge
     if (searchParams.budget) params.set('budgetBand', searchParams.budget);
     params.set('limit', '20');
 
-    const res = await fetch(`http://localhost:4000/api/v1/experiences/search?${params.toString()}`, {
+    const res = await fetch(`${API_BASE}/experiences/search?${params.toString()}`, {
       cache: 'no-store',
     });
     if (!res.ok) return [];

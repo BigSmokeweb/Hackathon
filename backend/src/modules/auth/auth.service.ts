@@ -121,12 +121,12 @@ export class AuthService {
       throw new UnauthorizedException('Invalid email or password');
     }
 
-    // Enforce MFA for Provider accounts
-    if (user.role === Role.PROVIDER || user.mfaEnabled) {
+    // Enforce MFA for accounts with MFA enabled
+    if (user.mfaEnabled) {
       if (!dto.mfaCode) {
         // If MFA code missing, throw 403 specifying MFA requirement
         throw new ForbiddenException({
-          message: 'MFA code is required for provider accounts',
+          message: 'MFA code is required for this account',
           requiresMfa: true,
         });
       }

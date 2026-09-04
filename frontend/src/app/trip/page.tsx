@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { API_BASE } from '@/lib/api-client';
 
 const CATEGORIES = ['FOOD', 'CULTURE', 'ADVENTURE', 'HIDDEN_GEMS', 'NIGHTLIFE', 'EVENTS', 'WORKSHOPS', 'SHOPPING'];
 const CATEGORY_LABELS: Record<string, string> = {
@@ -20,6 +21,47 @@ export default function TripStartPage() {
   const [step, setStep] = useState<'location' | 'preferences' | 'budget'>('location');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [activeSession, setActiveSession] = useState<{ id: string } | null>(null);
+  const [isAbandoning, setIsAbandoning] = useState(false);
+
+  // Check if user already has an active session
+  useEffect(() => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+    if (!token) return;
+
+    fetch(`${API_BASE}/trip-sessions/active`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.id) {
+          setActiveSession(data);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  async function handleAbandonExisting() {
+    if (!activeSession) return;
+    setIsAbandoning(true);
+    setError(null);
+    try {
+      const token = localStorage.getItem('accessToken');
+      const res = await fetch(`${API_BASE}/trip-sessions/${activeSession.id}/abandon`, {
+        method: 'PATCH',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        setActiveSession(null);
+      } else {
+        setError('Could not reset previous session. Please try again.');
+      }
+    } catch {
+      setError('Network error resetting session.');
+    } finally {
+      setIsAbandoning(false);
+    }
+  }
 
   const [form, setForm] = useState({
     latitude: '',
@@ -47,20 +89,43 @@ export default function TripStartPage() {
       return;
     }
     setIsLoading(true);
+    setError(null);
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
+      async (pos) => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        let detectedCity = 'Your Current Location';
+
+        try {
+          // Free, high-accuracy reverse geocoding to detect city/neighbourhood
+          const geoRes = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=14&addressdetails=1`,
+            { headers: { 'Accept-Language': 'en' } }
+          );
+          if (geoRes.ok) {
+            const geoData = await geoRes.json();
+            const addr = geoData.address;
+            const area = addr.suburb || addr.neighbourhood || addr.city_district || addr.locality;
+            const city = addr.city || addr.town || addr.state_district || '';
+            detectedCity = area && city ? `${area}, ${city}` : (city || area || geoData.display_name?.split(',')[0] || 'Your Location');
+          }
+        } catch {
+          detectedCity = 'Your Location';
+        }
+
         setForm((f) => ({
           ...f,
-          latitude: String(pos.coords.latitude),
-          longitude: String(pos.coords.longitude),
-          cityLabel: 'Current Location',
+          latitude: String(lat),
+          longitude: String(lng),
+          cityLabel: detectedCity,
         }));
         setIsLoading(false);
       },
-      () => {
-        setError('Could not get location. Enter coordinates manually.');
+      (err) => {
+        setError(err.message || 'Could not get location. Enter coordinates manually.');
         setIsLoading(false);
       },
+      { enableHighAccuracy: true, timeout: 10000 }
     );
   }
 
@@ -74,7 +139,7 @@ export default function TripStartPage() {
 
     try {
       const token = localStorage.getItem('accessToken');
-      const res = await fetch('http://localhost:4000/api/v1/trip-sessions', {
+      const res = await fetch(`${API_BASE}/trip-sessions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -93,6 +158,19 @@ export default function TripStartPage() {
 
       if (!res.ok) {
         const err = await res.json();
+        // If conflict with existing session, check active session and provide friendly resolution
+        if (res.status === 409) {
+          const activeRes = await fetch(`${API_BASE}/trip-sessions/active`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          if (activeRes.ok) {
+            const activeData = await activeRes.json();
+            setActiveSession(activeData);
+            setError(null);
+            setIsLoading(false);
+            return;
+          }
+        }
         setError(err.message ?? 'Failed to start session. Please try again.');
         setIsLoading(false);
         return;
@@ -123,6 +201,38 @@ export default function TripStartPage() {
           </p>
         </div>
 
+        {/* Existing Active Session Alert Banner */}
+        {activeSession && (
+          <div className="mb-6 p-4 rounded-2xl bg-amber-50/90 border border-amber-200 shadow-sm flex flex-col gap-3">
+            <div className="flex items-start gap-3">
+              <span className="text-2xl">🧭</span>
+              <div className="flex-1">
+                <h3 className="text-sm font-bold text-amber-900">You have an ongoing itinerary!</h3>
+                <p className="text-xs text-amber-700 mt-0.5">
+                  Would you like to jump back in, or reset and start a fresh journey?
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 pt-1">
+              <button
+                id="resume-trip-btn"
+                onClick={() => router.push(`/trip/${activeSession.id}`)}
+                className="flex-1 py-2 px-3 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-xl transition shadow-sm"
+              >
+                Resume Itinerary →
+              </button>
+              <button
+                id="reset-trip-btn"
+                disabled={isAbandoning}
+                onClick={handleAbandonExisting}
+                className="py-2 px-3 bg-white hover:bg-amber-100 text-amber-800 border border-amber-300 text-xs font-semibold rounded-xl transition disabled:opacity-50"
+              >
+                {isAbandoning ? 'Resetting...' : 'Start New Instead'}
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Progress dots */}
         <div className="flex items-center justify-center gap-2 mb-8">
           {(['location', 'preferences', 'budget'] as const).map((s, i) => (
@@ -150,6 +260,31 @@ export default function TripStartPage() {
               >
                 {isLoading ? '📡 Getting location...' : '📡 Use My Current Location'}
               </button>
+
+              <div className="flex items-center gap-2 pt-1">
+                <span className="text-xs text-slate-400">Quick select:</span>
+                <button
+                  type="button"
+                  onClick={() => setForm((f) => ({ ...f, latitude: '18.9220', longitude: '72.8347', cityLabel: 'Mumbai (Colaba)' }))}
+                  className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-orange-100 text-slate-700 hover:text-orange-700 transition"
+                >
+                  🏙️ Mumbai
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setForm((f) => ({ ...f, latitude: '23.0225', longitude: '72.5714', cityLabel: 'Ahmedabad' }))}
+                  className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-orange-100 text-slate-700 hover:text-orange-700 transition"
+                >
+                  🕌 Ahmedabad
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setForm((f) => ({ ...f, latitude: '26.9124', longitude: '75.7873', cityLabel: 'Jaipur' }))}
+                  className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-orange-100 text-slate-700 hover:text-orange-700 transition"
+                >
+                  🏰 Jaipur
+                </button>
+              </div>
 
               <div className="text-center text-xs text-slate-400">— or enter manually —</div>
 
@@ -181,9 +316,15 @@ export default function TripStartPage() {
               </div>
 
               {form.cityLabel && (
-                <p className="text-xs text-emerald-600 font-medium flex items-center gap-1">
-                  ✓ {form.cityLabel} captured
-                </p>
+                <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-base">📍</span>
+                    <span>Detected: <strong className="text-emerald-950">{form.cityLabel}</strong></span>
+                  </div>
+                  <span className="text-[10px] text-emerald-600 bg-emerald-100/60 px-2 py-0.5 rounded-md">
+                    {parseFloat(form.latitude).toFixed(4)}, {parseFloat(form.longitude).toFixed(4)}
+                  </span>
+                </div>
               )}
 
               <button

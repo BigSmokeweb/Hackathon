@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { API_BASE } from '@/lib/api-client';
 
 const CITY_DATA: Record<string, { name: string; state: string; desc: string; heroImage: string }> = {
   ahmedabad: {
@@ -34,7 +35,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 
 async function getCityExperiences(cityName: string) {
   try {
-    const res = await fetch(`http://localhost:4000/api/v1/experiences/search?city=${cityName}&limit=20`, {
+    const res = await fetch(`${API_BASE}/experiences/search?city=${cityName}&limit=20`, {
       cache: 'no-store',
     });
     if (!res.ok) return [];

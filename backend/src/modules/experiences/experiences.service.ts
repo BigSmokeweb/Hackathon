@@ -120,10 +120,43 @@ export class ExperiencesService {
     const limit = Math.min(params.limit || 20, 50); // Enforce max 50 items
     const offset = params.offset || 0;
 
-    // Parameterized PostGIS ST_DWithin and ST_Distance query
+    // Build dynamic parameterized query — all values flow through $N placeholders (no interpolation)
+    const queryArgs: any[] = [
+      params.longitude,   // $1
+      params.latitude,    // $2
+      radiusMeters,       // $3
+    ];
+
+    // $4 — optional categories array
+    const hasCats = params.categories && params.categories.length > 0;
+    let catClause = '';
+    if (hasCats) {
+      queryArgs.push(params.categories);
+      catClause = `AND e.category = ANY($4::"Category"[])`;
+    }
+
+    // $5 / $6 / $7 — optional budget band and min rating (parameterized, never interpolated)
+    let budgetClause = '';
+    if (params.budgetBand) {
+      queryArgs.push(params.budgetBand);
+      budgetClause = `AND e.budget_band = $${queryArgs.length}::"BudgetBand"`;
+    }
+
+    let ratingClause = '';
+    if (params.minRating) {
+      queryArgs.push(params.minRating);
+      ratingClause = `AND e.rating_average >= $${queryArgs.length}`;
+    }
+
+    // $N-1, $N — limit and offset (always last)
+    queryArgs.push(limit);
+    const limitIdx = queryArgs.length;
+    queryArgs.push(offset);
+    const offsetIdx = queryArgs.length;
+
     const results = await this.prisma.$queryRawUnsafe<any[]>(
       `
-      SELECT 
+      SELECT
         e.id, e.title, e.description, e.category, e.city, e.state, e.address,
         e.price_min AS "priceMin", e.price_max AS "priceMax", e.currency,
         e.budget_band AS "budgetBand", e.accessibility_tags AS "accessibilityTags",
@@ -137,18 +170,13 @@ export class ExperiencesService {
       JOIN "provider_profiles" p ON e.provider_id = p.id
       WHERE e.is_active = true
         AND ST_DWithin(e.location, ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography, $3)
-        ${params.categories && params.categories.length > 0 ? `AND e.category = ANY($4::"Category"[])` : ''}
-        ${params.budgetBand ? `AND e.budget_band = '${params.budgetBand}'::"BudgetBand"` : ''}
-        ${params.minRating ? `AND e.rating_average >= ${params.minRating}` : ''}
+        ${catClause}
+        ${budgetClause}
+        ${ratingClause}
       ORDER BY "distanceKm" ASC
-      LIMIT $5 OFFSET $6;
+      LIMIT $${limitIdx} OFFSET $${offsetIdx};
       `,
-      params.longitude,
-      params.latitude,
-      radiusMeters,
-      params.categories && params.categories.length > 0 ? params.categories : undefined,
-      limit,
-      offset,
+      ...queryArgs,
     );
 
     return results;
