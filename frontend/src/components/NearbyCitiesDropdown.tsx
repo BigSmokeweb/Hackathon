@@ -69,7 +69,7 @@ export const CITIES_REGISTRY: CityData[] = [
     lat: 19.0330,
     lng: 73.0297,
     image: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=600&q=80',
-    experienceCount: 22,
+    experienceCount: 30,
     vibe: 'Creek Views & Nature Trails',
   },
   {
@@ -80,7 +80,7 @@ export const CITIES_REGISTRY: CityData[] = [
     lat: 19.2183,
     lng: 72.9781,
     image: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=80',
-    experienceCount: 22,
+    experienceCount: 32,
     vibe: 'Lakes & Hill Foothills',
   },
   {
@@ -91,7 +91,7 @@ export const CITIES_REGISTRY: CityData[] = [
     lat: 18.9894,
     lng: 73.1175,
     image: 'https://images.unsplash.com/photo-1546271876-af6caec5961b?auto=format&fit=crop&w=600&q=80',
-    experienceCount: 22,
+    experienceCount: 39,
     vibe: 'Waterfalls & Heritage Trails',
   },
   {
@@ -102,8 +102,30 @@ export const CITIES_REGISTRY: CityData[] = [
     lat: 19.2211,
     lng: 73.0919,
     image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=600&q=80',
-    experienceCount: 21,
+    experienceCount: 30,
     vibe: 'Riverside & Culinary Katta',
+  },
+  {
+    slug: 'powai',
+    name: 'Powai',
+    state: 'Maharashtra',
+    tagline: 'Lake Promenades, Lakeside Bistros & High-Tech Cafes',
+    lat: 19.1197,
+    lng: 72.9051,
+    image: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/e/eb/Powai_lake.jpg/1280px-Powai_lake.jpg',
+    experienceCount: 28,
+    vibe: 'Lakeside & Contemporary',
+  },
+  {
+    slug: 'kanjur-marg',
+    name: 'Kanjur Marg',
+    state: 'Maharashtra',
+    tagline: 'Local Food Trails, Ancient Shrines & Green Parks',
+    lat: 19.1300,
+    lng: 72.9300,
+    image: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/c/cf/Ayyappa_Temple_Bhandup.jpg/1280px-Ayyappa_Temple_Bhandup.jpg',
+    experienceCount: 15,
+    vibe: 'Local Enclaves & Shrines',
   },
 ];
 

@@ -217,6 +217,8 @@ export function inferCityName(lat: number, lng: number): string {
     { city: 'Panvel', lat: 18.989, lng: 73.118 },
     { city: 'Kalyan-Dombivli', lat: 19.221, lng: 73.092 },
     { city: 'Thane', lat: 19.218, lng: 72.978 },
+    { city: 'Powai', lat: 19.119, lng: 72.905 },
+    { city: 'Kanjur Marg', lat: 19.130, lng: 72.930 },
     { city: 'Mumbai', lat: 18.944, lng: 72.821 },
     { city: 'Ahmedabad', lat: 23.022, lng: 72.571 },
     { city: 'Jaipur', lat: 26.912, lng: 75.787 },
