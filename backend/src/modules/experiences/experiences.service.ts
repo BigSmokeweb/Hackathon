@@ -2,7 +2,6 @@ import {
   Injectable,
   NotFoundException,
   ForbiddenException,
-  BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { ContentSanitizer } from '../../common/utils/sanitizer.util';
@@ -14,6 +13,28 @@ import {
   Category,
   BudgetBand,
 } from '@experience-platform/shared';
+import { computeListingNudges } from './listing-nudges.util';
+
+/** Minimum fields required to auto-set published = true */
+function isPublishEligible(fields: {
+  title?: string;
+  category?: string;
+  latitude?: number;
+  longitude?: number;
+  priceMin?: number;
+  priceMax?: number;
+  mediaUrls?: string[];
+}): boolean {
+  return (
+    Boolean(fields.title?.trim()) &&
+    Boolean(fields.category) &&
+    fields.latitude !== undefined &&
+    fields.longitude !== undefined &&
+    fields.priceMin !== undefined &&
+    fields.priceMax !== undefined &&
+    (fields.mediaUrls ?? []).length >= 1
+  );
+}
 
 @Injectable()
 export class ExperiencesService {
@@ -33,6 +54,17 @@ export class ExperiencesService {
     const sanitizedDescription = ContentSanitizer.sanitize(dto.description);
     const sanitizedTitle = ContentSanitizer.stripAll(dto.title);
 
+    // Compute publish eligibility from minimum required fields
+    const published = isPublishEligible({
+      title: dto.title,
+      category: dto.category,
+      latitude: dto.location?.latitude,
+      longitude: dto.location?.longitude,
+      priceMin: dto.priceMin,
+      priceMax: dto.priceMax,
+      mediaUrls: dto.mediaUrls,
+    });
+
     // Using parameterized query for PostGIS geography Point creation
     const experience = await this.prisma.$queryRawUnsafe<any[]>(
       `
@@ -40,12 +72,12 @@ export class ExperiencesService {
         "id", "provider_id", "title", "description", "category",
         "location", "latitude", "longitude", "address", "city", "state", "country",
         "price_min", "price_max", "currency", "budget_band", "accessibility_tags",
-        "media_urls", "availability_rules", "duration_minutes", "updated_at"
+        "media_urls", "availability_rules", "duration_minutes", "published", "updated_at"
       ) VALUES (
         gen_random_uuid(), $1::uuid, $2, $3, $4::"Category",
         ST_SetSRID(ST_MakePoint($5, $6), 4326)::geography, $6, $5, $7, $8, $9, $10,
         $11, $12, $13, $14::"BudgetBand", $15::text[],
-        $16::text[], $17::jsonb, $18, NOW()
+        $16::text[], $17::jsonb, $18, $19, NOW()
       )
       RETURNING *;
       `,
@@ -67,6 +99,7 @@ export class ExperiencesService {
       dto.mediaUrls,
       JSON.stringify(dto.availabilityRules),
       dto.durationMinutes,
+      published,
     );
 
     return experience[0];
@@ -85,19 +118,37 @@ export class ExperiencesService {
       throw new ForbiddenException('IDOR Violation: You do not own this experience');
     }
 
+    // Merge update fields with existing to recompute publish eligibility
+    const mergedTitle = dto.title ? ContentSanitizer.stripAll(dto.title) : existing.title;
+    const mergedCategory = dto.category ?? existing.category;
+    const mergedPriceMin = dto.priceMin ?? existing.priceMin;
+    const mergedPriceMax = dto.priceMax ?? existing.priceMax;
+    const mergedMediaUrls = dto.mediaUrls ?? existing.mediaUrls;
+
+    const published = isPublishEligible({
+      title: mergedTitle,
+      category: mergedCategory,
+      latitude: existing.latitude,
+      longitude: existing.longitude,
+      priceMin: mergedPriceMin,
+      priceMax: mergedPriceMax,
+      mediaUrls: mergedMediaUrls,
+    });
+
     return this.prisma.experience.update({
       where: { id: experienceId },
       data: {
-        title: dto.title ? ContentSanitizer.stripAll(dto.title) : undefined,
+        title: mergedTitle,
         description: dto.description ? ContentSanitizer.sanitize(dto.description) : undefined,
-        category: dto.category,
-        priceMin: dto.priceMin,
-        priceMax: dto.priceMax,
+        category: mergedCategory,
+        priceMin: mergedPriceMin,
+        priceMax: mergedPriceMax,
         budgetBand: dto.budgetBand,
         accessibilityTags: dto.accessibilityTags,
-        mediaUrls: dto.mediaUrls,
+        mediaUrls: mergedMediaUrls,
         availabilityRules: dto.availabilityRules as any,
         durationMinutes: dto.durationMinutes,
+        published,
       },
     });
   }
@@ -169,6 +220,7 @@ export class ExperiencesService {
       FROM "experiences" e
       JOIN "provider_profiles" p ON e.provider_id = p.id
       WHERE e.is_active = true
+        AND e.published = true
         AND ST_DWithin(e.location, ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography, $3)
         ${catClause}
         ${budgetClause}
@@ -214,6 +266,7 @@ export class ExperiencesService {
     // Fallback: Standard City/Category filtered search
     const whereClause: any = {
       isActive: true,
+      published: true,  // CRITICAL: draft exclusion enforced at query layer
       ...(query.city && { city: { equals: query.city, mode: 'insensitive' } }),
       ...(query.category && { category: query.category }),
       ...(query.budgetBand && { budgetBand: query.budgetBand }),
@@ -280,5 +333,43 @@ export class ExperiencesService {
     }
 
     return experience;
+  }
+
+  /**
+   * Get all experiences (drafts + published) for a provider's own dashboard.
+   * Returns nudges for each listing so the dashboard can surface them on load.
+   * IDOR-safe: filters by authenticated provider's profile ID only.
+   */
+  async getProviderExperiences(userId: string) {
+    const provider = await this.prisma.providerProfile.findUnique({ where: { userId } });
+    if (!provider) {
+      throw new ForbiddenException('Only registered providers can access their listings');
+    }
+
+    const experiences = await this.prisma.experience.findMany({
+      where: { providerId: provider.id },
+      orderBy: { createdAt: 'desc' },
+      include: {
+        provider: {
+          select: { businessName: true, verificationStatus: true },
+        },
+        _count: { select: { reviews: true } },
+      },
+    });
+
+    // Attach nudges to each listing (pure, no writes)
+    return experiences.map((exp) => ({
+      ...exp,
+      nudges: computeListingNudges({
+        accessibilityTags: exp.accessibilityTags,
+        availabilityRules: Array.isArray(exp.availabilityRules)
+          ? (exp.availabilityRules as any[])
+          : [],
+        priceMin: exp.priceMin,
+        priceMax: exp.priceMax,
+        mediaUrls: exp.mediaUrls,
+        description: exp.description,
+      }),
+    }));
   }
 }

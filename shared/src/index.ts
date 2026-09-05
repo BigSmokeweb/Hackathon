@@ -421,3 +421,73 @@ export interface SessionAiReasoningPayload extends AiReasoningPayload {
     lastStopTitle?: string;
   };
 }
+
+// ==========================================
+// 12. PROVIDER LISTING — DRAFT & PUBLISH
+// ==========================================
+
+/**
+ * Draft payload for match-preview endpoint.
+ * All fields optional — host may call this at any step of the form.
+ * Zero traveler PII; operates purely on listing data.
+ */
+export const MatchPreviewRequestSchema = z.object({
+  /** Not yet-persisted draft — provide these from form state */
+  category: z.nativeEnum(Category).optional(),
+  priceMin: z.number().nonnegative().optional(),
+  priceMax: z.number().nonnegative().optional(),
+  budgetBand: z.nativeEnum(BudgetBand).optional(),
+  latitude: z.number().min(-90).max(90).optional(),
+  longitude: z.number().min(-180).max(180).optional(),
+  accessibilityTags: z.array(z.string()).default([]),
+  mediaUrls: z.array(z.string()).default([]),
+  description: z.string().optional(),
+  availabilityRules: z
+    .array(
+      z.object({
+        daysOfWeek: z.array(z.number()),
+        openTime: z.string(),
+        closeTime: z.string(),
+      }),
+    )
+    .default([]),
+  durationMinutes: z.number().int().positive().optional(),
+});
+
+export type MatchPreviewRequestDto = z.infer<typeof MatchPreviewRequestSchema>;
+
+/** A single dimension contribution shown to the host */
+export interface MatchPreviewDimension {
+  key: string;        // e.g. "budgetFit"
+  label: string;      // e.g. "Budget fit"
+  score: number;      // 0.0 – 1.0
+  weight: number;     // w_i from recommendation.config.ts
+  contribution: number; // score * weight, rounded
+  tip?: string;       // optional short improvement hint
+}
+
+export interface MatchPreviewResponseDto {
+  /** Human-readable templated summary (no LLM) */
+  segmentSummary: string;
+  /** Ordered dimension breakdown — same dimensions as scoring engine */
+  dimensions: MatchPreviewDimension[];
+  /** Estimated composite score if listed now (0–1) */
+  estimatedScore: number;
+  /** Nudges derived from the same listing data */
+  nudges: NudgeItem[];
+  /** True when minimum publish requirements are met */
+  publishEligible: boolean;
+}
+
+// ==========================================
+// 13. LISTING NUDGES
+// ==========================================
+
+export type NudgeImpact = 'HIGH' | 'MEDIUM';
+
+export interface NudgeItem {
+  /** Scoring dimension this nudge relates to */
+  dimension: string;
+  message: string;
+  impact: NudgeImpact;
+}

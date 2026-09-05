@@ -150,6 +150,7 @@ model Experience {
   authenticityRating Float                                @default(0.85) @map("authenticity_rating")
   weatherTag         WeatherTag                           @default(WEATHER_DEPENDENT) @map("weather_tag")
   isActive           Boolean                              @default(true) @map("is_active")
+  published          Boolean                              @default(true) @map("published")
   createdAt          DateTime                             @default(now()) @map("created_at")
   updatedAt          DateTime                             @updatedAt @map("updated_at")
 
