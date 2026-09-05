@@ -227,13 +227,30 @@ export function ItineraryBuilder() {
             {activeSession && (
               <div className="flex items-center gap-3 bg-white border border-[#347F8C]/40 px-4 py-2.5 rounded-2xl shadow-sm">
                 <span className="w-2 h-2 rounded-full bg-[#347F8C] animate-ping" />
-                <span className="text-xs font-mono text-[#3E4541]">Live Journey in Progress</span>
-                <button
-                  onClick={() => router.push(`/trip/${activeSession.id}`)}
-                  className="text-xs font-mono font-bold text-[#F7F4EA] bg-[#347F8C] hover:bg-[#2A6772] px-3 py-1 rounded-xl transition shadow-sm"
-                >
-                  Resume &rarr;
-                </button>
+                <span className="text-xs font-mono text-[#3E4541]">Existing Journey Detected</span>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => router.push(`/trip/${activeSession.id}`)}
+                    className="text-xs font-mono font-bold text-[#F7F4EA] bg-[#347F8C] hover:bg-[#2A6772] px-3 py-1 rounded-xl transition shadow-sm cursor-pointer"
+                  >
+                    Resume &rarr;
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (typeof window !== 'undefined') {
+                        localStorage.removeItem('activeTripSessionId');
+                        localStorage.removeItem(`trip_session_${activeSession.id}`);
+                      }
+                      setActiveSession(null);
+                    }}
+                    className="text-xs font-mono text-zinc-500 hover:text-rose-600 px-2 py-1 rounded-lg hover:bg-rose-50 transition cursor-pointer"
+                    title="Clear previous journey and start fresh"
+                  >
+                    Discard
+                  </button>
+                </div>
               </div>
             )}
           </div>

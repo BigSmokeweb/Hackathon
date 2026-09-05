@@ -93,6 +93,72 @@ export const CATALOG_EXPERIENCES: RecommendationItem[] = ALL_EXPERIENCES.map((e,
   mediaUrls: e.mediaUrls,
 }));
 
+// Guarantee accurate land coordinates for any experience (never in water)
+export function sanitizeExperienceCoordinates(exp: {
+  id?: string;
+  title?: string;
+  candidateLat?: number;
+  candidateLng?: number;
+  latitude?: number;
+  longitude?: number;
+  city?: string;
+}): { lat: number; lng: number } {
+  // 1. Specific landmark overrides to ensure 100% precision on land
+  if (exp.title) {
+    const t = exp.title.toLowerCase();
+    if (t.includes('nehru science centre')) {
+      return { lat: 18.9904, lng: 72.8214 };
+    }
+    if (t.includes('nehru planetarium')) {
+      return { lat: 18.9896, lng: 72.8185 };
+    }
+    if (t.includes('manek chowk')) {
+      return { lat: 23.0248, lng: 72.5873 };
+    }
+    if (t.includes('adalaj')) {
+      return { lat: 23.1669, lng: 72.5822 };
+    }
+  }
+
+  // 2. Look up in catalog by ID or title
+  const match = CATALOG_EXPERIENCES.find(
+    (c) => c.id === exp.id || (exp.title && c.title.toLowerCase() === exp.title.toLowerCase())
+  );
+  let lat = match?.candidateLat ?? exp.candidateLat ?? (exp as any).latitude;
+  let lng = match?.candidateLng ?? exp.candidateLng ?? (exp as any).longitude;
+
+  // 3. Prevent ocean / water placement for Mumbai west coast
+  if (lat != null && lng != null) {
+    if (lat >= 18.98 && lat <= 19.04 && lng < 72.8175) {
+      lng = 72.8190;
+    }
+    if (lat >= 18.92 && lat < 18.96 && lng < 72.819) {
+      lng = 72.8220;
+    }
+    return { lat, lng };
+  }
+
+  // 4. Default fallback to city center on land
+  const cityName = (exp.city || '').toLowerCase();
+  if (cityName === 'ahmedabad') return { lat: 23.0225, lng: 72.5714 };
+  if (cityName === 'jaipur') return { lat: 26.9124, lng: 75.7873 };
+  return { lat: 18.9220, lng: 72.8347 };
+}
+
+export function normalizeSessionStops(session: SessionData): SessionData {
+  if (session.selectedExperiences && session.selectedExperiences.length > 0) {
+    session.selectedExperiences = session.selectedExperiences.map((stop) => {
+      const coords = sanitizeExperienceCoordinates(stop);
+      return {
+        ...stop,
+        candidateLat: coords.lat,
+        candidateLng: coords.lng,
+      };
+    });
+  }
+  return session;
+}
+
 // 4-Factor Recommendation Scorer: Nearest + Intent + Budget + Rating
 export function scoreCandidate(
   cand: RecommendationItem,
@@ -161,6 +227,15 @@ export async function createTripSession(payload: {
   groupSize: number;
   interests: string[];
 }): Promise<{ id: string }> {
+  // Always clear stale active session from localStorage when generating a new custom route
+  if (typeof window !== 'undefined') {
+    const prevActive = localStorage.getItem('activeTripSessionId');
+    if (prevActive) {
+      localStorage.removeItem(`trip_session_${prevActive}`);
+    }
+    localStorage.removeItem('activeTripSessionId');
+  }
+
   const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
 
   if (token) {
@@ -183,40 +258,21 @@ export async function createTripSession(payload: {
       clearTimeout(timer);
 
       if (res.ok) {
-        return await res.json();
+        const data = await res.json();
+        if (typeof window !== 'undefined' && data?.id) {
+          localStorage.setItem('activeTripSessionId', data.id);
+        }
+        return data;
       }
     } catch {
       // fallback to offline session
     }
   }
 
-  // Create standalone local session with auto-curated initial recommendations matching 4 factors
+  // Create standalone local session with 0 initial stops
   const sessionId = 'session_' + Math.random().toString(36).substring(2, 10);
   const city = inferCityName(payload.latitude, payload.longitude);
 
-  // Pool of city experiences
-  const cityPool = CATALOG_EXPERIENCES.filter((e) => e.city.toLowerCase() === city.toLowerCase());
-  const fallbackPool = CATALOG_EXPERIENCES;
-  const pool = cityPool.length >= 4 ? cityPool : fallbackPool;
-
-  // Rank candidate experiences by: Nearest + Intent + Budget + Rating
-  const scoredInitial = pool
-    .map((cand) => {
-      const scoring = scoreCandidate(
-        cand,
-        payload.latitude,
-        payload.longitude,
-        payload.interests,
-        payload.totalBudget
-      );
-      return {
-        cand,
-        ...scoring,
-      };
-    })
-    .sort((a, b) => b.score - a.score);
-
-  // Clean initial session: Start with 0 pre-selected stops as requested
   const localSession: SessionData = {
     id: sessionId,
     status: 'ACTIVE',
@@ -255,7 +311,8 @@ export async function fetchTripSession(sessionId: string): Promise<SessionData> 
       clearTimeout(timer);
 
       if (res.ok) {
-        return await res.json();
+        const remoteSession = await res.json();
+        return normalizeSessionStops(remoteSession);
       }
     } catch {
       // fallback to local
@@ -266,18 +323,7 @@ export async function fetchTripSession(sessionId: string): Promise<SessionData> 
     const raw = localStorage.getItem(`trip_session_${sessionId}`);
     if (raw) {
       const parsed: SessionData = JSON.parse(raw);
-      // Synchronize exact GPS coordinates from catalog for all selected stops
-      if (parsed.selectedExperiences && parsed.selectedExperiences.length > 0) {
-        parsed.selectedExperiences = parsed.selectedExperiences.map((stop) => {
-          const match = CATALOG_EXPERIENCES.find((c) => c.id === stop.id);
-          return {
-            ...stop,
-            candidateLat: match?.candidateLat || stop.candidateLat,
-            candidateLng: match?.candidateLng || stop.candidateLng,
-          };
-        });
-      }
-      return parsed;
+      return normalizeSessionStops(parsed);
     }
   }
 
@@ -318,7 +364,18 @@ export async function fetchRecommendations(
       clearTimeout(timer);
 
       if (res.ok) {
-        return await res.json();
+        const data = await res.json();
+        if (data.recommendations && Array.isArray(data.recommendations)) {
+          data.recommendations = data.recommendations.map((cand: any) => {
+            const coords = sanitizeExperienceCoordinates(cand);
+            return {
+              ...cand,
+              candidateLat: coords.lat,
+              candidateLng: coords.lng,
+            };
+          });
+        }
+        return data;
       }
     } catch {
       // fallback

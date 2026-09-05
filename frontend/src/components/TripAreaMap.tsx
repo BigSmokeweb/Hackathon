@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Locate, Compass, Navigation, ExternalLink, Car, Footprints, ChevronDown, ChevronUp, ArrowUpRight, Train } from 'lucide-react';
-import { SelectedExperience, RecommendationItem } from '@/lib/trip-session-store';
+import { SelectedExperience, RecommendationItem, sanitizeExperienceCoordinates } from '@/lib/trip-session-store';
 import { calculateRealRoadRoute, RouteResult } from '@/lib/a-star-router';
 import { calculateMumbaiTrainPlan, MultimodalRouteResult } from '@/lib/mumbai-train-router';
 
@@ -175,8 +175,12 @@ export function TripAreaMap({
 
       // 2. Add Stop Markers
       stops.forEach((stop, idx) => {
-        const stopLat = stop.candidateLat || (userLocation.lat + (idx + 1) * 0.007);
-        const stopLng = stop.candidateLng || (userLocation.lng + (idx + 1) * 0.006);
+        const coords = sanitizeExperienceCoordinates({
+          ...stop,
+          city: city || stop.city,
+        });
+        const stopLat = coords.lat;
+        const stopLng = coords.lng;
         routePoints.push([stopLat, stopLng]);
 
         const stopIcon = L.divIcon({
@@ -215,8 +219,12 @@ export function TripAreaMap({
       if (candidateStops && candidateStops.length > 0) {
         const selectedIdSet = new Set(stops.map((s) => s.id));
         candidateStops
-          .filter((cand) => !selectedIdSet.has(cand.id) && cand.candidateLat != null && cand.candidateLng != null)
+          .filter((cand) => !selectedIdSet.has(cand.id))
           .forEach((cand) => {
+            const coords = sanitizeExperienceCoordinates({
+              ...cand,
+              city: city || cand.city,
+            });
             const candIcon = L.divIcon({
               className: 'candidate-map-pin',
               html: `
@@ -228,7 +236,7 @@ export function TripAreaMap({
               iconAnchor: [11, 11],
             });
 
-            const candMarker = L.marker([cand.candidateLat!, cand.candidateLng!], { icon: candIcon });
+            const candMarker = L.marker([coords.lat, coords.lng], { icon: candIcon });
 
             const popupNode = document.createElement('div');
             popupNode.style.fontFamily = 'inherit';
@@ -277,11 +285,17 @@ export function TripAreaMap({
         setIsRouting(true);
 
         if (travelMode === 'train') {
-          const destinationPoints = stops.map((s, idx) => ({
-            lat: s.candidateLat || (userLocation.lat + (idx + 1) * 0.007),
-            lng: s.candidateLng || (userLocation.lng + (idx + 1) * 0.006),
-            title: s.title || `Stop ${idx + 1}`,
-          }));
+          const destinationPoints = stops.map((s, idx) => {
+            const coords = sanitizeExperienceCoordinates({
+              ...s,
+              city: city || s.city,
+            });
+            return {
+              lat: coords.lat,
+              lng: coords.lng,
+              title: s.title || `Stop ${idx + 1}`,
+            };
+          });
 
           const trainPlan = await calculateMumbaiTrainPlan(
             userLocation.lat,
@@ -472,10 +486,17 @@ export function TripAreaMap({
           }
         } else {
           setTrainRouteTelemetry(null);
-          const destinationPoints = stops.map((s, idx) => ({
-            lat: s.candidateLat || (userLocation.lat + (idx + 1) * 0.007),
-            lng: s.candidateLng || (userLocation.lng + (idx + 1) * 0.006),
-          }));
+          const destinationPoints = stops.map((s, idx) => {
+            const coords = sanitizeExperienceCoordinates({
+              ...s,
+              city: city || s.city,
+            });
+            return {
+              lat: coords.lat,
+              lng: coords.lng,
+              title: s.title || `Stop ${idx + 1}`,
+            };
+          });
 
           const result = await calculateRealRoadRoute(userLocation, destinationPoints, travelMode);
           if (!isSubscribed) return;

@@ -212,6 +212,30 @@ export default function TripSessionLoopPage() {
     }
   }
 
+  // Handler: Clear all stops to restart route selection with clean slate
+  async function handleClearAllStops() {
+    if (!session) return;
+    setIsActionLoading(true);
+    setErrorMessage(null);
+    try {
+      const updated: SessionData = {
+        ...session,
+        remainingBudget: session.totalBudget,
+        remainingTimeMinutes: 180,
+        selectedExperienceIds: [],
+        selectedCategories: [],
+        selectedExperiences: [],
+      };
+      saveLocalSession(updated);
+      setSession(updated);
+      await loadSessionAndRecommendations();
+    } catch (err: any) {
+      setErrorMessage(err.message);
+    } finally {
+      setIsActionLoading(false);
+    }
+  }
+
   // Handler: Finish / Mark Complete
   async function handleComplete() {
     setIsActionLoading(true);
@@ -316,16 +340,28 @@ export default function TripSessionLoopPage() {
             <span>Back</span>
           </button>
 
-          {isCompleted && (
-            <button
-              type="button"
-              onClick={reactivateSession}
-              disabled={isActionLoading}
-              className="inline-flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-[#F7F4EA] bg-[#347F8C] hover:bg-[#2A6772] px-4 py-2 rounded-xl transition shadow-sm font-semibold cursor-pointer active:scale-95"
-            >
-              + Add More Stops
-            </button>
-          )}
+          <div className="flex items-center gap-2">
+            {selectedStops.length > 0 && !isCompleted && (
+              <button
+                type="button"
+                onClick={handleClearAllStops}
+                disabled={isActionLoading}
+                className="inline-flex items-center gap-1 text-xs font-mono uppercase tracking-wider text-rose-700 bg-white border border-rose-300 hover:bg-rose-50 px-3 py-2 rounded-xl transition shadow-xs cursor-pointer active:scale-95"
+              >
+                <span>Reset All Stops</span>
+              </button>
+            )}
+            {isCompleted && (
+              <button
+                type="button"
+                onClick={reactivateSession}
+                disabled={isActionLoading}
+                className="inline-flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-[#F7F4EA] bg-[#347F8C] hover:bg-[#2A6772] px-4 py-2 rounded-xl transition shadow-sm font-semibold cursor-pointer active:scale-95"
+              >
+                + Add More Stops
+              </button>
+            )}
+          </div>
         </div>
 
         {errorMessage && (
@@ -562,9 +598,22 @@ export default function TripSessionLoopPage() {
                 <h3 className="font-manifold text-lg tracking-wide uppercase text-[#3E4541] font-bold">
                   Curated Route
                 </h3>
-                <span className="text-xs font-mono uppercase tracking-wider text-[#347F8C] bg-[#4FA3D1]/15 border border-[#4FA3D1]/30 px-2.5 py-0.5 rounded-full font-semibold">
-                  {selectedStops.length} {selectedStops.length === 1 ? 'stop' : 'stops'}
-                </span>
+                <div className="flex items-center gap-2">
+                  {selectedStops.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={handleClearAllStops}
+                      disabled={isActionLoading}
+                      className="text-[11px] font-mono text-rose-600 hover:text-rose-800 hover:bg-rose-50 px-2 py-0.5 rounded border border-rose-200 transition cursor-pointer"
+                      title="Remove all stops and start selection again"
+                    >
+                      Clear All
+                    </button>
+                  )}
+                  <span className="text-xs font-mono uppercase tracking-wider text-[#347F8C] bg-[#4FA3D1]/15 border border-[#4FA3D1]/30 px-2.5 py-0.5 rounded-full font-semibold">
+                    {selectedStops.length} {selectedStops.length === 1 ? 'stop' : 'stops'}
+                  </span>
+                </div>
               </div>
 
               {selectedStops.length === 0 ? (
