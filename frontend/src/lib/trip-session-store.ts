@@ -75,225 +75,74 @@ export interface RecommendApiResponse {
   } | null;
 }
 
-export const CATALOG_EXPERIENCES: RecommendationItem[] = [
-  // ─── AHMEDABAD (Historic UNESCO Pols & Environs) ───────────────────────────
-  {
-    id: 'exp-1',
-    title: 'Old Ahmedabad Pols & Midnight Spice Trail',
-    category: 'FOOD',
-    city: 'Ahmedabad',
-    distanceKm: 1.2,
-    priceMin: 1800,
-    priceMax: 2400,
-    durationMinutes: 180,
-    ratingAverage: 4.96,
-    authenticityRating: 0.98,
-    candidateLat: 23.0248, // Manek Chowk, Old Ahmedabad
-    candidateLng: 72.5891,
-    mediaUrls: ['https://images.unsplash.com/photo-1596178065887-1198b6148b2b?auto=format&fit=crop&w=1000&q=80'],
-  },
-  {
-    id: 'exp-ahmedabad-2',
-    title: 'Sarkhej Roza Stone Jali Architecture & Sufi Harmonies',
-    category: 'CULTURE',
-    city: 'Ahmedabad',
-    distanceKm: 4.2,
-    priceMin: 1500,
-    priceMax: 2100,
-    durationMinutes: 160,
-    ratingAverage: 4.93,
-    authenticityRating: 0.98,
-    candidateLat: 22.9810, // Sarkhej Roza complex
-    candidateLng: 72.4990,
-    mediaUrls: ['https://images.unsplash.com/photo-1570168007204-dfb528c6958f?auto=format&fit=crop&w=1000&q=80'],
-  },
-  {
-    id: 'exp-ahmedabad-3',
-    title: 'Mata ni Pachedi Sacred Textile Masterclass',
-    category: 'WORKSHOPS',
-    city: 'Ahmedabad',
-    distanceKm: 2.1,
-    priceMin: 1400,
-    priceMax: 2000,
-    durationMinutes: 140,
-    ratingAverage: 4.94,
-    authenticityRating: 0.99,
-    candidateLat: 23.0300, // Usmanpura Art Studio
-    candidateLng: 72.5800,
-    mediaUrls: ['https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?auto=format&fit=crop&w=1000&q=80'],
-  },
-  {
-    id: 'exp-ahmedabad-4',
-    title: 'Adalaj Stepwell Subterranean Geometry Walk',
-    category: 'CULTURE',
-    city: 'Ahmedabad',
-    distanceKm: 5.5,
-    priceMin: 800,
-    priceMax: 1400,
-    durationMinutes: 120,
-    ratingAverage: 4.97,
-    authenticityRating: 0.99,
-    candidateLat: 23.1667, // Adalaj Stepwell
-    candidateLng: 72.5801,
-    mediaUrls: ['https://images.unsplash.com/photo-1609137144813-7d9921338f24?auto=format&fit=crop&w=1000&q=80'],
-  },
+import { ALL_EXPERIENCES } from './experiences-data';
 
-  // ─── JAIPUR (Pink City, Bagru & Amer) ──────────────────────────────────────
-  {
-    id: 'exp-2',
-    title: 'Bagru Hand-Block Printing with 5th Gen Masters',
-    category: 'WORKSHOPS',
-    city: 'Jaipur',
-    distanceKm: 2.8,
-    priceMin: 3200,
-    priceMax: 4500,
-    durationMinutes: 240,
-    ratingAverage: 4.98,
-    authenticityRating: 0.99,
-    candidateLat: 26.8122, // Chhipa Mohalla, Bagru
-    candidateLng: 75.5458,
-    mediaUrls: ['https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?auto=format&fit=crop&w=1000&q=80'],
-  },
-  {
-    id: 'exp-jaipur-2',
-    title: 'Amer Stepwell & Royal Stone Miniature Painting',
-    category: 'WORKSHOPS',
-    city: 'Jaipur',
-    distanceKm: 3.5,
-    priceMin: 2600,
-    priceMax: 3500,
-    durationMinutes: 190,
-    ratingAverage: 4.96,
-    authenticityRating: 0.97,
-    candidateLat: 26.9855, // Panna Meena Ka Kund, Amer
-    candidateLng: 75.8507,
-    mediaUrls: ['https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?auto=format&fit=crop&w=1000&q=80'],
-  },
-  {
-    id: 'exp-jaipur-3',
-    title: 'Old Walled City Morning Spice & Royal Kachori Walk',
-    category: 'FOOD',
-    city: 'Jaipur',
-    distanceKm: 1.1,
-    priceMin: 600,
-    priceMax: 1100,
-    durationMinutes: 90,
-    ratingAverage: 4.91,
-    authenticityRating: 0.98,
-    candidateLat: 26.9239, // Badi Chaupar, Hawa Mahal Road
-    candidateLng: 75.8267,
-    mediaUrls: ['https://images.unsplash.com/photo-1548013146-72479768bada?auto=format&fit=crop&w=1000&q=80'],
-  },
-  {
-    id: 'exp-jaipur-4',
-    title: 'Nahargarh Fort Sunset Stargazing & Lore',
-    category: 'NIGHTLIFE',
-    city: 'Jaipur',
-    distanceKm: 4.0,
-    priceMin: 950,
-    priceMax: 1600,
-    durationMinutes: 120,
-    ratingAverage: 4.88,
-    authenticityRating: 0.95,
-    candidateLat: 26.9372, // Nahargarh Fort Ridge
-    candidateLng: 75.8155,
-    mediaUrls: ['https://images.unsplash.com/photo-1475274047050-1d0c0975c63e?auto=format&fit=crop&w=1000&q=80'],
-  },
+export const CATALOG_EXPERIENCES: RecommendationItem[] = ALL_EXPERIENCES.map((e, idx) => ({
+  id: e.id,
+  title: e.title,
+  category: e.category,
+  city: e.city,
+  distanceKm: 0.5 + (idx % 10) * 0.8,
+  priceMin: e.priceMin,
+  priceMax: e.priceMax,
+  durationMinutes: e.durationMinutes,
+  ratingAverage: e.ratingAverage,
+  authenticityRating: e.authenticityRating,
+  candidateLat: e.candidateLat,
+  candidateLng: e.candidateLng,
+  mediaUrls: e.mediaUrls,
+}));
 
-  // ─── MUMBAI (Colaba, Fort & Bandra) ────────────────────────────────────────
-  {
-    id: 'exp-3',
-    title: 'Colaba Art Deco & Coastal Fisherfolk Dawn Walk',
-    category: 'CULTURE',
-    city: 'Mumbai',
-    distanceKm: 0.8,
-    priceMin: 1500,
-    priceMax: 2000,
-    durationMinutes: 150,
-    ratingAverage: 4.92,
-    authenticityRating: 0.95,
-    candidateLat: 18.9137, // Sassoon Docks, Colaba
-    candidateLng: 72.8258,
-    mediaUrls: ['https://images.unsplash.com/photo-1570168007204-dfb528c6958f?auto=format&fit=crop&w=1000&q=80'],
-  },
-  {
-    id: 'exp-mumbai-2',
-    title: 'Irani Cafe Heritage & Horniman Circle Book Guilds',
-    category: 'FOOD',
-    city: 'Mumbai',
-    distanceKm: 1.5,
-    priceMin: 1200,
-    priceMax: 1800,
-    durationMinutes: 120,
-    ratingAverage: 4.95,
-    authenticityRating: 0.97,
-    candidateLat: 18.9322, // Horniman Circle & Churchgate
-    candidateLng: 72.8335,
-    mediaUrls: ['https://images.unsplash.com/photo-1596178065887-1198b6148b2b?auto=format&fit=crop&w=1000&q=80'],
-  },
-  {
-    id: 'exp-mumbai-3',
-    title: 'Gateway to Colaba Secret Antique Alley & Curio Tour',
-    category: 'WORKSHOPS',
-    city: 'Mumbai',
-    distanceKm: 0.6,
-    priceMin: 2200,
-    priceMax: 3000,
-    durationMinutes: 180,
-    ratingAverage: 4.91,
-    authenticityRating: 0.96,
-    candidateLat: 18.9220, // Gateway of India / Apollo Bunder
-    candidateLng: 72.8347,
-    mediaUrls: ['https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?auto=format&fit=crop&w=1000&q=80'],
-  },
-  {
-    id: 'exp-mumbai-4',
-    title: 'Kala Ghoda Contemporary Indie Art Gallery Crawl',
-    category: 'WORKSHOPS',
-    city: 'Mumbai',
-    distanceKm: 1.2,
-    priceMin: 700,
-    priceMax: 1200,
-    durationMinutes: 90,
-    ratingAverage: 4.89,
-    authenticityRating: 0.93,
-    candidateLat: 18.9280, // Kala Ghoda Art Precinct, Fort
-    candidateLng: 72.8315,
-    mediaUrls: ['https://images.unsplash.com/photo-1518998053901-5348d3961a04?auto=format&fit=crop&w=1000&q=80'],
-  },
+// 4-Factor Recommendation Scorer: Nearest + Intent + Budget + Rating
+export function scoreCandidate(
+  cand: RecommendationItem,
+  userLat: number,
+  userLng: number,
+  interests: string[],
+  remainingBudget: number
+): { score: number; distanceKm: number } {
+  // 1. Nearest to user (Haversine proximity)
+  const cLat = cand.candidateLat ?? userLat;
+  const cLng = cand.candidateLng ?? userLng;
+  const dLat = ((cLat - userLat) * Math.PI) / 180;
+  const dLng = ((cLng - userLng) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((userLat * Math.PI) / 180) *
+      Math.cos((cLat * Math.PI) / 180) *
+      Math.sin(dLng / 2) *
+      Math.sin(dLng / 2);
+  const distKm = 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  const nearestScore = Math.max(0, 1 - distKm / 35); // 0-35km radius scale
 
-  // ─── VARANASI (Ghats & Weavers Colony) ─────────────────────────────────────
-  {
-    id: 'exp-4',
-    title: 'Varanasi Dawn Boat & Classical Dhrupad Ragas',
-    category: 'CULTURE',
-    city: 'Varanasi',
-    distanceKm: 1.0,
-    priceMin: 2800,
-    priceMax: 3600,
-    durationMinutes: 210,
-    ratingAverage: 4.99,
-    authenticityRating: 0.99,
-    candidateLat: 25.3080, // Dashashwamedh Ghat
-    candidateLng: 83.0080,
-    mediaUrls: ['https://images.unsplash.com/photo-1561361513-2d000a50f0dc?auto=format&fit=crop&w=1000&q=80'],
-  },
-  {
-    id: 'exp-varanasi-2',
-    title: 'Madhanpura Heritage Silk Weavers Loom Tour',
-    category: 'WORKSHOPS',
-    city: 'Varanasi',
-    distanceKm: 1.8,
-    priceMin: 1800,
-    priceMax: 2600,
-    durationMinutes: 150,
-    ratingAverage: 4.96,
-    authenticityRating: 0.99,
-    candidateLat: 25.3176, // Madhanpura Weavers Colony
-    candidateLng: 82.9950,
-    mediaUrls: ['https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?auto=format&fit=crop&w=1000&q=80'],
-  },
-];
+  // 2. Intent match (Category alignment with user preferences)
+  const intentScore = interests.length === 0 || interests.includes(cand.category) ? 1.0 : 0.25;
+
+  // 3. Budget fit (Leaves room in remaining budget)
+  let budgetScore = 0.5;
+  if (remainingBudget > 0) {
+    if (cand.priceMin <= remainingBudget) {
+      budgetScore = 1.0 - cand.priceMin / Math.max(remainingBudget, 1);
+    } else {
+      budgetScore = 0;
+    }
+  }
+
+  // 4. Rating (Historical user rating normalized 0-1)
+  const ratingScore = Math.min(1, Math.max(0, (cand.ratingAverage || 4.5) / 5.0));
+
+  // Multi-factor weighted score: Nearest (35%), Intent (30%), Budget (20%), Rating (15%)
+  const totalScore =
+    0.35 * nearestScore +
+    0.30 * intentScore +
+    0.20 * budgetScore +
+    0.15 * ratingScore;
+
+  return {
+    score: Number(totalScore.toFixed(4)),
+    distanceKm: Number(distKm.toFixed(1)),
+  };
+}
 
 // Helper: infer city from coordinates or presets
 export function inferCityName(lat: number, lng: number): string {
@@ -341,19 +190,70 @@ export async function createTripSession(payload: {
     }
   }
 
-  // Create standalone local session
+  // Create standalone local session with auto-curated initial recommendations matching 4 factors
   const sessionId = 'session_' + Math.random().toString(36).substring(2, 10);
   const city = inferCityName(payload.latitude, payload.longitude);
+
+  // Pool of city experiences
+  const cityPool = CATALOG_EXPERIENCES.filter((e) => e.city.toLowerCase() === city.toLowerCase());
+  const fallbackPool = CATALOG_EXPERIENCES;
+  const pool = cityPool.length >= 4 ? cityPool : fallbackPool;
+
+  // Rank candidate experiences by: Nearest + Intent + Budget + Rating
+  const scoredInitial = pool
+    .map((cand) => {
+      const scoring = scoreCandidate(
+        cand,
+        payload.latitude,
+        payload.longitude,
+        payload.interests,
+        payload.totalBudget
+      );
+      return {
+        cand,
+        ...scoring,
+      };
+    })
+    .sort((a, b) => b.score - a.score);
+
+  // Auto-curate top 3-4 destinations fitting within time & budget
+  const initialSelected: SelectedExperience[] = [];
+  let curBudget = payload.totalBudget;
+  let curTime = payload.totalTimeMinutes;
+
+  for (const item of scoredInitial) {
+    if (initialSelected.length >= 4) break;
+    const exp = item.cand;
+    const duration = exp.durationMinutes || 90;
+    if (exp.priceMin <= curBudget && duration <= curTime) {
+      initialSelected.push({
+        id: exp.id,
+        title: exp.title,
+        category: exp.category,
+        city: exp.city,
+        priceMin: exp.priceMin,
+        priceMax: exp.priceMax,
+        ratingAverage: exp.ratingAverage,
+        authenticityRating: exp.authenticityRating,
+        mediaUrls: exp.mediaUrls,
+        durationMinutes: duration,
+        candidateLat: exp.candidateLat,
+        candidateLng: exp.candidateLng,
+      });
+      curBudget -= exp.priceMin;
+      curTime -= duration;
+    }
+  }
 
   const localSession: SessionData = {
     id: sessionId,
     status: 'ACTIVE',
-    remainingTimeMinutes: payload.totalTimeMinutes,
-    remainingBudget: payload.totalBudget,
+    remainingTimeMinutes: curTime,
+    remainingBudget: curBudget,
     totalBudget: payload.totalBudget,
-    selectedExperienceIds: [],
-    selectedCategories: payload.interests,
-    selectedExperiences: [],
+    selectedExperienceIds: initialSelected.map((s) => s.id),
+    selectedCategories: Array.from(new Set(initialSelected.map((s) => s.category))),
+    selectedExperiences: initialSelected,
     city,
     rejectedExperienceIds: [],
     userLat: payload.latitude,
@@ -453,11 +353,20 @@ export async function fetchRecommendations(
     }
   }
 
-  // Standalone offline recommendation engine
+  // 4-Factor Offline Scoring Engine: Nearest + Intent + Budget + Rating
   const selectedIds = session.selectedExperienceIds || [];
   const rejectedIds = session.rejectedExperienceIds || [];
   const targetCity = (session.city || 'Mumbai').toLowerCase();
 
+  // Current coordinate anchor: last selected stop's location, or user starting GPS
+  const lastStop = session.selectedExperiences && session.selectedExperiences.length > 0
+    ? session.selectedExperiences[session.selectedExperiences.length - 1]
+    : null;
+
+  const anchorLat = lastStop?.candidateLat || session.userLat || 18.9220;
+  const anchorLng = lastStop?.candidateLng || session.userLng || 72.8347;
+
+  // Filter unselected, non-rejected places
   const cityMatches = CATALOG_EXPERIENCES.filter(
     (e) => e.city.toLowerCase() === targetCity && !selectedIds.includes(e.id) && !rejectedIds.includes(e.id)
   );
@@ -468,31 +377,69 @@ export async function fetchRecommendations(
 
   const candidates = cityMatches.length > 0 ? cityMatches : fallbackMatches;
 
-  // Keep recommending candidates as long as catalog has unselected items
-  const shouldStop = candidates.length === 0;
+  // Apply 4-factor scoring: Nearest + Intent + Budget + Rating
+  const scoredCandidates: RecommendationItem[] = candidates
+    .map((cand) => {
+      const scoring = scoreCandidate(
+        cand,
+        anchorLat,
+        anchorLng,
+        session.selectedCategories || [],
+        session.remainingBudget
+      );
+
+      return {
+        ...cand,
+        distanceKm: scoring.distanceKm,
+        // Tag explanation for user
+        reason: `${scoring.distanceKm} km away • ${cand.category} • ★${cand.ratingAverage.toFixed(1)}`,
+        _score: scoring.score,
+      } as RecommendationItem & { _score: number };
+    })
+    .sort((a, b) => (b as any)._score - (a as any)._score);
+
+  // Dynamic Stop Conditions (identical to spec)
+  const MIN_VIABLE_TIME = 30; // minutes
+  const cheapestPrice = candidates.length > 0 ? Math.min(...candidates.map((c) => c.priceMin)) : Infinity;
+
+  const isTimeExhausted = session.remainingTimeMinutes < MIN_VIABLE_TIME;
+  const isBudgetExhausted = session.remainingBudget < cheapestPrice && session.remainingBudget > 0;
+  const isNoCandidates = candidates.length === 0;
+
+  const shouldStop = isTimeExhausted || isBudgetExhausted || isNoCandidates;
+  const stopReason = isTimeExhausted
+    ? 'Allocated time window for this route has concluded.'
+    : isBudgetExhausted
+    ? 'Remaining budget is insufficient for further admissions.'
+    : isNoCandidates
+    ? 'All available curated stops in this enclave have been linked.'
+    : null;
+
+  const isNearlyExhausted =
+    session.remainingTimeMinutes < 45 ||
+    (session.totalBudget > 0 && session.remainingBudget / session.totalBudget < 0.15);
 
   return {
     sessionId,
-    recommendations: candidates.slice(0, 6),
+    recommendations: scoredCandidates.slice(0, 6),
     sessionState: {
       remainingTimeMinutes: session.remainingTimeMinutes,
       remainingBudget: session.remainingBudget,
       selectedCount: selectedIds.length,
       stopCondition: {
         shouldStop,
-        stopReason: shouldStop ? 'All available curated stops in this enclave added.' : null,
-        wrapUpFlag: false,
-        wrapUpTriggerReason: null,
+        stopReason,
+        wrapUpFlag: isNearlyExhausted,
+        wrapUpTriggerReason: isNearlyExhausted ? (session.remainingTimeMinutes < 45 ? 'LOW_TIME' : 'LOW_BUDGET') : null,
       },
     },
-    wrapUpPrompt:
-      session.remainingBudget < 1500 || session.remainingTimeMinutes < 60
-        ? {
-            message: 'Your allocated budget and temporal pacing are nearing target threshold.',
-            triggerReason: 'threshold_near',
-            quickResponses: ['Finalize Continuous Schedule', 'Add One Quick Heritage Stop'],
-          }
-        : null,
+    wrapUpPrompt: isNearlyExhausted
+      ? {
+          message: 'Your allocated budget and temporal pacing are nearing target threshold.',
+          triggerReason: 'threshold_near',
+          quickResponses: ['Finalize Continuous Schedule', 'Add One Quick Heritage Stop'],
+        }
+      : null,
     weatherAdaptPrompt: null,
   };
 }

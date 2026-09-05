@@ -46,18 +46,22 @@ export function FloatingChatSupport() {
   const emojiBoxRef = useRef<HTMLDivElement>(null);
   const restingAnchorRef = useRef<HTMLDivElement>(null);
 
-  // Exact measurement between resting position and header emoji box
+  // Exact geometric alignment between resting bottom-right mascot and header avatar box
   const calculateOffset = useCallback(() => {
-    if (emojiBoxRef.current && restingAnchorRef.current) {
-      const box = emojiBoxRef.current.getBoundingClientRect();
-      const anchor = restingAnchorRef.current.getBoundingClientRect();
-      const dx = box.left + box.width / 2 - (anchor.left + anchor.width / 2);
-      const dy = box.top + box.height / 2 - (anchor.top + anchor.height / 2);
-      const scale = box.width / anchor.width;
-      if (dx !== 0 && dy !== 0) {
-        setFlyOffset({ x: dx, y: dy, scale });
-      }
-    }
+    if (typeof window === 'undefined') return;
+    const modalWidth = Math.min(window.innerWidth * 0.92, 384);
+    const modalHeight = 510;
+
+    // Resting mascot is bottom-6 right-6, 112px x 112px. Center = (-56px, -56px).
+    // Target header box: left=16px, top=14px, size=44px. Center relative to modal bottom-right:
+    // X = -modalWidth + 16 + 22 = -modalWidth + 38
+    // Y = -modalHeight + 14 + 22 = -modalHeight + 36
+    // Delta from resting mascot center:
+    const dx = -modalWidth + 38 - (-56); // -modalWidth + 94
+    const dy = -modalHeight + 36 - (-56); // -510 + 92 = -418
+    const scale = 44 / 112; // 0.3928
+
+    setFlyOffset({ x: Math.round(dx), y: Math.round(dy), scale });
   }, []);
 
   useEffect(() => {
@@ -65,10 +69,6 @@ export function FloatingChatSupport() {
     window.addEventListener('resize', calculateOffset);
     return () => window.removeEventListener('resize', calculateOffset);
   }, [calculateOffset]);
-
-  useEffect(() => {
-    calculateOffset();
-  }, [isOpen, calculateOffset]);
 
   // Celene is hidden on the fullscreen hero section of the home page, visible only after scrolling past it
   useEffect(() => {
@@ -187,11 +187,13 @@ export function FloatingChatSupport() {
 
   return (
     <div
-      className={`fixed bottom-6 right-6 z-50 pointer-events-none transition-all duration-500 ease-out ${
+      className={`fixed bottom-6 right-6 z-50 pointer-events-none ${
         isOpen ? 'w-[92vw] sm:w-[384px] h-[510px]' : 'w-28 h-28'
-      } ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
+      } ${
+        isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8 pointer-events-none'
+      } transition-[opacity,transform] duration-400 ease-out`}
     >
-      {/* ─── Static Un-transformed Anchor for Bottom-Right Resting Position ─── */}
+      {/* ─── Static Anchor for Bottom-Right Resting Position ─── */}
       <div
         ref={restingAnchorRef}
         className="absolute bottom-0 right-0 w-28 h-28 pointer-events-none opacity-0 select-none"
@@ -199,7 +201,7 @@ export function FloatingChatSupport() {
 
       {/* ─── CHAT MODAL (Anchored to Bottom-Right) ─── */}
       <div
-        className={`absolute inset-0 bg-white/95 backdrop-blur-xl border border-[#D8D4C8] rounded-3xl shadow-[0_24px_50px_-12px_rgba(29,78,86,0.22)] flex flex-col overflow-hidden transition-all duration-300 ease-out ${
+        className={`absolute inset-0 bg-white/95 backdrop-blur-xl border border-[#D8D4C8] rounded-3xl shadow-[0_24px_50px_-12px_rgba(29,78,86,0.22)] flex flex-col overflow-hidden transition-all duration-400 ease-out ${
           isOpen
             ? 'opacity-100 pointer-events-auto visible scale-100'
             : 'opacity-0 pointer-events-none invisible scale-95'
@@ -338,19 +340,19 @@ export function FloatingChatSupport() {
         </form>
       </div>
 
-      {/* ─── CELENE MASCOT: RESTS IN BOTTOM-RIGHT, FLIES 360° INTO THE HEADER EMOJI BOX ─── */}
+      {/* ─── CELENE MASCOT: GLIDES SMOOTHLY AND NATURALLY INTO THE HEADER BOX ─── */}
       <div className="pointer-events-auto absolute bottom-0 right-0 w-28 h-28 z-30 flex items-center justify-center select-none">
-        {/* Outer Idle Wander (Active when closed in bottom-right) */}
+        {/* Outer Idle Wander (Active only when closed) */}
         <div className={`w-full h-full flex items-center justify-center ${!isOpen ? 'celene-drift' : ''}`}>
-          {/* Inner Trajectory Flight: Animates physically from bottom-right into the header emoji box */}
+          {/* Smooth Organic Flight Trajectory */}
           <div
             style={{
               transform: isOpen
-                ? `translate3d(${flyOffset.x}px, ${flyOffset.y}px, 0px) scale(${flyOffset.scale}) rotate(360deg)`
-                : 'translate3d(0px, 0px, 0px) scale(1) rotate(0deg)',
+                ? `translate3d(${flyOffset.x}px, ${flyOffset.y}px, 0px) scale(${flyOffset.scale})`
+                : 'translate3d(0px, 0px, 0px) scale(1)',
               transition: isOpen
-                ? 'transform 750ms cubic-bezier(0.34, 1.45, 0.64, 1)'
-                : 'transform 620ms cubic-bezier(0.4, 0, 0.2, 1)',
+                ? 'transform 650ms cubic-bezier(0.16, 1, 0.3, 1)'
+                : 'transform 520ms cubic-bezier(0.4, 0, 0.2, 1)',
             }}
             className="w-full h-full flex items-center justify-center transform-gpu"
           >

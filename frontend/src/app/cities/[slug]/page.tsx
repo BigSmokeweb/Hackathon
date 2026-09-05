@@ -76,17 +76,21 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   };
 }
 
+import { ALL_EXPERIENCES } from '@/lib/experiences-data';
+
 async function getCityExperiences(cityName: string, fallbackList: any[]) {
+  const localList = ALL_EXPERIENCES.filter((e) => e.city.toLowerCase() === cityName.toLowerCase());
+  const fallback = localList.length > 0 ? localList : fallbackList;
   try {
-    const res = await fetch(`${API_BASE}/experiences/search?city=${cityName}&limit=20`, {
+    const res = await fetch(`${API_BASE}/experiences/search?city=${encodeURIComponent(cityName)}&limit=100`, {
       cache: 'no-store',
     });
-    if (!res.ok) return fallbackList;
+    if (!res.ok) return fallback;
     const data = await res.json();
-    if (!data?.data || data.data.length === 0) return fallbackList;
+    if (!data?.data || data.data.length === 0) return fallback;
     return data.data;
   } catch {
-    return fallbackList;
+    return fallback;
   }
 }
 

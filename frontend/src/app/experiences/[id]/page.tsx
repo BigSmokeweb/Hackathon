@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { API_BASE } from '@/lib/api-client';
-import { Star, Clock, ShieldCheck, MapPin, ArrowLeft, CheckCircle2 } from 'lucide-react';
+import { Star, Clock, ShieldCheck, MapPin, ArrowLeft, ArrowRight, Compass, CheckCircle2 } from 'lucide-react';
 
 const FALLBACK_DIRECTORY: Record<string, any> = {
   'exp-1': {
@@ -86,16 +86,19 @@ At 5:30 AM, witness the vibrant arrival of Bombay's indigenous Koli fishing traw
   },
 };
 
+import { ALL_EXPERIENCES } from '@/lib/experiences-data';
+
 async function getExperience(id: string) {
+  const localMatch = ALL_EXPERIENCES.find((e) => e.id === id);
   try {
     const res = await fetch(`${API_BASE}/experiences/${id}`, {
       cache: 'no-store',
     });
-    if (!res.ok) return FALLBACK_DIRECTORY[id] || FALLBACK_DIRECTORY['exp-1'];
+    if (!res.ok) return localMatch || FALLBACK_DIRECTORY[id] || FALLBACK_DIRECTORY['exp-1'];
     const data = await res.json();
-    return data || FALLBACK_DIRECTORY[id] || FALLBACK_DIRECTORY['exp-1'];
+    return data || localMatch || FALLBACK_DIRECTORY[id] || FALLBACK_DIRECTORY['exp-1'];
   } catch {
-    return FALLBACK_DIRECTORY[id] || FALLBACK_DIRECTORY['exp-1'];
+    return localMatch || FALLBACK_DIRECTORY[id] || FALLBACK_DIRECTORY['exp-1'];
   }
 }
 

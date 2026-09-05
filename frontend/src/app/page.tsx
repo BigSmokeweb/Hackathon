@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { HeroAnimatedTitle } from '@/components/HeroAnimatedTitle';
 import { ItineraryBuilder } from '@/components/ItineraryBuilder';
 import { CuratedDirectory } from '@/components/CuratedDirectory';
+import { ScrollToHeroOnRefresh } from '@/components/ScrollToHeroOnRefresh';
 import { API_BASE } from '@/lib/api-client';
 
 export const metadata: Metadata = {
@@ -123,17 +124,19 @@ const CURATED_DIRECTORY_FALLBACK = [
   },
 ];
 
+import { ALL_EXPERIENCES } from '@/lib/experiences-data';
+
 async function getAllExperiences() {
   try {
     const res = await fetch(`${API_BASE}/experiences/search?limit=200`, {
       cache: 'no-store',
     });
-    if (!res.ok) return CURATED_DIRECTORY_FALLBACK;
+    if (!res.ok) return ALL_EXPERIENCES;
     const data = await res.json();
-    if (!data?.data || data.data.length === 0) return CURATED_DIRECTORY_FALLBACK;
+    if (!data?.data || data.data.length === 0) return ALL_EXPERIENCES;
     return data.data;
   } catch {
-    return CURATED_DIRECTORY_FALLBACK;
+    return ALL_EXPERIENCES;
   }
 }
 
@@ -142,8 +145,9 @@ export default async function HomePage() {
 
   return (
     <div className="bg-[#F7F4EA] text-[#3E4541] min-h-screen selection:bg-[#4FA3D1]/30 selection:text-[#3E4541]">
+      <ScrollToHeroOnRefresh />
       {/* ─── SECTION 1: FULLSCREEN CINEMATIC HERO ─── */}
-      <section className="relative w-screen h-screen min-h-[680px] overflow-hidden flex flex-col items-center justify-center select-none">
+      <section id="hero" className="relative w-screen h-screen min-h-[680px] overflow-hidden flex flex-col items-center justify-center select-none">
         {/* Background Video (Looping, Muted, Autoplay, PlaysInline) */}
         <div className="absolute inset-0 z-0 overflow-hidden">
           <video

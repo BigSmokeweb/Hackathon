@@ -121,17 +121,19 @@ const CURATED_DIRECTORY_FALLBACK = [
   },
 ];
 
+import { ALL_EXPERIENCES } from '@/lib/experiences-data';
+
 async function getAllExperiences() {
   try {
     const res = await fetch(`${API_BASE}/experiences/search?limit=200`, {
       cache: 'no-store',
     });
-    if (!res.ok) return CURATED_DIRECTORY_FALLBACK;
+    if (!res.ok) return ALL_EXPERIENCES;
     const data = await res.json();
-    if (!data?.data || data.data.length === 0) return CURATED_DIRECTORY_FALLBACK;
+    if (!data?.data || data.data.length === 0) return ALL_EXPERIENCES;
     return data.data;
   } catch {
-    return CURATED_DIRECTORY_FALLBACK;
+    return ALL_EXPERIENCES;
   }
 }
 

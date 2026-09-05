@@ -4,7 +4,6 @@ import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { API_BASE } from '@/lib/api-client';
-import { TripStateBar } from '@/components/TripStateBar';
 import { ItineraryStopCard } from '@/components/ItineraryStopCard';
 import { TripAreaMap } from '@/components/TripAreaMap';
 import { ArrowLeft } from 'lucide-react';
@@ -305,19 +304,6 @@ export default function TripSessionLoopPage() {
 
   return (
     <div className="min-h-screen bg-[#F7F4EA] text-[#3E4541] flex flex-col pt-16 selection:bg-[#4FA3D1]/30 selection:text-[#3E4541]">
-      {/* Sticky Progress Bar */}
-      {session && (
-        <TripStateBar
-          remainingTimeMinutes={session.remainingTimeMinutes}
-          remainingBudget={session.remainingBudget}
-          totalBudget={session.totalBudget}
-          selectedCount={selectedStops.length}
-          currentCity={session.city}
-          isAdverseWeather={!!weatherAdaptPrompt}
-          weatherDescription={weatherAdaptPrompt?.advisory}
-        />
-      )}
-
       <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
         {/* Navigation Back Button */}
         <div className="mb-6 flex items-center justify-between">
@@ -437,6 +423,8 @@ export default function TripSessionLoopPage() {
                 initialUserLat={session?.userLat}
                 initialUserLng={session?.userLng}
                 stops={selectedStops}
+                candidateStops={recommendations}
+                onAddStop={handleSelect}
               />
             </div>
 
@@ -612,6 +600,8 @@ export default function TripSessionLoopPage() {
                   initialUserLat={session?.userLat}
                   initialUserLng={session?.userLng}
                   stops={selectedStops}
+                  candidateStops={recommendations}
+                  onAddStop={handleSelect}
                 />
               </div>
             </div>
