@@ -308,13 +308,13 @@ function CityExpeditionSection({
           {/* Sideways Scroll Row - 4 cards visible across viewport */}
           <div
             ref={scrollRef}
-            className="flex gap-6 overflow-x-auto pt-7 pb-10 px-4 snap-x scroll-smooth no-scrollbar -mx-2"
+            className="flex gap-4 overflow-x-auto pt-7 pb-10 px-6 scroll-pl-6 scroll-pr-6 snap-x scroll-smooth no-scrollbar"
             style={{ scrollbarWidth: 'none' }}
           >
             {remainingExperiences.map((exp) => (
               <div
                 key={exp.id}
-                className="w-[calc(25%-18px)] min-w-[270px] max-w-[320px] shrink-0 snap-start py-2"
+                className="w-[calc(25%-12px)] min-w-[270px] max-w-[320px] shrink-0 snap-start p-2.5"
               >
                 <ExperienceCard
                   exp={exp}
