@@ -82,16 +82,20 @@ async function getCityExperiences(cityName: string, fallbackList: any[]) {
   const localList = ALL_EXPERIENCES.filter((e) => e.city.toLowerCase() === cityName.toLowerCase());
   const fallback = localList.length > 0 ? localList : fallbackList;
   try {
-    const res = await fetch(`${API_BASE}/experiences/search?city=${encodeURIComponent(cityName)}&limit=100`, {
+    const res = await fetch(`${API_BASE}/experiences/search?city=${encodeURIComponent(cityName)}&limit=50`, {
       cache: 'no-store',
     });
-    if (!res.ok) return fallback;
-    const data = await res.json();
-    if (!data?.data || data.data.length === 0) return fallback;
-    return data.data;
+    if (res.ok) {
+      const data = await res.json();
+      if (data?.data && Array.isArray(data.data) && data.data.length > 0) {
+        const remoteIds = new Set(data.data.map((e: any) => e.id));
+        return [...data.data, ...fallback.filter((e) => !remoteIds.has(e.id))];
+      }
+    }
   } catch {
-    return fallback;
+    // Fallback to complete catalog
   }
+  return fallback;
 }
 
 export default async function CityDiscoveryPage({ params }: { params: { slug: string } }) {
