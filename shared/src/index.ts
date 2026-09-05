@@ -56,6 +56,15 @@ export const RegisterTravelerSchema = z.object({
 
 export type RegisterTravelerDto = z.infer<typeof RegisterTravelerSchema>;
 
+export const UpdateTravelerProfileSchema = z.object({
+  homeCity: z.string().optional(),
+  interests: z.array(z.nativeEnum(Category)).optional(),
+  budgetBand: z.nativeEnum(BudgetBand).optional(),
+  travelStyle: z.string().optional(),
+});
+
+export type UpdateTravelerProfileDto = z.infer<typeof UpdateTravelerProfileSchema>;
+
 export const RegisterProviderSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8, 'Password must be at least 8 characters'),

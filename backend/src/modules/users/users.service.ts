@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma/prisma.service';
+import { UpdateTravelerProfileDto } from '@experience-platform/shared';
 
 @Injectable()
 export class UsersService {
@@ -28,7 +29,7 @@ export class UsersService {
   /**
    * Update traveler profile with IDOR protection
    */
-  async updateProfile(userId: string, data: any) {
+  async updateProfile(userId: string, data: UpdateTravelerProfileDto) {
     return this.prisma.travelerProfile.update({
       where: { userId },
       data: {

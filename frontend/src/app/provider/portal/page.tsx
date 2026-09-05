@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   ShieldCheck, 
   Lock, 
@@ -73,6 +73,12 @@ export default function ProviderPortalPage() {
   const [docType, setDocType] = useState('GST_CERTIFICATE');
   const [toast, setToast] = useState<string | null>(null);
   const [expandedNudges, setExpandedNudges] = useState<Record<string, boolean>>({});
+  const [authToken, setAuthToken] = useState<string | undefined>(undefined);
+
+  useEffect(() => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') || undefined : undefined;
+    setAuthToken(token);
+  }, []);
 
   const handleUploadSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -257,6 +263,7 @@ export default function ProviderPortalPage() {
               </p>
             </div>
             <ListingForm
+              token={authToken}
               onDraftSaved={(msg) => { showToast(msg); setActiveTab('listings'); }}
               onPublished={() => { showToast('Listing published — now live in traveler search.'); setActiveTab('listings'); }}
             />
