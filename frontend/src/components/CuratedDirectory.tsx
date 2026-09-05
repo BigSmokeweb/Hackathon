@@ -88,9 +88,9 @@ function ExperienceCard({
       onMouseLeave={onMouseLeave}
       className={`group relative bg-white rounded-2xl overflow-hidden flex flex-col justify-between h-full transform-gpu transition-all duration-300 ease-out cursor-pointer ${
         isHovered
-          ? 'scale-105 -translate-y-3 z-30 shadow-2xl border-2 border-[#347F8C] ring-4 ring-[#347F8C]/25 brightness-105'
+          ? 'scale-[1.04] -translate-y-2 z-30 shadow-2xl border-2 border-[#347F8C] ring-4 ring-[#347F8C]/25 brightness-105'
           : isFaded
-          ? 'scale-95 opacity-50 blur-[1.5px] brightness-90 border border-[#D8D4C8]'
+          ? 'scale-[0.96] opacity-50 blur-[1.5px] brightness-90 border border-[#D8D4C8]'
           : 'scale-100 opacity-100 blur-0 border border-[#D8D4C8] hover:border-[#347F8C]/60 hover:shadow-lg'
       }`}
     >
@@ -308,13 +308,13 @@ function CityExpeditionSection({
           {/* Sideways Scroll Row - 4 cards visible across viewport */}
           <div
             ref={scrollRef}
-            className="flex gap-5 overflow-x-auto pb-8 pt-4 px-2 snap-x scroll-smooth no-scrollbar"
+            className="flex gap-6 overflow-x-auto pt-7 pb-10 px-4 snap-x scroll-smooth no-scrollbar -mx-2"
             style={{ scrollbarWidth: 'none' }}
           >
             {remainingExperiences.map((exp) => (
               <div
                 key={exp.id}
-                className="w-[calc(25%-15px)] min-w-[260px] max-w-[320px] shrink-0 snap-start"
+                className="w-[calc(25%-18px)] min-w-[270px] max-w-[320px] shrink-0 snap-start py-2"
               >
                 <ExperienceCard
                   exp={exp}
