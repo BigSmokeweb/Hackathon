@@ -1,9 +1,9 @@
 'use client';
 
-import { Suspense, useState, useEffect, useMemo, useTransition } from 'react';
+import { Suspense, useState, useEffect, useMemo, useTransition, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
-import { Search, MapPin, Clock, Star, ShieldCheck, ArrowRight } from 'lucide-react';
+import { Search, MapPin, Clock, Star, ShieldCheck, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 
 export interface CategoryOption {
   label: string;
@@ -41,6 +41,234 @@ interface CuratedDirectoryProps {
   targetId?: string;
 }
 
+const CITY_COORDINATES: Record<string, { lat: number; lng: number; tag: string }> = {
+  mumbai: { lat: 19.0760, lng: 72.8777, tag: 'Coastal Heritage & Art Deco' },
+  ahmedabad: { lat: 23.0225, lng: 72.5714, tag: 'UNESCO Pols & Generational Guilds' },
+  jaipur: { lat: 26.9124, lng: 75.7873, tag: 'Pink City Ateliers & Block Prints' },
+  varanasi: { lat: 25.3176, lng: 82.9739, tag: 'Ancient Ghats & Weaver Guilds' },
+  kochi: { lat: 9.9312, lng: 76.2673, tag: 'Spice Ports & Kathakali Masters' },
+  kolkata: { lat: 22.5726, lng: 88.3639, tag: 'Clay Sculptors & Heritage Alleys' },
+};
+
+function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function ExperienceCard({ exp, compact = false }: { exp: CuratedExperience; compact?: boolean }) {
+  const formattedPrice =
+    (!exp.priceMin && !exp.priceMax) || (exp.priceMin === 0 && exp.priceMax === 0)
+      ? 'Free'
+      : exp.priceMin === 0
+      ? `Free – ₹${exp.priceMax?.toLocaleString()}`
+      : `₹${exp.priceMin?.toLocaleString()} – ₹${exp.priceMax?.toLocaleString()}`;
+
+  return (
+    <article
+      className={`group relative bg-white border border-[#D8D4C8] hover:border-[#347F8C]/60 rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-xl flex flex-col justify-between h-full ${
+        compact ? 'shadow-sm hover:-translate-y-1' : ''
+      }`}
+    >
+      {/* Image Cover */}
+      <div className={`relative ${compact ? 'h-48' : 'h-60'} w-full overflow-hidden bg-zinc-100`}>
+        <img
+          src={exp.mediaUrls?.[0] || 'https://images.unsplash.com/photo-1596178065887-1198b6148b2b?auto=format&fit=crop&w=1000&q=80'}
+          alt={exp.title}
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent opacity-80" />
+
+        {/* Top Badges */}
+        <div className="absolute top-3 left-3 flex items-center gap-2">
+          <span className="bg-white/95 backdrop-blur-md px-2.5 py-0.5 rounded-full text-[10px] font-mono tracking-wider text-[#3E4541] font-bold border border-[#D8D4C8] uppercase shadow-sm">
+            {exp.city}
+          </span>
+        </div>
+
+        <div className="absolute top-3 right-3 bg-white/95 backdrop-blur-md px-2.5 py-0.5 rounded-full text-[10px] font-medium text-[#3E4541] border border-[#D8D4C8] flex items-center gap-1 shadow-sm font-bold">
+          <Star className="w-3 h-3 text-amber-500 fill-amber-500" />
+          <span>{Number(exp.ratingAverage || 4.9).toFixed(2)}</span>
+        </div>
+
+        {/* Host Guild Base Meta */}
+        <div className="absolute bottom-2.5 left-3 right-3 flex items-center justify-between text-xs text-white">
+          <span className="text-[10px] font-mono text-zinc-200 flex items-center gap-1 font-medium truncate max-w-[65%]">
+            <ShieldCheck className="w-3.5 h-3.5 text-[#4FA3D1] shrink-0" />
+            <span className="truncate">{exp.provider?.businessName ? `Listed by ${exp.provider.businessName}` : 'Listed by local traveller'}</span>
+          </span>
+          <span className="text-[10px] font-mono text-zinc-200 flex items-center gap-1 shrink-0">
+            <Clock className="w-3 h-3 text-zinc-300" />
+            {exp.durationMinutes || 120}m
+          </span>
+        </div>
+      </div>
+
+      {/* Card Details */}
+      <div className={`${compact ? 'p-4' : 'p-6'} flex-1 flex flex-col justify-between`}>
+        <div>
+          <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-[#347F8C] mb-1.5 block font-bold">
+            {exp.category}
+          </span>
+          <h3 className={`font-manifold font-extrabold uppercase ${compact ? 'text-base line-clamp-2' : 'text-lg sm:text-xl line-clamp-2'} tracking-wide text-[#3E4541] group-hover:text-[#347F8C] transition-colors leading-snug`}>
+            {exp.title}
+          </h3>
+          <p className={`text-[#5C6460] ${compact ? 'text-xs line-clamp-2 mt-2' : 'text-xs sm:text-sm line-clamp-3 mt-3'} leading-relaxed font-light`}>
+            {exp.description || 'Authentic regional immersion hosted by generational craft and heritage lineage keepers.'}
+          </p>
+        </div>
+
+        <div className={`${compact ? 'mt-4 pt-3' : 'mt-8 pt-5'} border-t border-[#D8D4C8] flex items-center justify-between`}>
+          <div>
+            <span className="text-[9px] font-mono uppercase tracking-widest text-[#7C8581] block">
+              Tariff
+            </span>
+            <p className="font-bold text-[#3E4541] text-sm sm:text-base">
+              {formattedPrice}
+            </p>
+          </div>
+          <Link
+            href={`/experiences/${exp.id}`}
+            className="inline-flex items-center gap-1 text-xs font-mono uppercase tracking-wider text-[#F7F4EA] bg-[#347F8C] hover:bg-[#2A6772] font-bold px-3.5 py-1.5 rounded-lg transition-all duration-300 active:scale-95 shadow-md shadow-[#347F8C]/20"
+          >
+            <span>Inspect</span>
+            <ArrowRight className="w-3 h-3" />
+          </Link>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function CityExpeditionSection({
+  cityName,
+  tag,
+  distanceKm,
+  isNearest,
+  experiences,
+}: {
+  cityName: string;
+  tag: string;
+  distanceKm: number;
+  isNearest: boolean;
+  experiences: CuratedExperience[];
+}) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const topThree = experiences.slice(0, 3);
+  const remainingExperiences = experiences.slice(3);
+
+  const scroll = (direction: 'left' | 'right') => {
+    if (scrollRef.current) {
+      const scrollAmount = direction === 'left' ? -380 : 380;
+      scrollRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    }
+  };
+
+  return (
+    <section className="mb-20 last:mb-0">
+      {/* ─── City Subheading & Distance Indicator ─── */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 border-b border-[#D8D4C8] pb-4 mb-6">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-[#347F8C] font-mono text-[11px] tracking-[0.25em] uppercase font-bold">
+              Signature Enclave
+            </span>
+            {isNearest && (
+              <span className="bg-[#347F8C] text-[#F7F4EA] font-mono text-[10px] px-2.5 py-0.5 rounded-full font-bold flex items-center gap-1 shadow-xs animate-pulse">
+                <MapPin className="w-2.5 h-2.5" />
+                Nearest to you {distanceKm !== Infinity ? `(~${Math.round(distanceKm)} km)` : ''}
+              </span>
+            )}
+            {!isNearest && distanceKm !== Infinity && distanceKm < 2000 && (
+              <span className="bg-[#EFEBE0] text-[#5C6460] font-mono text-[10px] px-2 py-0.5 rounded-full font-medium flex items-center gap-1">
+                <MapPin className="w-2.5 h-2.5 text-[#347F8C]" />
+                ~{Math.round(distanceKm)} km away
+              </span>
+            )}
+          </div>
+          <h3 className="font-manifold text-2xl sm:text-4xl uppercase tracking-wide text-[#3E4541] font-extrabold flex items-baseline gap-3">
+            <span>{cityName}</span>
+            <span className="text-sm font-mono text-[#5C6460] font-normal tracking-normal">
+              ({experiences.length} Experiences)
+            </span>
+          </h3>
+          <p className="text-xs text-[#5C6460] font-light mt-1">
+            {tag}
+          </p>
+        </div>
+        <Link
+          href={`/cities/${cityName.toLowerCase()}`}
+          className="text-xs font-mono uppercase tracking-wider text-[#347F8C] hover:text-[#2A6772] font-bold inline-flex items-center gap-1 self-start sm:self-auto"
+        >
+          <span>Explore All {cityName}</span>
+          <ArrowRight className="w-3 h-3" />
+        </Link>
+      </div>
+
+      {/* ─── Top 3 Curated Experiences Grid ─── */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        {topThree.map((exp) => (
+          <ExperienceCard key={exp.id} exp={exp} />
+        ))}
+      </div>
+
+      {/* ─── Sideways Scroll Animation for all other experiences in the city ─── */}
+      {remainingExperiences.length > 0 && (
+        <div className="bg-[#F2EFE5]/70 border border-[#D8D4C8] rounded-2xl p-5 shadow-inner">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-mono uppercase tracking-wider text-[#3E4541] font-bold">
+                More {cityName} Expeditions ({remainingExperiences.length})
+              </span>
+              <span className="text-[10px] font-mono text-[#7C8581] hidden sm:inline">
+                &bull; Scroll sideways to inspect all
+              </span>
+            </div>
+
+            {/* Scroll Navigation Arrows */}
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => scroll('left')}
+                className="w-8 h-8 rounded-full bg-white border border-[#D8D4C8] hover:bg-[#347F8C] hover:text-white hover:border-[#347F8C] flex items-center justify-center transition cursor-pointer shadow-xs active:scale-95"
+                aria-label="Scroll left"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => scroll('right')}
+                className="w-8 h-8 rounded-full bg-white border border-[#D8D4C8] hover:bg-[#347F8C] hover:text-white hover:border-[#347F8C] flex items-center justify-center transition cursor-pointer shadow-xs active:scale-95"
+                aria-label="Scroll right"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+
+          {/* Sideways Scroll Row */}
+          <div
+            ref={scrollRef}
+            className="flex gap-5 overflow-x-auto pb-4 pt-1 snap-x scroll-smooth no-scrollbar"
+            style={{ scrollbarWidth: 'thin' }}
+          >
+            {remainingExperiences.map((exp) => (
+              <div key={exp.id} className="w-[290px] sm:w-[320px] shrink-0 snap-start">
+                <ExperienceCard exp={exp} compact />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
 function CuratedDirectoryContent({
   initialExperiences,
   categories,
@@ -52,6 +280,8 @@ function CuratedDirectoryContent({
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
 
+  const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
+
   const currentCat = searchParams?.get('cat') || '';
   const currentCity = searchParams?.get('city') || '';
   const currentQ = searchParams?.get('q') || '';
@@ -59,6 +289,22 @@ function CuratedDirectoryContent({
   const [activeCategory, setActiveCategory] = useState(currentCat);
   const [selectedCity, setSelectedCity] = useState(currentCity);
   const [searchQuery, setSearchQuery] = useState(currentQ);
+
+  // Request browser geolocation on mount to sort nearest city first
+  useEffect(() => {
+    if (typeof window !== 'undefined' && navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          setUserCoords({
+            lat: pos.coords.latitude,
+            lng: pos.coords.longitude,
+          });
+        },
+        () => {},
+        { enableHighAccuracy: false, timeout: 5000 }
+      );
+    }
+  }, []);
 
   useEffect(() => {
     setActiveCategory(currentCat);
@@ -108,6 +354,7 @@ function CuratedDirectoryContent({
     updateUrl('', '', '');
   };
 
+  // 1. Filtered list based on search and category
   const filteredExperiences = useMemo(() => {
     return initialExperiences.filter((exp) => {
       if (activeCategory && exp.category?.toLowerCase() !== activeCategory.toLowerCase()) {
@@ -130,6 +377,48 @@ function CuratedDirectoryContent({
       return true;
     });
   }, [initialExperiences, activeCategory, selectedCity, searchQuery]);
+
+  // 2. Group experiences by City and sort nearest to user
+  const groupedCitySections = useMemo(() => {
+    const groups: Record<string, CuratedExperience[]> = {};
+    filteredExperiences.forEach((exp) => {
+      const c = exp.city || 'Other';
+      if (!groups[c]) groups[c] = [];
+      groups[c].push(exp);
+    });
+
+    const cityNames = Object.keys(groups);
+
+    return cityNames
+      .map((cityName) => {
+        const normKey = cityName.toLowerCase();
+        const coords = CITY_COORDINATES[normKey];
+        let distanceKm = Infinity;
+        if (coords && userCoords) {
+          distanceKm = haversineKm(userCoords.lat, userCoords.lng, coords.lat, coords.lng);
+        }
+        return {
+          cityName,
+          tag: coords?.tag || 'Curated Regional Enclave',
+          distanceKm,
+          experiences: groups[cityName],
+        };
+      })
+      .sort((a, b) => {
+        // Nearest city first if coordinates available
+        if (userCoords && a.distanceKm !== Infinity && b.distanceKm !== Infinity) {
+          return a.distanceKm - b.distanceKm;
+        }
+        // Default ranking: Mumbai -> Ahmedabad -> Jaipur -> others
+        const order = ['mumbai', 'ahmedabad', 'jaipur', 'varanasi', 'kochi', 'kolkata'];
+        const aIdx = order.indexOf(a.cityName.toLowerCase());
+        const bIdx = order.indexOf(b.cityName.toLowerCase());
+        if (aIdx !== -1 && bIdx !== -1) return aIdx - bIdx;
+        if (aIdx !== -1) return -1;
+        if (bIdx !== -1) return 1;
+        return a.cityName.localeCompare(b.cityName);
+      });
+  }, [filteredExperiences, userCoords]);
 
   return (
     <div id={targetId}>
@@ -205,9 +494,9 @@ function CuratedDirectoryContent({
         </div>
       </div>
 
-      {/* ─── Experiences Grid ─── */}
+      {/* ─── City Sections with Top 3 + Sideways Scrolling Experiences ─── */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {filteredExperiences.length === 0 ? (
+        {groupedCitySections.length === 0 ? (
           <div className="text-center py-28 bg-white border border-[#D8D4C8] rounded-3xl shadow-sm">
             <h3 className="font-manifold text-xl tracking-wider text-[#3E4541] uppercase">
               No matching expeditions
@@ -224,83 +513,16 @@ function CuratedDirectoryContent({
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredExperiences.map((exp) => (
-              <article
-                key={exp.id}
-                className="group relative bg-white border border-[#D8D4C8] hover:border-[#347F8C]/50 rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-xl flex flex-col justify-between"
-              >
-                {/* Image Cover */}
-                <div className="relative h-60 w-full overflow-hidden bg-zinc-100">
-                  <img
-                    src={exp.mediaUrls?.[0] || 'https://images.unsplash.com/photo-1596178065887-1198b6148b2b?auto=format&fit=crop&w=1000&q=80'}
-                    alt={exp.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent opacity-80" />
-
-                  {/* Top Badges */}
-                  <div className="absolute top-3.5 left-3.5 flex items-center gap-2">
-                    <span className="bg-white/95 backdrop-blur-md px-3 py-1 rounded-full text-[11px] font-mono tracking-wider text-[#3E4541] font-bold border border-[#D8D4C8] uppercase shadow-sm">
-                      {exp.city}
-                    </span>
-                  </div>
-
-                  <div className="absolute top-3.5 right-3.5 bg-white/95 backdrop-blur-md px-2.5 py-1 rounded-full text-[11px] font-medium text-[#3E4541] border border-[#D8D4C8] flex items-center gap-1 shadow-sm font-bold">
-                    <Star className="w-3 h-3 text-amber-500 fill-amber-500" />
-                    <span>{Number(exp.ratingAverage || 4.9).toFixed(2)}</span>
-                  </div>
-
-                  {/* Host Guild Base Meta */}
-                  <div className="absolute bottom-3 left-4 right-4 flex items-center justify-between text-xs text-white">
-                    <span className="text-[11px] font-mono text-zinc-200 flex items-center gap-1 font-medium">
-                      <ShieldCheck className="w-3.5 h-3.5 text-[#4FA3D1]" />
-                      {exp.provider?.businessName ? `Listed by ${exp.provider.businessName}` : 'Listed by local traveller'}
-                    </span>
-                    <span className="text-[11px] font-mono text-zinc-200 flex items-center gap-1">
-                      <Clock className="w-3 h-3 text-zinc-300" />
-                      {exp.durationMinutes || 120} min
-                    </span>
-                  </div>
-                </div>
-
-                {/* Card Details */}
-                <div className="p-6 flex-1 flex flex-col justify-between">
-                  <div>
-                    <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-[#347F8C] mb-1.5 block font-bold">
-                      {exp.category}
-                    </span>
-                    <h3 className="font-manifold font-extrabold uppercase text-lg sm:text-xl tracking-wide text-[#3E4541] group-hover:text-[#347F8C] transition-colors line-clamp-2 leading-snug">
-                      {exp.title}
-                    </h3>
-                    <p className="text-[#5C6460] text-xs sm:text-sm mt-3 leading-relaxed line-clamp-3 font-light">
-                      {exp.description || 'Authentic regional immersion hosted by generational craft and heritage lineage keepers.'}
-                    </p>
-                  </div>
-
-                  <div className="mt-8 pt-5 border-t border-[#D8D4C8] flex items-center justify-between">
-                    <div>
-                      <span className="text-[10px] font-mono uppercase tracking-widest text-[#7C8581] block">
-                        Tariff
-                      </span>
-                      <p className="font-bold text-[#3E4541] text-base">
-                        {(!exp.priceMin && !exp.priceMax) || (exp.priceMin === 0 && exp.priceMax === 0)
-                          ? 'Free'
-                          : exp.priceMin === 0
-                          ? `Free – ₹${exp.priceMax?.toLocaleString()}`
-                          : `₹${exp.priceMin?.toLocaleString()} – ₹${exp.priceMax?.toLocaleString()}`}
-                      </p>
-                    </div>
-                    <Link
-                      href={`/experiences/${exp.id}`}
-                      className="inline-flex items-center gap-1.5 text-xs font-mono uppercase tracking-wider text-[#F7F4EA] bg-[#347F8C] hover:bg-[#2A6772] font-bold px-4 py-2 rounded-lg transition-all duration-300 active:scale-95 shadow-md shadow-[#347F8C]/20"
-                    >
-                      <span>Inspect</span>
-                      <ArrowRight className="w-3 h-3" />
-                    </Link>
-                  </div>
-                </div>
-              </article>
+          <div>
+            {groupedCitySections.map((cityGroup, idx) => (
+              <CityExpeditionSection
+                key={cityGroup.cityName}
+                cityName={cityGroup.cityName}
+                tag={cityGroup.tag}
+                distanceKm={cityGroup.distanceKm}
+                isNearest={idx === 0}
+                experiences={cityGroup.experiences}
+              />
             ))}
           </div>
         )}
