@@ -1,0 +1,618 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { API_BASE } from '@/lib/api-client';
+import { createTripSession } from '@/lib/trip-session-store';
+import { 
+  MapPin, 
+  Navigation, 
+  Clock, 
+  Wallet, 
+  Users, 
+  Compass, 
+  ArrowRight, 
+  Sparkles, 
+  Check, 
+  ChevronRight,
+  RotateCcw
+} from 'lucide-react';
+
+interface CityPreset {
+  id: string;
+  name: string;
+  region: string;
+  lat: number;
+  lng: number;
+  tag: string;
+}
+
+const CITY_PRESETS: CityPreset[] = [
+  { id: 'mumbai', name: 'Mumbai', region: 'Colaba & Fort', lat: 18.9220, lng: 72.8347, tag: 'Art Deco & Coastal Guilds' },
+  { id: 'ahmedabad', name: 'Ahmedabad', region: 'Old Walled City', lat: 23.0225, lng: 72.5714, tag: 'UNESCO Pols & Textile Masters' },
+  { id: 'jaipur', name: 'Jaipur', region: 'Pink City & Bagru', lat: 26.9124, lng: 75.7873, tag: 'Block Print & Gem Cutters' },
+  { id: 'varanasi', name: 'Varanasi', region: 'Ghats & Weavers Colony', lat: 25.3176, lng: 82.9739, tag: 'Dawn Rites & Silk Lineages' },
+];
+
+const CURATORIAL_INTERESTS = [
+  { id: 'FOOD', label: 'Culinary Lineages', desc: 'Family-run kitchens, spice masters & heritage tastings' },
+  { id: 'CULTURE', label: 'Living Heritage', desc: 'Protected architectural walks & private shrines' },
+  { id: 'WORKSHOPS', label: 'Artisan Ateliers', desc: 'Hands-on block printing, brass casting & miniature art' },
+  { id: 'ADVENTURE', label: 'Field Expeditions', desc: 'Dawn harbor navigations, stepwells & ridge treks' },
+  { id: 'HIDDEN_GEMS', label: 'Secret Archives', desc: 'Private collections & off-circuit guild houses' },
+  { id: 'NIGHTLIFE', label: 'Evening Soirees', desc: 'Classical baithaks, rooftop poetry & lantern walks' },
+];
+
+const DURATION_PRESETS = [
+  { minutes: 120, label: '2 Hours', note: 'Intimate Focus' },
+  { minutes: 180, label: '3 Hours', note: 'Half-Day Circuit' },
+  { minutes: 240, label: '4 Hours', note: 'Deep Immersion' },
+  { minutes: 360, label: '6 Hours', note: 'Full-Day Journey' },
+];
+
+const BUDGET_PRESETS = [
+  { amount: '2500', label: '₹2,500' },
+  { amount: '5000', label: '₹5,000' },
+  { amount: '10000', label: '₹10,000' },
+  { amount: '15000', label: '₹15,000' },
+];
+
+export function ItineraryBuilder() {
+  const router = useRouter();
+  const [activeStep, setActiveStep] = useState<1 | 2 | 3>(1);
+  const [isLoading, setIsLoading] = useState(false);
+  const [geoLocating, setGeoLocating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [activeSession, setActiveSession] = useState<{ id: string } | null>(null);
+  const [showManualCoords, setShowManualCoords] = useState(false);
+
+  // Form State
+  const [selectedCityId, setSelectedCityId] = useState<string>('mumbai');
+  const [latitude, setLatitude] = useState('18.9220');
+  const [longitude, setLongitude] = useState('72.8347');
+  const [locationLabel, setLocationLabel] = useState('Mumbai (Colaba & Fort)');
+  const [selectedInterests, setSelectedInterests] = useState<string[]>(['FOOD', 'CULTURE', 'WORKSHOPS']);
+  const [totalBudget, setTotalBudget] = useState('5000');
+  const [durationMinutes, setDurationMinutes] = useState('180');
+  const [groupSize, setGroupSize] = useState('2');
+
+  // Check active session on mount
+  useEffect(() => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+    if (!token) return;
+
+    fetch(`${API_BASE}/trip-sessions/active`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.id) setActiveSession(data);
+      })
+      .catch(() => {});
+  }, []);
+
+  // Handle Preset City selection
+  const handleSelectCity = (preset: CityPreset) => {
+    setSelectedCityId(preset.id);
+    setLatitude(String(preset.lat));
+    setLongitude(String(preset.lng));
+    setLocationLabel(`${preset.name} (${preset.region})`);
+    setError(null);
+  };
+
+  // Browser Geolocation
+  const handleUseCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      setError('Geolocation is not supported by your browser.');
+      return;
+    }
+    setGeoLocating(true);
+    setError(null);
+
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        let detected = 'Current GPS Coordinates';
+
+        try {
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=14&addressdetails=1`,
+            { headers: { 'Accept-Language': 'en' } }
+          );
+          if (res.ok) {
+            const data = await res.json();
+            const addr = data.address;
+            const locality = addr.suburb || addr.neighbourhood || addr.city_district || addr.locality;
+            const city = addr.city || addr.town || addr.state_district;
+            if (locality && city) detected = `${locality}, ${city}`;
+            else if (city) detected = city;
+          }
+        } catch {
+          // fallback gracefully
+        }
+
+        setSelectedCityId('custom');
+        setLatitude(lat.toFixed(4));
+        setLongitude(lng.toFixed(4));
+        setLocationLabel(detected);
+        setGeoLocating(false);
+      },
+      (err) => {
+        setGeoLocating(false);
+        setError(err.message || 'Unable to retrieve location. Select a city from the list.');
+      },
+      { timeout: 9000, enableHighAccuracy: true }
+    );
+  };
+
+  const toggleInterest = (id: string) => {
+    setSelectedInterests((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
+
+  const handleBuildRoute = async () => {
+    if (selectedInterests.length === 0) {
+      setError('Please select at least one curatorial interest.');
+      setActiveStep(2);
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const session = await createTripSession({
+        latitude: parseFloat(latitude),
+        longitude: parseFloat(longitude),
+        totalBudget: parseFloat(totalBudget) || 5000,
+        totalTimeMinutes: parseInt(durationMinutes, 10) || 180,
+        groupSize: parseInt(groupSize, 10) || 2,
+        interests: selectedInterests,
+      });
+
+      router.push(`/trip/${session.id}`);
+    } catch (err: any) {
+      setError(err?.message || 'Unable to build itinerary. Please try again.');
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <section id="itinerary" className="relative scroll-mt-20 py-24 border-t border-[#D8D4C8] bg-[#F7F4EA] text-[#3E4541]">
+      {/* Ambient background glow */}
+      <div className="absolute top-1/3 left-1/4 w-96 h-96 bg-[#8FAF82]/10 blur-[140px] rounded-full pointer-events-none" />
+      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-[#4FA3D1]/10 blur-[140px] rounded-full pointer-events-none" />
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Section Header */}
+        <div className="mb-12">
+          <div className="inline-flex items-center gap-2 text-[#347F8C] font-mono text-xs tracking-[0.28em] uppercase mb-3">
+            <span className="w-2 h-2 rounded-full bg-[#8FAF82]" />
+            Bespoke Route Atelier
+          </div>
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <div>
+              <h2 className="font-manifold text-3xl sm:text-5xl lg:text-6xl tracking-[0.05em] text-[#3E4541] uppercase leading-none font-bold">
+                Curate Your Itinerary
+              </h2>
+              <p className="text-[#3E4541]/75 text-sm sm:text-base mt-4 max-w-2xl font-light leading-relaxed">
+                Define your departure origin, curatorial inclinations, and pacing. We link verified guilds and master workshops into a continuous schedule.
+              </p>
+            </div>
+
+            {/* Active Session Notification */}
+            {activeSession && (
+              <div className="flex items-center gap-3 bg-white border border-[#347F8C]/40 px-4 py-2.5 rounded-2xl shadow-sm">
+                <span className="w-2 h-2 rounded-full bg-[#347F8C] animate-ping" />
+                <span className="text-xs font-mono text-[#3E4541]">Live Journey in Progress</span>
+                <button
+                  onClick={() => router.push(`/trip/${activeSession.id}`)}
+                  className="text-xs font-mono font-bold text-[#F7F4EA] bg-[#347F8C] hover:bg-[#2A6772] px-3 py-1 rounded-xl transition shadow-sm"
+                >
+                  Resume &rarr;
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Builder Studio Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          {/* Step Navigation Sidebar */}
+          <div className="lg:col-span-4 space-y-3">
+            {[
+              { num: 1, title: 'Departure Origin', subtitle: locationLabel || 'Select base city', icon: MapPin },
+              { num: 2, title: 'Curatorial Focus', subtitle: `${selectedInterests.length} selected interests`, icon: Compass },
+              { num: 3, title: 'Pace & Allocation', subtitle: `${parseInt(durationMinutes) / 60}h · ₹${Number(totalBudget).toLocaleString()}`, icon: Wallet },
+            ].map((s) => {
+              const Icon = s.icon;
+              const isActive = activeStep === s.num;
+              const isCompleted = activeStep > s.num;
+
+              return (
+                <button
+                  key={s.num}
+                  type="button"
+                  onClick={() => setActiveStep(s.num as any)}
+                  className={`w-full text-left p-5 rounded-2xl border transition-all duration-300 flex items-start gap-4 ${
+                    isActive
+                      ? 'bg-white border-[#347F8C] shadow-md shadow-[#347F8C]/10 text-[#3E4541]'
+                      : 'bg-white/80 border-[#D8D4C8] hover:border-[#347F8C]/40 hover:bg-white text-[#3E4541]/75'
+                  }`}
+                >
+                  <div
+                    className={`w-9 h-9 rounded-xl flex items-center justify-center font-mono text-xs font-bold transition-all ${
+                      isActive
+                        ? 'bg-[#347F8C] text-[#F7F4EA] shadow-sm shadow-[#347F8C]/20'
+                        : isCompleted
+                        ? 'bg-[#8FAF82] text-white'
+                        : 'bg-[#F7F4EA] text-[#3E4541]/70 border border-[#D8D4C8]'
+                    }`}
+                  >
+                    {isCompleted ? <Check className="w-4 h-4" /> : `0${s.num}`}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <h4 className={`font-manifold text-base tracking-wide uppercase ${isActive ? 'text-[#3E4541] font-bold' : 'text-[#3E4541]/70'}`}>
+                        {s.title}
+                      </h4>
+                      <Icon className={`w-4 h-4 ${isActive ? 'text-[#347F8C]' : 'text-[#3E4541]/50'}`} />
+                    </div>
+                    <p className="text-xs font-mono text-[#3E4541]/60 mt-1 truncate">
+                      {s.subtitle}
+                    </p>
+                  </div>
+                </button>
+              );
+            })}
+
+            {/* Quick Summary Pill Box */}
+            <div className="p-5 rounded-2xl bg-white border border-[#D8D4C8] space-y-3 font-mono text-xs shadow-sm">
+              <div className="text-[11px] uppercase tracking-widest text-[#347F8C] font-semibold">
+                Expedition Calibrations
+              </div>
+              <div className="flex justify-between text-[#3E4541]/70">
+                <span>Hub:</span>
+                <span className="text-[#3E4541] font-semibold">{locationLabel.split('(')[0].trim()}</span>
+              </div>
+              <div className="flex justify-between text-[#3E4541]/70">
+                <span>Duration:</span>
+                <span className="text-[#3E4541] font-semibold">{parseInt(durationMinutes) / 60} Hours</span>
+              </div>
+              <div className="flex justify-between text-[#3E4541]/70">
+                <span>Party:</span>
+                <span className="text-[#3E4541] font-semibold">{groupSize} {groupSize === '1' ? 'Traveler' : 'Travelers'}</span>
+              </div>
+              <div className="flex justify-between text-[#3E4541]/70">
+                <span>Cap:</span>
+                <span className="text-[#3E4541] font-semibold">₹{Number(totalBudget).toLocaleString()}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Interactive Workspace Panel */}
+          <div className="lg:col-span-8 bg-white border border-[#D8D4C8] rounded-3xl p-6 sm:p-10 shadow-sm">
+            {error && (
+              <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-xs font-mono flex items-center justify-between">
+                <span>{error}</span>
+                <button onClick={() => setError(null)} className="text-red-500 ml-3">✕</button>
+              </div>
+            )}
+
+            {/* Step 1: Location & Coordinates */}
+            {activeStep === 1 && (
+              <div className="space-y-6">
+                <div>
+                  <span className="text-[10px] font-mono uppercase tracking-widest text-[#347F8C] block mb-1 font-bold">
+                    Phase 01
+                  </span>
+                  <h3 className="font-manifold text-2xl tracking-wide uppercase text-[#3E4541] font-bold">
+                    Where does your expedition begin?
+                  </h3>
+                  <p className="text-xs text-[#3E4541]/70 mt-1 font-light">
+                    Choose an authentic heritage sector or use your device GPS coordinates.
+                  </p>
+                </div>
+
+                {/* City Preset Cards */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {CITY_PRESETS.map((preset) => {
+                    const isSelected = selectedCityId === preset.id;
+                    return (
+                      <button
+                        key={preset.id}
+                        type="button"
+                        onClick={() => handleSelectCity(preset)}
+                        className={`text-left p-4 rounded-2xl border transition-all duration-200 ${
+                          isSelected
+                            ? 'bg-[#4FA3D1]/15 border-[#4FA3D1] shadow-sm'
+                            : 'bg-white border-[#D8D4C8] hover:border-[#4FA3D1]/50 hover:bg-[#F7F4EA]/40'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="font-manifold text-base tracking-wide text-[#3E4541] uppercase font-bold">
+                            {preset.name}
+                          </span>
+                          <span className="text-[11px] font-mono text-[#347F8C] font-semibold">
+                            {preset.region}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-[#3E4541]/70 mt-1.5 font-light">
+                          {preset.tag}
+                        </p>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Live GPS Button */}
+                <div className="pt-2 flex flex-col sm:flex-row items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={handleUseCurrentLocation}
+                    disabled={geoLocating}
+                    className="w-full sm:w-auto flex-1 inline-flex items-center justify-center gap-2 bg-[#F7F4EA] hover:bg-white text-[#3E4541] border border-[#D8D4C8] px-5 py-3 rounded-xl text-xs font-mono uppercase tracking-wider transition active:scale-95 disabled:opacity-50 shadow-sm"
+                  >
+                    <Navigation className={`w-3.5 h-3.5 text-[#347F8C] ${geoLocating ? 'animate-spin' : ''}`} />
+                    <span>{geoLocating ? 'Detecting GPS Satellite...' : 'Use Current Device Location'}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setShowManualCoords(!showManualCoords)}
+                    className="text-xs font-mono text-[#3E4541]/70 hover:text-[#347F8C] transition underline underline-offset-4 px-2"
+                  >
+                    {showManualCoords ? 'Hide Manual Coordinates' : 'Manual Coordinates'}
+                  </button>
+                </div>
+
+                {/* Collapsible Manual Coordinates */}
+                {showManualCoords && (
+                  <div className="p-4 rounded-2xl bg-[#F7F4EA] border border-[#D8D4C8] grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-[10px] font-mono text-[#3E4541]/70 uppercase tracking-wider mb-1">
+                        Latitude (Decimal)
+                      </label>
+                      <input
+                        type="number"
+                        step="any"
+                        value={latitude}
+                        onChange={(e) => {
+                          setLatitude(e.target.value);
+                          setSelectedCityId('custom');
+                        }}
+                        className="w-full text-xs font-mono bg-white border border-[#D8D4C8] rounded-xl px-3 py-2 text-[#3E4541] focus:outline-none focus:border-[#347F8C]"
+                        placeholder="e.g. 18.9220"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-mono text-[#3E4541]/70 uppercase tracking-wider mb-1">
+                        Longitude (Decimal)
+                      </label>
+                      <input
+                        type="number"
+                        step="any"
+                        value={longitude}
+                        onChange={(e) => {
+                          setLongitude(e.target.value);
+                          setSelectedCityId('custom');
+                        }}
+                        className="w-full text-xs font-mono bg-white border border-[#D8D4C8] rounded-xl px-3 py-2 text-[#3E4541] focus:outline-none focus:border-[#347F8C]"
+                        placeholder="e.g. 72.8347"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Confirmation Footer */}
+                <div className="pt-4 border-t border-[#D8D4C8] flex items-center justify-between">
+                  <div className="text-xs font-mono text-[#3E4541]/70">
+                    Active Point: <span className="text-[#3E4541] font-bold">{locationLabel}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setActiveStep(2)}
+                    className="inline-flex items-center gap-2 bg-[#347F8C] hover:bg-[#2A6772] text-[#F7F4EA] text-xs font-mono font-bold uppercase tracking-wider px-6 py-3 rounded-xl transition shadow-sm"
+                  >
+                    <span>Curatorial Focus</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Step 2: Curatorial Interests */}
+            {activeStep === 2 && (
+              <div className="space-y-6">
+                <div>
+                  <span className="text-[10px] font-mono uppercase tracking-widest text-[#347F8C] block mb-1 font-bold">
+                    Phase 02
+                  </span>
+                  <h3 className="font-manifold text-2xl tracking-wide uppercase text-[#3E4541] font-bold">
+                    Curatorial Focus
+                  </h3>
+                  <p className="text-xs text-[#3E4541]/70 mt-1 font-light">
+                    Select the themes that will guide route stops and chronological continuity.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {CURATORIAL_INTERESTS.map((interest) => {
+                    const isSelected = selectedInterests.includes(interest.id);
+                    return (
+                      <button
+                        key={interest.id}
+                        type="button"
+                        onClick={() => toggleInterest(interest.id)}
+                        className={`text-left p-4 rounded-2xl border transition-all duration-200 ${
+                          isSelected
+                            ? 'bg-[#347F8C] text-[#F7F4EA] border-[#347F8C] shadow-sm'
+                            : 'bg-white text-[#3E4541] border border-[#D8D4C8] hover:border-[#347F8C]/50 hover:bg-[#F7F4EA]/40'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className={`font-manifold text-sm tracking-wide uppercase font-bold ${isSelected ? 'text-white' : 'text-[#3E4541]'}`}>
+                            {interest.label}
+                          </span>
+                          {isSelected && <Check className="w-4 h-4 text-white" />}
+                        </div>
+                        <p className={`text-[11px] mt-1.5 font-light ${isSelected ? 'text-[#F7F4EA]/90' : 'text-[#3E4541]/70'}`}>
+                          {interest.desc}
+                        </p>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div className="pt-4 border-t border-[#D8D4C8] flex items-center justify-between">
+                  <button
+                    type="button"
+                    onClick={() => setActiveStep(1)}
+                    className="text-xs font-mono text-[#3E4541]/70 hover:text-[#347F8C] uppercase tracking-wider transition"
+                  >
+                    &larr; Back to Location
+                  </button>
+                  <button
+                    type="button"
+                    disabled={selectedInterests.length === 0}
+                    onClick={() => setActiveStep(3)}
+                    className="inline-flex items-center gap-2 bg-[#347F8C] hover:bg-[#2A6772] text-[#F7F4EA] text-xs font-mono font-bold uppercase tracking-wider px-6 py-3 rounded-xl transition disabled:opacity-40 shadow-sm"
+                  >
+                    <span>Pacing & Budget</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Step 3: Budget, Time & Party */}
+            {activeStep === 3 && (
+              <div className="space-y-6">
+                <div>
+                  <span className="text-[10px] font-mono uppercase tracking-widest text-[#347F8C] block mb-1 font-bold">
+                    Phase 03
+                  </span>
+                  <h3 className="font-manifold text-2xl tracking-wide uppercase text-[#3E4541] font-bold">
+                    Pace & Tariff Allocation
+                  </h3>
+                  <p className="text-xs text-[#3E4541]/70 mt-1 font-light">
+                    Establish temporal thresholds and budget allocation for guild tariffs and workshops.
+                  </p>
+                </div>
+
+                {/* Duration Picker */}
+                <div>
+                  <label className="block text-[11px] font-mono text-[#3E4541]/70 uppercase tracking-wider mb-2 font-semibold">
+                    Temporal Duration
+                  </label>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {DURATION_PRESETS.map((d) => (
+                      <button
+                        key={d.minutes}
+                        type="button"
+                        onClick={() => setDurationMinutes(String(d.minutes))}
+                        className={`p-3 rounded-xl text-center border transition-all ${
+                          durationMinutes === String(d.minutes)
+                            ? 'bg-[#347F8C] text-[#F7F4EA] font-bold border-[#347F8C] shadow-sm'
+                            : 'bg-white text-[#3E4541] border border-[#D8D4C8] hover:border-[#347F8C]/40 hover:bg-[#F7F4EA]/40'
+                        }`}
+                      >
+                        <span className="block text-xs font-mono">{d.label}</span>
+                        <span className="block text-[10px] opacity-80 mt-0.5">{d.note}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Budget Selection */}
+                <div>
+                  <label className="block text-[11px] font-mono text-[#3E4541]/70 uppercase tracking-wider mb-2 font-semibold">
+                    Total Budget Allocation (INR)
+                  </label>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-2">
+                    {BUDGET_PRESETS.map((b) => (
+                      <button
+                        key={b.amount}
+                        type="button"
+                        onClick={() => setTotalBudget(b.amount)}
+                        className={`p-2.5 rounded-xl text-xs font-mono text-center border transition-all ${
+                          totalBudget === b.amount
+                            ? 'bg-[#347F8C] text-[#F7F4EA] font-bold border-[#347F8C] shadow-sm'
+                            : 'bg-white text-[#3E4541] border border-[#D8D4C8] hover:border-[#347F8C]/40 hover:bg-[#F7F4EA]/40'
+                        }`}
+                      >
+                        {b.label}
+                      </button>
+                    ))}
+                  </div>
+                  <input
+                    type="number"
+                    min="500"
+                    step="500"
+                    value={totalBudget}
+                    onChange={(e) => setTotalBudget(e.target.value)}
+                    placeholder="Or enter custom budget"
+                    className="w-full text-xs font-mono bg-white border border-[#D8D4C8] rounded-xl px-3 py-2.5 text-[#3E4541] placeholder-[#3E4541]/40 focus:outline-none focus:border-[#347F8C] transition"
+                  />
+                </div>
+
+                {/* Cohort Size */}
+                <div>
+                  <label className="block text-[11px] font-mono text-[#3E4541]/70 uppercase tracking-wider mb-2 font-semibold">
+                    Cohort Size
+                  </label>
+                  <div className="flex gap-2">
+                    {['1', '2', '3', '4', '5'].map((num) => (
+                      <button
+                        key={num}
+                        type="button"
+                        onClick={() => setGroupSize(num)}
+                        className={`flex-1 py-2 rounded-xl text-xs font-mono text-center border transition ${
+                          groupSize === num
+                            ? 'bg-[#347F8C] text-[#F7F4EA] font-bold border-[#347F8C] shadow-sm'
+                            : 'bg-white text-[#3E4541] border border-[#D8D4C8] hover:border-[#347F8C]/40 hover:bg-[#F7F4EA]/40'
+                        }`}
+                      >
+                        {num} {num === '1' ? 'Person' : 'People'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="pt-4 border-t border-[#D8D4C8] flex items-center justify-between">
+                  <button
+                    type="button"
+                    onClick={() => setActiveStep(2)}
+                    className="text-xs font-mono text-[#3E4541]/70 hover:text-[#347F8C] uppercase tracking-wider transition"
+                  >
+                    &larr; Back to Interests
+                  </button>
+                  <button
+                    type="button"
+                    disabled={isLoading || !totalBudget}
+                    onClick={handleBuildRoute}
+                    className="inline-flex items-center gap-2.5 bg-[#347F8C] hover:bg-[#2A6772] text-[#F7F4EA] text-xs font-mono font-bold uppercase tracking-wider px-7 py-3.5 rounded-xl transition shadow-sm active:scale-95 disabled:opacity-40"
+                  >
+                    {isLoading ? (
+                      <>
+                        <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        <span>Creating Route...</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>Generate Itinerary</span>
+                        <ArrowRight className="w-4 h-4" />
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}

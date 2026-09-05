@@ -7,7 +7,20 @@ module.exports = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        'corn-font': ['"Manifold CF"', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+        corn: ['"Manifold CF"', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+      },
       colors: {
+        alpine: {
+          sky: '#4FA3D1',
+          sage: '#8FAF82',
+          ivory: '#F7F4EA',
+          stone: '#D8D4C8',
+          charcoal: '#3E4541',
+          teal: '#347F8C',
+          'teal-dark': '#2A6772',
+        },
         primary: {
           50: '#fff7ed',
           100: '#ffedd5',

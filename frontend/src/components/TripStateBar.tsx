@@ -17,12 +17,6 @@ function formatTime(minutes: number): string {
   return `${h}h ${m}m`;
 }
 
-function getTimeColor(remaining: number): string {
-  if (remaining < 30) return 'text-red-600';
-  if (remaining < 45) return 'text-amber-600';
-  return 'text-emerald-600';
-}
-
 export function TripStateBar({
   remainingTimeMinutes,
   remainingBudget,
@@ -33,71 +27,67 @@ export function TripStateBar({
   weatherDescription,
 }: TripStateBarProps) {
   const budgetPct = totalBudget > 0 ? Math.max(0, (remainingBudget / totalBudget) * 100) : 0;
-  const budgetColor = budgetPct < 15 ? 'bg-red-500' : budgetPct < 30 ? 'bg-amber-500' : 'bg-emerald-500';
+  const budgetColor = budgetPct < 15 ? 'bg-red-500' : budgetPct < 30 ? 'bg-amber-500' : 'bg-[#347F8C]';
 
   return (
     <div
       id="trip-state-bar"
-      className="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-slate-200 shadow-sm"
+      className="sticky top-16 z-30 bg-[#F7F4EA]/95 backdrop-blur-2xl border-b border-[#D8D4C8] shadow-sm text-[#3E4541]"
     >
-      <div className="max-w-4xl mx-auto px-4 py-3">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5">
         <div className="flex items-center justify-between gap-4 flex-wrap">
-
           {/* Stops count */}
-          <div className="flex items-center gap-1.5">
-            <span className="text-xl">📍</span>
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-[#347F8C] animate-pulse" />
             <div>
-              <p className="text-xs text-slate-500 leading-none">Stops</p>
-              <p className="font-bold text-slate-900 text-sm">{selectedCount}</p>
+              <p className="text-[10px] font-mono uppercase tracking-widest text-[#7C8581] leading-none">
+                Stops
+              </p>
+              <p className="font-manifold font-bold text-[#3E4541] text-sm mt-0.5">{selectedCount}</p>
             </div>
           </div>
 
           {/* Current city */}
           {currentCity && (
-            <div className="hidden sm:flex items-center gap-1.5">
-              <span className="text-xl">🗺️</span>
+            <div className="hidden sm:flex items-center gap-2">
               <div>
-                <p className="text-xs text-slate-500 leading-none">Area</p>
-                <p className="font-bold text-slate-900 text-sm">{currentCity}</p>
+                <p className="text-[10px] font-mono uppercase tracking-widest text-[#7C8581] leading-none">
+                  Locale
+                </p>
+                <p className="font-mono text-[#5C6460] text-xs mt-0.5">{currentCity}</p>
               </div>
             </div>
           )}
 
           {/* Time remaining */}
-          <div className="flex items-center gap-1.5">
-            <span className="text-xl">⏱️</span>
-            <div>
-              <p className="text-xs text-slate-500 leading-none">Time left</p>
-              <p className={`font-bold text-sm ${getTimeColor(remainingTimeMinutes)}`}>
-                {formatTime(remainingTimeMinutes)}
-              </p>
+          <div>
+            <p className="text-[10px] font-mono uppercase tracking-widest text-[#7C8581] leading-none">
+              Window Left
+            </p>
+            <p className="font-mono font-bold text-xs mt-0.5 text-[#347F8C]">
+              {formatTime(remainingTimeMinutes)}
+            </p>
+          </div>
+
+          {/* Budget progress */}
+          <div className="flex-1 min-w-[140px] max-w-[200px]">
+            <div className="flex items-center justify-between text-[10px] font-mono text-[#5C6460] mb-1">
+              <span>Budget</span>
+              <span className="font-bold text-[#3E4541]">₹{Math.round(remainingBudget)}</span>
+            </div>
+            <div className="w-full bg-[#D8D4C8] rounded-full h-1.5 overflow-hidden">
+              <div
+                className={`h-full rounded-full transition-all duration-300 ${budgetColor}`}
+                style={{ width: `${budgetPct}%` }}
+              />
             </div>
           </div>
 
-          {/* Budget remaining */}
-          <div className="flex items-center gap-2">
-            <span className="text-xl">💰</span>
-            <div className="min-w-[80px]">
-              <div className="flex items-center justify-between">
-                <p className="text-xs text-slate-500 leading-none">Budget left</p>
-                <p className="font-bold text-slate-900 text-sm">₹{Math.round(remainingBudget)}</p>
-              </div>
-              <div className="mt-1 h-1.5 w-24 bg-slate-200 rounded-full overflow-hidden">
-                <div
-                  className={`h-full rounded-full transition-all duration-500 ${budgetColor}`}
-                  style={{ width: `${budgetPct}%` }}
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Weather badge */}
+          {/* Weather status */}
           {isAdverseWeather && (
-            <div className="flex items-center gap-1.5 bg-blue-50 border border-blue-200 px-2.5 py-1 rounded-full">
-              <span className="text-sm">🌧️</span>
-              <span className="text-xs font-medium text-blue-700">
-                {weatherDescription ?? 'Adverse weather'}
-              </span>
+            <div className="flex items-center gap-1.5 bg-[#4FA3D1]/15 border border-[#4FA3D1]/30 text-[#347F8C] text-[11px] font-mono px-3 py-1 rounded-full">
+              <span>Forecast:</span>
+              <span>{weatherDescription || 'Adverse weather detected'}</span>
             </div>
           )}
         </div>

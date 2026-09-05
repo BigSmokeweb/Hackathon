@@ -6,84 +6,17 @@ import Link from 'next/link';
 import { API_BASE } from '@/lib/api-client';
 import { TripStateBar } from '@/components/TripStateBar';
 import { ItineraryStopCard } from '@/components/ItineraryStopCard';
+import { TripAreaMap } from '@/components/TripAreaMap';
+import { ArrowLeft } from 'lucide-react';
 
-interface StopConditionResult {
-  shouldStop: boolean;
-  stopReason: string | null;
-  wrapUpFlag: boolean;
-  wrapUpTriggerReason: string | null;
-}
-
-interface RecommendationItem {
-  id: string;
-  title: string;
-  category: string;
-  city: string;
-  distanceKm: number;
-  priceMin: number;
-  priceMax: number;
-  durationMinutes?: number;
-  ratingAverage: number;
-  authenticityRating: number;
-  mediaUrls?: string[];
-  candidateLat?: number;
-  candidateLng?: number;
-  aiExplanation?: string;
-  scoreBreakdown?: {
-    finalScore: number;
-    locationMatch: number;
-    intentMatch: number;
-    routeContinuityScore?: number;
-    diversityScore?: number;
-    rejectionPenalty?: number;
-  };
-}
-
-interface SelectedExperience {
-  id: string;
-  title: string;
-  category: string;
-  city: string;
-  priceMin: number;
-  priceMax: number;
-  ratingAverage: number;
-  authenticityRating: number;
-  mediaUrls?: string[];
-  durationMinutes?: number;
-}
-
-interface SessionData {
-  id: string;
-  status: 'ACTIVE' | 'COMPLETED' | 'ABANDONED';
-  remainingTimeMinutes: number;
-  remainingBudget: number;
-  totalBudget: number;
-  selectedExperienceIds: string[];
-  selectedCategories: string[];
-  selectedExperiences?: SelectedExperience[];
-  city?: string;
-}
-
-interface RecommendApiResponse {
-  sessionId: string;
-  recommendations: RecommendationItem[];
-  sessionState: {
-    remainingTimeMinutes: number;
-    remainingBudget: number;
-    selectedCount: number;
-    stopCondition: StopConditionResult;
-  };
-  wrapUpPrompt: {
-    message: string;
-    triggerReason: string;
-    quickResponses: string[];
-  } | null;
-  weatherAdaptPrompt: {
-    advisory: string;
-    alternativeStrategy: string;
-    affectedExperienceIds: string[];
-  } | null;
-}
+import {
+  fetchTripSession,
+  fetchRecommendations,
+  saveLocalSession,
+  SessionData,
+  RecommendationItem,
+  RecommendApiResponse,
+} from '@/lib/trip-session-store';
 
 export default function TripSessionLoopPage() {
   const params = useParams();
@@ -92,7 +25,7 @@ export default function TripSessionLoopPage() {
 
   const [session, setSession] = useState<SessionData | null>(null);
   const [recommendations, setRecommendations] = useState<RecommendationItem[]>([]);
-  const [stopCondition, setStopCondition] = useState<StopConditionResult | null>(null);
+  const [stopCondition, setStopCondition] = useState<RecommendApiResponse['sessionState']['stopCondition'] | null>(null);
   const [wrapUpPrompt, setWrapUpPrompt] = useState<RecommendApiResponse['wrapUpPrompt']>(null);
   const [weatherAdaptPrompt, setWeatherAdaptPrompt] = useState<RecommendApiResponse['weatherAdaptPrompt']>(null);
 
@@ -113,27 +46,8 @@ export default function TripSessionLoopPage() {
     setIsLoading(true);
     setErrorMessage(null);
 
-    const token = getAuthToken();
-    if (!token) {
-      router.push('/login');
-      return;
-    }
-
     try {
-      // 1. Fetch current session detail (with selected experiences)
-      const sessionRes = await fetch(`${API_BASE}/trip-sessions/${sessionId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (!sessionRes.ok) {
-        if (sessionRes.status === 401) {
-          router.push('/login');
-          return;
-        }
-        throw new Error('Failed to load trip session.');
-      }
-
-      const sessionData: SessionData = await sessionRes.json();
+      const sessionData = await fetchTripSession(sessionId);
       setSession(sessionData);
 
       if (sessionData.status === 'COMPLETED') {
@@ -142,35 +56,18 @@ export default function TripSessionLoopPage() {
         return;
       }
 
-      // 2. Fetch next recommendations
-      const recRes = await fetch(`${API_BASE}/trip-sessions/${sessionId}/recommend`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (recRes.ok) {
-        const recData: RecommendApiResponse = await recRes.json();
-        setRecommendations(recData.recommendations || []);
-        setStopCondition(recData.sessionState.stopCondition);
-        setWrapUpPrompt(recData.wrapUpPrompt);
-        setWeatherAdaptPrompt(recData.weatherAdaptPrompt);
-
-        if (recData.sessionState.stopCondition?.shouldStop && (sessionData.selectedExperiences?.length ?? 0) > 0) {
-          setIsCompleted(true);
-        }
-      } else {
-        const err = await recRes.json().catch(() => ({}));
-        setErrorMessage(err.message || 'Could not fetch recommendations.');
-      }
+      const recData = await fetchRecommendations(sessionId, sessionData);
+      setRecommendations(recData.recommendations || []);
+      setStopCondition(recData.sessionState.stopCondition);
+      setWrapUpPrompt(recData.wrapUpPrompt);
+      setWeatherAdaptPrompt(recData.weatherAdaptPrompt);
+      // Never auto-finalize on stop addition — user decides when to finalize
     } catch (err: any) {
-      setErrorMessage(err.message || 'Network error loading session.');
+      setErrorMessage(err.message || 'Error loading route candidates.');
     } finally {
       setIsLoading(false);
     }
-  }, [sessionId, router]);
+  }, [sessionId]);
 
   useEffect(() => {
     loadSessionAndRecommendations();
@@ -180,30 +77,58 @@ export default function TripSessionLoopPage() {
   async function handleSelect(cand: RecommendationItem) {
     setIsActionLoading(true);
     setErrorMessage(null);
-    const token = getAuthToken();
 
     try {
-      const res = await fetch(`${API_BASE}/trip-sessions/${sessionId}/select`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          experienceId: cand.id,
-          nextLatitude: cand.candidateLat ?? 18.922,
-          nextLongitude: cand.candidateLng ?? 72.8347,
-          experienceCost: cand.priceMin || 0,
-          durationMinutes: cand.durationMinutes || 60,
-        }),
-      });
+      const current = session || (await fetchTripSession(sessionId));
+      const cost = cand.priceMin || 0;
+      const duration = cand.durationMinutes || 60;
 
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.message || 'Failed to select stop.');
+      const updated: SessionData = {
+        ...current,
+        remainingBudget: Math.max(0, current.remainingBudget - cost),
+        remainingTimeMinutes: Math.max(0, current.remainingTimeMinutes - duration),
+        selectedExperienceIds: [...(current.selectedExperienceIds || []), cand.id],
+        selectedCategories: Array.from(new Set([...(current.selectedCategories || []), cand.category])),
+        selectedExperiences: [
+          ...(current.selectedExperiences || []),
+          {
+            id: cand.id,
+            title: cand.title,
+            category: cand.category,
+            city: cand.city,
+            priceMin: cand.priceMin,
+            priceMax: cand.priceMax,
+            ratingAverage: cand.ratingAverage,
+            authenticityRating: cand.authenticityRating,
+            mediaUrls: cand.mediaUrls,
+            durationMinutes: cand.durationMinutes,
+            candidateLat: cand.candidateLat,
+            candidateLng: cand.candidateLng,
+          },
+        ],
+      };
+
+      saveLocalSession(updated);
+      setSession(updated);
+
+      const token = getAuthToken();
+      if (token) {
+        fetch(`${API_BASE}/trip-sessions/${sessionId}/select`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            experienceId: cand.id,
+            nextLatitude: cand.candidateLat ?? 18.922,
+            nextLongitude: cand.candidateLng ?? 72.8347,
+            experienceCost: cost,
+            durationMinutes: duration,
+          }),
+        }).catch(() => {});
       }
 
-      // Refresh loop with updated context
       await loadSessionAndRecommendations();
     } catch (err: any) {
       setErrorMessage(err.message);
@@ -212,31 +137,36 @@ export default function TripSessionLoopPage() {
     }
   }
 
-  // Handler: Reject candidate (session-scoped)
+  // Handler: Reject candidate
   async function handleReject(cand: RecommendationItem) {
     setIsActionLoading(true);
     setErrorMessage(null);
-    const token = getAuthToken();
 
     try {
-      const res = await fetch(`${API_BASE}/trip-sessions/${sessionId}/reject`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          experienceId: cand.id,
-          category: cand.category,
-        }),
-      });
+      const current = session || (await fetchTripSession(sessionId));
+      const updated: SessionData = {
+        ...current,
+        rejectedExperienceIds: [...(current.rejectedExperienceIds || []), cand.id],
+      };
 
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.message || 'Failed to record rejection.');
+      saveLocalSession(updated);
+      setSession(updated);
+
+      const token = getAuthToken();
+      if (token) {
+        fetch(`${API_BASE}/trip-sessions/${sessionId}/reject`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            experienceId: cand.id,
+            category: cand.category,
+          }),
+        }).catch(() => {});
       }
 
-      // Re-run recommendations with updated rejection penalty
       await loadSessionAndRecommendations();
     } catch (err: any) {
       setErrorMessage(err.message);
@@ -245,21 +175,34 @@ export default function TripSessionLoopPage() {
     }
   }
 
-  // Handler: Remove a stop (adapt flow Section 5A)
+  // Handler: Remove a stop
   async function handleRemoveStop(experienceId: string) {
     setIsActionLoading(true);
     setErrorMessage(null);
-    const token = getAuthToken();
 
     try {
-      const res = await fetch(`${API_BASE}/trip-sessions/${sessionId}/stops/${experienceId}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const current = session || (await fetchTripSession(sessionId));
+      const removedStop = current.selectedExperiences?.find((e) => e.id === experienceId);
+      const cost = removedStop?.priceMin || 0;
+      const duration = removedStop?.durationMinutes || 60;
 
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.message || 'Failed to remove stop.');
+      const updated: SessionData = {
+        ...current,
+        remainingBudget: Math.min(current.totalBudget, current.remainingBudget + cost),
+        remainingTimeMinutes: current.remainingTimeMinutes + duration,
+        selectedExperienceIds: (current.selectedExperienceIds || []).filter((id) => id !== experienceId),
+        selectedExperiences: (current.selectedExperiences || []).filter((e) => e.id !== experienceId),
+      };
+
+      saveLocalSession(updated);
+      setSession(updated);
+
+      const token = getAuthToken();
+      if (token) {
+        fetch(`${API_BASE}/trip-sessions/${sessionId}/stops/${experienceId}`, {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${token}` },
+        }).catch(() => {});
       }
 
       await loadSessionAndRecommendations();
@@ -273,14 +216,24 @@ export default function TripSessionLoopPage() {
   // Handler: Finish / Mark Complete
   async function handleComplete() {
     setIsActionLoading(true);
-    const token = getAuthToken();
-
     try {
-      await fetch(`${API_BASE}/trip-sessions/${sessionId}/complete`, {
-        method: 'PATCH',
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const current = session || (await fetchTripSession(sessionId));
+      const updated: SessionData = {
+        ...current,
+        status: 'COMPLETED',
+      };
+
+      saveLocalSession(updated);
+      setSession(updated);
       setIsCompleted(true);
+
+      const token = getAuthToken();
+      if (token) {
+        fetch(`${API_BASE}/trip-sessions/${sessionId}/complete`, {
+          method: 'PATCH',
+          headers: { Authorization: `Bearer ${token}` },
+        }).catch(() => {});
+      }
     } catch (err: any) {
       setErrorMessage(err.message);
     } finally {
@@ -288,12 +241,61 @@ export default function TripSessionLoopPage() {
     }
   }
 
+  // Reactivate a completed session so user can add more stops
+  async function reactivateSession() {
+    setIsActionLoading(true);
+    setErrorMessage(null);
+    try {
+      const current = session || (await fetchTripSession(sessionId));
+      const updated: SessionData = {
+        ...current,
+        status: 'ACTIVE',
+      };
+      saveLocalSession(updated);
+      setSession(updated);
+      setIsCompleted(false);
+
+      const token = getAuthToken();
+      if (token) {
+        fetch(`${API_BASE}/trip-sessions/${sessionId}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ status: 'ACTIVE' }),
+        }).catch(() => {});
+      }
+
+      const recData = await fetchRecommendations(sessionId, updated);
+      setRecommendations(recData.recommendations || []);
+      setStopCondition(recData.sessionState?.stopCondition || null);
+      setWrapUpPrompt(recData.wrapUpPrompt || null);
+      setWeatherAdaptPrompt(recData.weatherAdaptPrompt || null);
+    } catch (err: any) {
+      setErrorMessage(err.message || 'Failed to resume itinerary');
+    } finally {
+      setIsActionLoading(false);
+    }
+  }
+
+  // Back button: if finalized, re-open editing to add stops; otherwise return to hero itinerary section
+  function handleBack() {
+    if (isCompleted) {
+      reactivateSession();
+    } else {
+      router.push('/#itinerary');
+    }
+  }
+
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+      <div className="min-h-screen bg-[#F7F4EA] text-[#3E4541] flex items-center justify-center pt-16">
         <div className="text-center">
-          <div className="w-10 h-10 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-slate-600 font-medium">Scoring next best stops for your journey...</p>
+          <div className="w-10 h-10 border-2 border-[#347F8C] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-[#3E4541]/70 font-mono text-xs uppercase tracking-widest">
+            Scoring candidates for route continuity...
+          </p>
         </div>
       </div>
     );
@@ -302,7 +304,7 @@ export default function TripSessionLoopPage() {
   const selectedStops = session?.selectedExperiences || [];
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
+    <div className="min-h-screen bg-[#F7F4EA] text-[#3E4541] flex flex-col pt-16 selection:bg-[#4FA3D1]/30 selection:text-[#3E4541]">
       {/* Sticky Progress Bar */}
       {session && (
         <TripStateBar
@@ -316,25 +318,48 @@ export default function TripSessionLoopPage() {
         />
       )}
 
-      <main className="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
+      <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
+        {/* Navigation Back Button */}
+        <div className="mb-6 flex items-center justify-between">
+          <button
+            type="button"
+            onClick={handleBack}
+            className="inline-flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-[#3E4541]/80 hover:text-[#347F8C] border border-[#D8D4C8] hover:border-[#347F8C] px-4 py-2 rounded-xl transition bg-white shadow-sm font-semibold cursor-pointer active:scale-95"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>Back</span>
+          </button>
+
+          {isCompleted && (
+            <button
+              type="button"
+              onClick={reactivateSession}
+              disabled={isActionLoading}
+              className="inline-flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-[#F7F4EA] bg-[#347F8C] hover:bg-[#2A6772] px-4 py-2 rounded-xl transition shadow-sm font-semibold cursor-pointer active:scale-95"
+            >
+              + Add More Stops
+            </button>
+          )}
+        </div>
+
         {errorMessage && (
-          <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm flex items-center justify-between">
+          <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-2xl text-xs font-mono flex items-center justify-between">
             <span>{errorMessage}</span>
-            <button onClick={() => setErrorMessage(null)} className="text-red-500 font-bold ml-4">✕</button>
+            <button onClick={() => setErrorMessage(null)} className="text-red-700 font-bold ml-4">✕</button>
           </div>
         )}
 
         {/* Weather Alert Banner */}
         {weatherAdaptPrompt && (
-          <div className="mb-6 bg-blue-50 border border-blue-200 rounded-2xl p-4 sm:p-5 text-blue-900 shadow-sm">
+          <div className="mb-6 bg-[#4FA3D1]/10 border border-[#4FA3D1]/30 rounded-2xl p-4 sm:p-5 text-[#3E4541] shadow-sm">
             <div className="flex items-start gap-3">
-              <span className="text-2xl flex-shrink-0">🌧️</span>
+              <span className="w-2.5 h-2.5 rounded-full bg-[#347F8C] mt-1 flex-shrink-0 animate-pulse" />
               <div className="flex-1">
-                <h4 className="font-bold text-sm text-blue-950">Weather Advisory Detected</h4>
-                <p className="text-xs sm:text-sm text-blue-800 mt-1">{weatherAdaptPrompt.advisory}</p>
+                <h4 className="font-manifold font-bold text-xs uppercase tracking-wider text-[#347F8C]">Weather Advisory</h4>
+                <p className="text-xs text-[#3E4541]/80 mt-1 font-light">{weatherAdaptPrompt.advisory}</p>
                 {weatherAdaptPrompt.alternativeStrategy && (
-                  <p className="text-xs text-blue-700 mt-2 font-medium bg-blue-100/70 rounded-lg px-3 py-2">
-                    💡 Suggested: {weatherAdaptPrompt.alternativeStrategy}
+                  <p className="text-xs text-[#347F8C] mt-2 font-mono bg-white rounded-lg px-3 py-2 border border-[#4FA3D1]/20">
+                    Adaptation: {weatherAdaptPrompt.alternativeStrategy}
                   </p>
                 )}
               </div>
@@ -344,23 +369,23 @@ export default function TripSessionLoopPage() {
 
         {/* Wrap-Up Advisory Banner */}
         {wrapUpPrompt && !isCompleted && (
-          <div className="mb-6 bg-amber-50 border border-amber-200 rounded-2xl p-4 sm:p-5 text-amber-900 shadow-sm">
+          <div className="mb-6 bg-[#8FAF82]/15 border border-[#8FAF82]/40 rounded-2xl p-4 sm:p-5 text-[#3E4541] shadow-sm">
             <div className="flex items-start gap-3">
-              <span className="text-2xl flex-shrink-0">⏱️</span>
+              <span className="w-2.5 h-2.5 rounded-full bg-[#8FAF82] mt-1 flex-shrink-0" />
               <div className="flex-1">
-                <h4 className="font-bold text-sm text-amber-950">Almost Time to Wrap Up</h4>
-                <p className="text-xs sm:text-sm text-amber-800 mt-1">{wrapUpPrompt.message}</p>
+                <h4 className="font-manifold font-bold text-xs uppercase tracking-wider text-[#347F8C]">Budget / Temporal Threshold Approaching</h4>
+                <p className="text-xs text-[#3E4541]/80 mt-1 font-light">{wrapUpPrompt.message}</p>
                 <div className="mt-3 flex flex-wrap gap-2">
                   <button
                     onClick={handleComplete}
-                    className="bg-amber-700 hover:bg-amber-800 text-white text-xs font-semibold px-4 py-2 rounded-xl transition"
+                    className="bg-[#347F8C] hover:bg-[#2A6772] text-[#F7F4EA] text-xs font-mono font-bold uppercase tracking-wider px-4 py-2 rounded-xl transition shadow-sm"
                   >
-                    Finish & Wrap Up Now
+                    Finalize Journey Now
                   </button>
                   {wrapUpPrompt.quickResponses?.map((qr, i) => (
                     <span
                       key={i}
-                      className="inline-flex items-center text-xs bg-white border border-amber-300 text-amber-900 px-3 py-1.5 rounded-xl font-medium"
+                      className="inline-flex items-center text-[11px] font-mono bg-white border border-[#D8D4C8] text-[#3E4541]/80 px-3 py-1.5 rounded-xl"
                     >
                       {qr}
                     </span>
@@ -373,17 +398,19 @@ export default function TripSessionLoopPage() {
 
         {/* Inline Completion Screen */}
         {isCompleted ? (
-          <div className="bg-white rounded-3xl p-8 sm:p-12 border border-slate-200 shadow-xl text-center max-w-3xl mx-auto">
-            <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center text-3xl mx-auto mb-4">
-              🎉
+          <div className="bg-white rounded-3xl p-8 sm:p-12 border border-[#D8D4C8] shadow-lg text-center max-w-3xl mx-auto">
+            <div className="w-12 h-12 bg-[#8FAF82]/20 text-[#347F8C] rounded-2xl flex items-center justify-center text-xl mx-auto mb-4 border border-[#8FAF82]/30">
+              ✓
             </div>
-            <h2 className="text-3xl font-extrabold text-slate-900">Your Custom Itinerary Is Ready!</h2>
-            <p className="text-slate-500 mt-2 text-sm sm:text-base">
-              {stopCondition?.stopReason || 'You have finalized your trip stops. Review your planned journey below.'}
+            <h2 className="font-manifold text-3xl font-extrabold text-[#3E4541] uppercase tracking-wide">
+              Your Itinerary Is Finalized
+            </h2>
+            <p className="text-[#3E4541]/70 mt-2 text-xs sm:text-sm font-light">
+              {stopCondition?.stopReason || 'Your personalized route has been finalized. Review your continuous schedule below.'}
             </p>
 
             <div className="mt-8 text-left space-y-3">
-              <h3 className="font-bold text-slate-900 text-sm uppercase tracking-wider text-slate-500">
+              <h3 className="font-manifold text-xs uppercase tracking-widest text-[#347F8C] font-semibold">
                 Itinerary Summary ({selectedStops.length} Stops)
               </h3>
               {selectedStops.map((stop, idx) => (
@@ -403,18 +430,36 @@ export default function TripSessionLoopPage() {
               ))}
             </div>
 
-            <div className="mt-8 pt-6 border-t border-slate-100 flex flex-col sm:flex-row gap-3 justify-center">
+            {/* Map of Finalized Route & User Location */}
+            <div className="mt-8 text-left">
+              <TripAreaMap
+                city={session?.city}
+                initialUserLat={session?.userLat}
+                initialUserLng={session?.userLng}
+                stops={selectedStops}
+              />
+            </div>
+
+            <div className="mt-10 pt-6 border-t border-[#D8D4C8] flex flex-col sm:flex-row gap-3 justify-center">
+              <button
+                type="button"
+                onClick={reactivateSession}
+                disabled={isActionLoading}
+                className="bg-[#347F8C] hover:bg-[#2A6772] text-[#F7F4EA] font-mono font-bold text-xs uppercase tracking-wider px-6 py-3 rounded-xl transition text-center shadow-sm cursor-pointer active:scale-95"
+              >
+                + Add More Stops
+              </button>
               <Link
                 href="/trip"
-                className="bg-orange-600 hover:bg-orange-700 text-white font-semibold px-6 py-3 rounded-xl transition text-sm text-center"
+                className="border border-[#D8D4C8] hover:border-[#347F8C] text-[#3E4541] font-mono font-bold text-xs uppercase tracking-wider px-6 py-3 rounded-xl transition text-center bg-white shadow-sm"
               >
-                Plan Another Trip
+                Plan Another Route
               </Link>
               <Link
                 href="/"
-                className="border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold px-6 py-3 rounded-xl transition text-sm text-center"
+                className="border border-[#D8D4C8] hover:border-[#347F8C] text-[#3E4541] font-mono text-xs uppercase tracking-wider px-6 py-3 rounded-xl transition text-center bg-white"
               >
-                Back to Home
+                Return to Home
               </Link>
             </div>
           </div>
@@ -423,34 +468,37 @@ export default function TripSessionLoopPage() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             {/* Left Column: Recommendations */}
             <div className="lg:col-span-7 space-y-6">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between border-b border-[#D8D4C8] pb-4">
                 <div>
-                  <h2 className="text-xl font-bold text-slate-900">Choose Your Next Stop</h2>
-                  <p className="text-xs text-slate-500 mt-0.5">
-                    Step {selectedStops.length + 1} • Ranked by proximity, heading continuity, and category diversity
-                  </p>
+                  <span className="text-[10px] font-mono uppercase tracking-widest text-[#347F8C] font-semibold block mb-0.5">
+                    Step {selectedStops.length + 1}
+                  </span>
+                  <h2 className="font-manifold text-xl tracking-wide uppercase text-[#3E4541] font-bold">
+                    Candidate Stops
+                  </h2>
                 </div>
                 <button
                   onClick={handleComplete}
                   disabled={selectedStops.length === 0 || isActionLoading}
-                  className="text-xs font-semibold text-orange-600 hover:text-orange-700 border border-orange-200 hover:border-orange-300 bg-orange-50 px-3 py-1.5 rounded-xl transition disabled:opacity-40"
+                  className="text-xs font-mono font-bold uppercase tracking-wider text-[#F7F4EA] bg-[#347F8C] hover:bg-[#2A6772] px-4 py-2 rounded-xl transition shadow-sm disabled:opacity-30 cursor-pointer active:scale-95"
                 >
-                  Finish Early
+                  Finalize
                 </button>
               </div>
 
               {recommendations.length === 0 ? (
-                <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center">
-                  <span className="text-4xl">🏁</span>
-                  <h3 className="font-bold text-slate-900 mt-3 text-lg">No more stops match remaining criteria</h3>
-                  <p className="text-slate-500 text-xs sm:text-sm mt-1">
-                    Your remaining budget or time does not fit nearby candidate experiences.
+                <div className="bg-white rounded-2xl border border-[#D8D4C8] p-8 text-center shadow-sm">
+                  <h3 className="font-manifold text-lg tracking-wide uppercase text-[#3E4541] font-bold">
+                    No further stops match criteria
+                  </h3>
+                  <p className="text-[#3E4541]/70 text-xs mt-1.5 font-light">
+                    Your remaining budget or duration window has reached optimal allocation.
                   </p>
                   <button
                     onClick={handleComplete}
-                    className="mt-4 bg-orange-600 hover:bg-orange-700 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition shadow-md"
+                    className="mt-5 bg-[#347F8C] hover:bg-[#2A6772] text-[#F7F4EA] text-xs font-mono font-bold uppercase tracking-wider px-5 py-2.5 rounded-xl transition shadow-sm"
                   >
-                    Finalize Itinerary ({selectedStops.length} stops)
+                    Finalize Route ({selectedStops.length} stops)
                   </button>
                 </div>
               ) : (
@@ -458,60 +506,54 @@ export default function TripSessionLoopPage() {
                   {recommendations.map((cand) => (
                     <div
                       key={cand.id}
-                      className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
+                      className="group bg-white border border-[#D8D4C8] hover:border-[#347F8C]/50 p-5 rounded-2xl shadow-sm transition-all duration-300 flex flex-col justify-between"
                     >
                       <div className="flex gap-4 items-start">
                         {cand.mediaUrls?.[0] && (
-                          <div className="w-24 h-24 rounded-xl overflow-hidden bg-slate-100 flex-shrink-0">
+                          <div className="w-24 h-24 rounded-xl overflow-hidden bg-[#F7F4EA] border border-[#D8D4C8] flex-shrink-0">
                             <img
                               src={cand.mediaUrls[0]}
                               alt={cand.title}
-                              className="w-full h-full object-cover"
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                             />
                           </div>
                         )}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">
-                            <span className="text-xs font-bold text-orange-700 bg-orange-50 border border-orange-100 px-2 py-0.5 rounded-md">
+                            <span className="text-[10px] font-mono uppercase tracking-wider text-[#347F8C] font-semibold">
                               {cand.category}
                             </span>
-                            <span className="text-xs text-slate-400">• {cand.city}</span>
+                            <span className="text-[#D8D4C8] text-xs">&bull;</span>
+                            <span className="text-[10px] font-mono text-[#3E4541]/70 uppercase">{cand.city}</span>
                           </div>
-                          <h3 className="font-bold text-slate-900 text-base leading-snug">
+                          <h3 className="font-manifold text-base tracking-wide text-[#3E4541] font-bold leading-snug">
                             {cand.title}
                           </h3>
-                          <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-slate-500">
-                            <span>🚶 {cand.distanceKm.toFixed(1)} km away</span>
-                            <span>⏱️ ~{cand.durationMinutes || 60}m</span>
-                            <span className="font-semibold text-slate-700">₹{cand.priceMin}–{cand.priceMax}</span>
-                            <span className="text-amber-600 font-medium">★ {cand.ratingAverage.toFixed(1)}</span>
+                          <div className="mt-2 flex flex-wrap items-center gap-3 text-xs font-mono text-[#3E4541]/75">
+                            <span>{cand.distanceKm.toFixed(1)} km away</span>
+                            <span className="text-[#D8D4C8]">&bull;</span>
+                            <span>{cand.durationMinutes || 60}m</span>
+                            <span className="text-[#D8D4C8]">&bull;</span>
+                            <span className="text-[#3E4541] font-semibold">₹{cand.priceMin}–{cand.priceMax}</span>
                           </div>
                         </div>
                       </div>
 
-                      {/* AI Phrased Explanation */}
-                      {cand.aiExplanation && (
-                        <div className="mt-3 bg-orange-50/70 border border-orange-100 rounded-xl px-3 py-2 text-xs text-orange-950">
-                          <span className="font-semibold text-orange-800">💡 Why this next: </span>
-                          {cand.aiExplanation}
-                        </div>
-                      )}
-
                       {/* Action buttons */}
-                      <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
+                      <div className="mt-4 pt-3 border-t border-[#D8D4C8] flex items-center justify-end gap-2">
                         <button
                           onClick={() => handleReject(cand)}
                           disabled={isActionLoading}
-                          className="px-3 py-1.5 text-xs font-semibold text-slate-500 hover:text-red-600 hover:bg-red-50 border border-slate-200 rounded-xl transition disabled:opacity-40"
+                          className="px-3 py-1.5 text-xs font-mono uppercase tracking-wider text-[#3E4541]/50 hover:text-red-500 hover:bg-red-50 border border-[#D8D4C8] rounded-xl transition disabled:opacity-30"
                         >
-                          ✕ Not Interested
+                          Dismiss
                         </button>
                         <button
                           onClick={() => handleSelect(cand)}
                           disabled={isActionLoading}
-                          className="px-5 py-1.5 text-xs font-bold bg-orange-600 hover:bg-orange-700 text-white rounded-xl shadow-sm hover:shadow transition disabled:opacity-40 flex items-center gap-1.5"
+                          className="px-4 py-1.5 text-xs font-mono uppercase font-bold tracking-wider bg-[#347F8C] hover:bg-[#2A6772] text-[#F7F4EA] rounded-xl shadow-sm transition disabled:opacity-30 flex items-center gap-1.5"
                         >
-                          {isActionLoading ? 'Updating...' : '+ Select This Stop'}
+                          {isActionLoading ? 'Updating...' : '+ Add Stop'}
                         </button>
                       </div>
                     </div>
@@ -522,18 +564,19 @@ export default function TripSessionLoopPage() {
 
             {/* Right Column: Itinerary Built So Far */}
             <div className="lg:col-span-5 space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="font-bold text-slate-900 text-lg">Your Itinerary</h3>
-                <span className="text-xs font-semibold text-slate-500 bg-slate-200/70 px-2.5 py-1 rounded-full">
+              <div className="flex items-center justify-between border-b border-[#D8D4C8] pb-4">
+                <h3 className="font-manifold text-lg tracking-wide uppercase text-[#3E4541] font-bold">
+                  Curated Route
+                </h3>
+                <span className="text-xs font-mono uppercase tracking-wider text-[#347F8C] bg-[#4FA3D1]/15 border border-[#4FA3D1]/30 px-2.5 py-0.5 rounded-full font-semibold">
                   {selectedStops.length} {selectedStops.length === 1 ? 'stop' : 'stops'}
                 </span>
               </div>
 
               {selectedStops.length === 0 ? (
-                <div className="bg-white rounded-2xl border border-dashed border-slate-300 p-8 text-center text-slate-400">
-                  <span className="text-3xl">🗺️</span>
-                  <p className="mt-2 text-xs font-medium">No stops added yet.</p>
-                  <p className="text-[11px] text-slate-400 mt-0.5">Select a recommended stop on the left to begin your journey.</p>
+                <div className="bg-white rounded-2xl border border-dashed border-[#D8D4C8] p-8 text-center text-[#3E4541]/50 shadow-sm">
+                  <p className="font-mono text-xs uppercase tracking-wider">No stops added yet.</p>
+                  <p className="text-xs text-[#3E4541]/60 mt-1 font-light">Select a recommended candidate stop on the left to begin your journey.</p>
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -555,6 +598,16 @@ export default function TripSessionLoopPage() {
                   ))}
                 </div>
               )}
+
+              {/* Area Map below Curated Route */}
+              <div className="pt-2">
+                <TripAreaMap
+                  city={session?.city}
+                  initialUserLat={session?.userLat}
+                  initialUserLng={session?.userLng}
+                  stops={selectedStops}
+                />
+              </div>
             </div>
           </div>
         )}

@@ -1,20 +1,148 @@
+@font-face {
+  font-family: 'Manifold CF';
+  src: url('/fonts/manifold-cf-extra-bold.woff2') format('woff2'),
+       url('/fonts/manifold-cf-extra-bold.woff') format('woff'),
+       url('/fonts/manifold-cf-extra-bold.ttf') format('truetype');
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --foreground-rgb: 15, 23, 42;
-  --background-start-rgb: 248, 250, 252;
-  --background-end-rgb: 241, 245, 249;
+  --foreground-rgb: 62, 69, 65;
+  --background-start-rgb: 247, 244, 234;
+  --background-end-rgb: 247, 244, 234;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+  color: #3E4541;
+  background-color: #F7F4EA;
   min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom minimal scrollbar in Alpine + Ivory palette */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+::-webkit-scrollbar-track {
+  background: #F7F4EA;
+}
+::-webkit-scrollbar-thumb {
+  background: #D8D4C8;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #347F8C;
+}
+
+/* ─── "Corn Font" Style Definition ─── */
+.corn-font,
+.font-manifold {
+  font-family: 'Manifold CF', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* ─── Exact Resn 'Corn Revolutionized' Traveling-Dash Stroke Animation ─── */
+@keyframes resnCornReveal {
+  0% {
+    stroke: #ffffff;
+    stroke-width: 2.2px;
+    stroke-dasharray: 40 65;
+    stroke-dashoffset: 700;
+    fill: transparent;
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+    stroke-dasharray: 60 50;
+    stroke-dashoffset: 550;
+    fill: transparent;
+  }
+  45% {
+    stroke-dasharray: 120 30;
+    stroke-dashoffset: 250;
+    fill: transparent;
+  }
+  70% {
+    stroke-dasharray: 350 10;
+    stroke-dashoffset: 60;
+    fill: rgba(255, 255, 255, 0.25);
+  }
+  85% {
+    stroke-dasharray: 800 0;
+    stroke-dashoffset: 0;
+    fill: rgba(255, 255, 255, 0.85);
+  }
+  100% {
+    stroke: #ffffff;
+    stroke-width: 2.2px;
+    stroke-dasharray: 1200 0;
+    stroke-dashoffset: 0;
+    fill: #ffffff;
+    filter: drop-shadow(0 4px 24px rgba(0, 0, 0, 0.9)) drop-shadow(0 0 12px rgba(255, 255, 255, 0.35));
+  }
+}
+
+.animate-corn-revolution {
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  animation: resnCornReveal 1.5s cubic-bezier(0.2, 0.8, 0.25, 1) forwards;
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  .no-scrollbar::-webkit-scrollbar,
+  .scrollbar-none::-webkit-scrollbar {
+    display: none !important;
+    height: 0 !important;
+    width: 0 !important;
+  }
+  .no-scrollbar,
+  .scrollbar-none {
+    -ms-overflow-style: none !important;
+    scrollbar-width: none !important;
+  }
+}
+
+/* Leaflet Real Map Custom Theme (Alpine + Ivory) */
+.leaflet-container {
+  font-family: inherit !important;
+  background-color: #F7F4EA !important;
+}
+
+.leaflet-popup-content-wrapper {
+  background: #FFFFFF !important;
+  color: #3E4541 !important;
+  border-radius: 1rem !important;
+  border: 1px solid #D8D4C8 !important;
+  box-shadow: 0 10px 25px -5px rgba(52, 127, 140, 0.15) !important;
+  padding: 0.25rem !important;
+}
+
+.leaflet-popup-tip {
+  background: #FFFFFF !important;
+  border: 1px solid #D8D4C8 !important;
+}
+
+.custom-map-pin {
+  background: transparent;
+  border: none;
 }
