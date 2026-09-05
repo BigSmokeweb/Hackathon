@@ -5,12 +5,11 @@
   "description": "Next.js App Router Frontend for Local Experience Intelligence Platform",
   "scripts": {
     "dev": "next dev -p 3000",
-    "build": "npm --prefix ../shared run build && next build",
+    "build": "next build",
     "start": "next start -p 3000",
     "lint": "next lint"
   },
   "dependencies": {
-    "@experience-platform/shared": "*",
     "@types/leaflet": "^1.9.22",
     "@types/three": "^0.185.4",
     "clsx": "^2.1.1",
