@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { API_BASE } from '@/lib/api-client';
-import { Star, Clock, ShieldCheck, ArrowRight, MapPin } from 'lucide-react';
+import { Star, Clock, ShieldCheck, ArrowRight, ArrowLeft, MapPin } from 'lucide-react';
 
 const CITY_DATA: Record<string, { name: string; state: string; desc: string; heroImage: string; experiences: any[] }> = {
   ahmedabad: {
@@ -107,6 +107,20 @@ export default async function CityDiscoveryPage({ params }: { params: { slug: st
   return (
     <div className="bg-[#F7F4EA] text-[#3E4541] min-h-screen pt-28 pb-24 selection:bg-[#4FA3D1]/30 selection:text-[#3E4541]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Go Back Button */}
+        <div className="mb-6 flex items-center justify-between">
+          <Link
+            href="/#curated-experiences"
+            className="inline-flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-[#3E4541] hover:text-[#347F8C] bg-white border border-[#D8D4C8] hover:border-[#347F8C]/60 px-4 py-2.5 rounded-xl transition-all duration-200 shadow-xs hover:shadow-sm font-bold active:scale-95"
+          >
+            <ArrowLeft className="w-4 h-4 text-[#347F8C]" />
+            <span>Go Back</span>
+          </Link>
+          <span className="text-xs font-mono text-[#5C6460]/80">
+            {city.name} Regional Archive
+          </span>
+        </div>
+
         {/* City Hero Banner */}
         <div className="relative rounded-3xl overflow-hidden border border-[#D8D4C8] h-96 mb-16 flex items-end p-8 sm:p-12 shadow-sm">
           <img
@@ -216,6 +230,17 @@ export default async function CityDiscoveryPage({ params }: { params: { slug: st
               </div>
             </article>
           ))}
+        </div>
+
+        {/* Bottom Go Back Footer */}
+        <div className="mt-14 pt-8 border-t border-[#D8D4C8] flex items-center justify-between">
+          <Link
+            href="/#curated-experiences"
+            className="inline-flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-[#3E4541] hover:text-[#347F8C] bg-white border border-[#D8D4C8] hover:border-[#347F8C]/60 px-5 py-3 rounded-xl transition-all duration-200 shadow-xs hover:shadow-sm font-bold active:scale-95"
+          >
+            <ArrowLeft className="w-4 h-4 text-[#347F8C]" />
+            <span>Go Back to Curated Experiences</span>
+          </Link>
         </div>
       </div>
     </div>
