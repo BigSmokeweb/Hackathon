@@ -212,11 +212,30 @@ export function scoreCandidate(
 
 // Helper: infer city from coordinates or presets
 export function inferCityName(lat: number, lng: number): string {
-  if (Math.abs(lat - 18.922) < 0.5 && Math.abs(lng - 72.834) < 0.5) return 'Mumbai';
-  if (Math.abs(lat - 23.022) < 0.5 && Math.abs(lng - 72.571) < 0.5) return 'Ahmedabad';
-  if (Math.abs(lat - 26.912) < 0.5 && Math.abs(lng - 75.787) < 0.5) return 'Jaipur';
-  if (Math.abs(lat - 25.317) < 0.5 && Math.abs(lng - 82.973) < 0.5) return 'Varanasi';
-  return 'Mumbai';
+  const centers: { city: string; lat: number; lng: number }[] = [
+    { city: 'Navi Mumbai', lat: 19.033, lng: 73.030 },
+    { city: 'Panvel', lat: 18.989, lng: 73.118 },
+    { city: 'Kalyan-Dombivli', lat: 19.221, lng: 73.092 },
+    { city: 'Thane', lat: 19.218, lng: 72.978 },
+    { city: 'Mumbai', lat: 18.944, lng: 72.821 },
+    { city: 'Ahmedabad', lat: 23.022, lng: 72.571 },
+    { city: 'Jaipur', lat: 26.912, lng: 75.787 },
+    { city: 'Varanasi', lat: 25.317, lng: 82.973 },
+  ];
+
+  let closestCity = 'Mumbai';
+  let minDistance = Infinity;
+
+  for (const c of centers) {
+    const d = Math.hypot(lat - c.lat, lng - c.lng);
+    if (d < minDistance) {
+      minDistance = d;
+      closestCity = c.city;
+    }
+  }
+
+  // If reasonably close to a known hub (within ~100km / ~1 degree)
+  return minDistance < 1.0 ? closestCity : 'Mumbai';
 }
 
 export async function createTripSession(payload: {
