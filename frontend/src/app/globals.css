@@ -146,3 +146,21 @@ body {
   background: transparent;
   border: none;
 }
+
+/* ─── Celene Chatbot Drift Animation ─── */
+@keyframes celeneDrift {
+  0%   { transform: translate(0, 0); }
+  15%  { transform: translate(-6px, -10px); }
+  30%  { transform: translate(8px, -4px); }
+  45%  { transform: translate(-4px, 6px); }
+  60%  { transform: translate(10px, 8px); }
+  75%  { transform: translate(-8px, -6px); }
+  90%  { transform: translate(4px, 10px); }
+  100% { transform: translate(0, 0); }
+}
+
+.celene-drift {
+  animation: celeneDrift 12s ease-in-out infinite;
+}
+
+

@@ -316,6 +316,9 @@ export async function createTripSession(payload: {
 
   if (token) {
     try {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 1200);
+
       const res = await fetch(`${API_BASE}/trip-sessions`, {
         method: 'POST',
         headers: {
@@ -326,7 +329,9 @@ export async function createTripSession(payload: {
           ...payload,
           accessibilityRequirements: [],
         }),
+        signal: controller.signal,
       });
+      clearTimeout(timer);
 
       if (res.ok) {
         return await res.json();
@@ -368,9 +373,15 @@ export async function fetchTripSession(sessionId: string): Promise<SessionData> 
 
   if (token) {
     try {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 1200);
+
       const res = await fetch(`${API_BASE}/trip-sessions/${sessionId}`, {
         headers: { Authorization: `Bearer ${token}` },
+        signal: controller.signal,
       });
+      clearTimeout(timer);
+
       if (res.ok) {
         return await res.json();
       }
@@ -421,13 +432,19 @@ export async function fetchRecommendations(
 
   if (token) {
     try {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 1200);
+
       const res = await fetch(`${API_BASE}/trip-sessions/${sessionId}/recommend`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
+        signal: controller.signal,
       });
+      clearTimeout(timer);
+
       if (res.ok) {
         return await res.json();
       }

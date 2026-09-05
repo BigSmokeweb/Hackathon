@@ -27,7 +27,7 @@ export default function RootLayout({
       <head>
         <meta
           httpEquiv="Content-Security-Policy"
-          content="default-src 'self' blob:; img-src 'self' data: blob: https: https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com https://images.unsplash.com https://unpkg.com; script-src 'self' 'unsafe-eval' 'unsafe-inline' blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com; font-src 'self' https://fonts.gstatic.com data:; connect-src 'self' blob: data: http://localhost:4000 https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com;"
+          content="default-src 'self' blob:; media-src 'self' data: blob:; img-src 'self' data: blob: https: https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com https://images.unsplash.com https://unpkg.com; script-src 'self' 'unsafe-eval' 'unsafe-inline' blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com; font-src 'self' https://fonts.gstatic.com data:; connect-src 'self' blob: data: http://localhost:4000 https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com https://nominatim.openstreetmap.org;"
         />
         <link
           rel="stylesheet"

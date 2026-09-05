@@ -102,7 +102,7 @@ export function ItineraryBuilder() {
 
   // Browser Geolocation
   const handleUseCurrentLocation = () => {
-    if (!navigator.geolocation) {
+    if (typeof window === 'undefined' || !navigator.geolocation) {
       setError('Geolocation is not supported by your browser.');
       return;
     }
@@ -110,33 +110,42 @@ export function ItineraryBuilder() {
     setError(null);
 
     navigator.geolocation.getCurrentPosition(
-      async (pos) => {
+      (pos) => {
         const lat = pos.coords.latitude;
         const lng = pos.coords.longitude;
-        let detected = 'Current GPS Coordinates';
+        const fallbackLabel = `Current Location (${lat.toFixed(3)}°, ${lng.toFixed(3)}°)`;
 
-        try {
-          const res = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=14&addressdetails=1`,
-            { headers: { 'Accept-Language': 'en' } }
-          );
-          if (res.ok) {
-            const data = await res.json();
-            const addr = data.address;
-            const locality = addr.suburb || addr.neighbourhood || addr.city_district || addr.locality;
-            const city = addr.city || addr.town || addr.state_district;
-            if (locality && city) detected = `${locality}, ${city}`;
-            else if (city) detected = city;
-          }
-        } catch {
-          // fallback gracefully
-        }
-
+        // Update coordinates and instantly advance to the next step (Phase 02: Curatorial Focus)
         setSelectedCityId('custom');
         setLatitude(lat.toFixed(4));
         setLongitude(lng.toFixed(4));
-        setLocationLabel(detected);
+        setLocationLabel(fallbackLabel);
         setGeoLocating(false);
+        setActiveStep(2);
+
+        // Fetch reverse geocoded locality asynchronously in background without blocking step transition
+        try {
+          const controller = new AbortController();
+          const timer = setTimeout(() => controller.abort(), 2000);
+          fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=14&addressdetails=1`,
+            { headers: { 'Accept-Language': 'en' }, signal: controller.signal }
+          )
+            .then((res) => (res.ok ? res.json() : null))
+            .then((data) => {
+              clearTimeout(timer);
+              if (data?.address) {
+                const addr = data.address;
+                const locality = addr.suburb || addr.neighbourhood || addr.city_district || addr.locality;
+                const city = addr.city || addr.town || addr.state_district;
+                if (locality && city) setLocationLabel(`${locality}, ${city}`);
+                else if (city) setLocationLabel(city);
+              }
+            })
+            .catch(() => {});
+        } catch {
+          // ignore background reverse geocode error
+        }
       },
       (err) => {
         setGeoLocating(false);
@@ -153,10 +162,14 @@ export function ItineraryBuilder() {
   };
 
   const handleBuildRoute = async () => {
+    const finalInterests = selectedInterests.length > 0 ? selectedInterests : ['FOOD', 'CULTURE', 'WORKSHOPS'];
     if (selectedInterests.length === 0) {
-      setError('Please select at least one curatorial interest.');
-      setActiveStep(2);
-      return;
+      setSelectedInterests(finalInterests);
+    }
+
+    const budgetNum = parseFloat(totalBudget) || 5000;
+    if (!totalBudget) {
+      setTotalBudget('5000');
     }
 
     setIsLoading(true);
@@ -164,15 +177,23 @@ export function ItineraryBuilder() {
 
     try {
       const session = await createTripSession({
-        latitude: parseFloat(latitude),
-        longitude: parseFloat(longitude),
-        totalBudget: parseFloat(totalBudget) || 5000,
+        latitude: parseFloat(latitude) || 18.922,
+        longitude: parseFloat(longitude) || 72.8347,
+        totalBudget: budgetNum,
         totalTimeMinutes: parseInt(durationMinutes, 10) || 180,
         groupSize: parseInt(groupSize, 10) || 2,
-        interests: selectedInterests,
+        interests: finalInterests,
       });
 
+      // Navigate to the trip session loop
       router.push(`/trip/${session.id}`);
+
+      // Fallback navigation in case client router doesn't trigger immediately
+      setTimeout(() => {
+        if (typeof window !== 'undefined' && !window.location.pathname.includes(session.id)) {
+          window.location.href = `/trip/${session.id}`;
+        }
+      }, 1500);
     } catch (err: any) {
       setError(err?.message || 'Unable to build itinerary. Please try again.');
       setIsLoading(false);
@@ -180,7 +201,7 @@ export function ItineraryBuilder() {
   };
 
   return (
-    <section id="itinerary" className="relative scroll-mt-20 py-24 border-t border-[#D8D4C8] bg-[#F7F4EA] text-[#3E4541]">
+    <section id="itinerary" className="relative scroll-mt-20 pt-24 pb-36 border-t border-[#D8D4C8] bg-[#F7F4EA] text-[#3E4541] z-10">
       {/* Ambient background glow */}
       <div className="absolute top-1/3 left-1/4 w-96 h-96 bg-[#8FAF82]/10 blur-[140px] rounded-full pointer-events-none" />
       <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-[#4FA3D1]/10 blur-[140px] rounded-full pointer-events-none" />
@@ -225,7 +246,7 @@ export function ItineraryBuilder() {
             {[
               { num: 1, title: 'Departure Origin', subtitle: locationLabel || 'Select base city', icon: MapPin },
               { num: 2, title: 'Curatorial Focus', subtitle: `${selectedInterests.length} selected interests`, icon: Compass },
-              { num: 3, title: 'Pace & Allocation', subtitle: `${parseInt(durationMinutes) / 60}h · ₹${Number(totalBudget).toLocaleString()}`, icon: Wallet },
+              { num: 3, title: 'Pace & Allocation', subtitle: `${parseInt(durationMinutes || '180') / 60}h · ₹${Number(totalBudget || 5000).toLocaleString()}`, icon: Wallet },
             ].map((s) => {
               const Icon = s.icon;
               const isActive = activeStep === s.num;
@@ -235,8 +256,11 @@ export function ItineraryBuilder() {
                 <button
                   key={s.num}
                   type="button"
-                  onClick={() => setActiveStep(s.num as any)}
-                  className={`w-full text-left p-5 rounded-2xl border transition-all duration-300 flex items-start gap-4 ${
+                  onClick={() => {
+                    setError(null);
+                    setActiveStep(s.num as 1 | 2 | 3);
+                  }}
+                  className={`w-full text-left p-5 rounded-2xl border transition-all duration-300 flex items-start gap-4 cursor-pointer active:scale-[0.99] ${
                     isActive
                       ? 'bg-white border-[#347F8C] shadow-md shadow-[#347F8C]/10 text-[#3E4541]'
                       : 'bg-white/80 border-[#D8D4C8] hover:border-[#347F8C]/40 hover:bg-white text-[#3E4541]/75'
@@ -293,7 +317,7 @@ export function ItineraryBuilder() {
           </div>
 
           {/* Interactive Workspace Panel */}
-          <div className="lg:col-span-8 bg-white border border-[#D8D4C8] rounded-3xl p-6 sm:p-10 shadow-sm">
+          <div className="lg:col-span-8 bg-white border border-[#D8D4C8] rounded-3xl p-6 sm:p-10 shadow-sm relative z-20">
             {error && (
               <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-xs font-mono flex items-center justify-between">
                 <span>{error}</span>
@@ -325,7 +349,7 @@ export function ItineraryBuilder() {
                         key={preset.id}
                         type="button"
                         onClick={() => handleSelectCity(preset)}
-                        className={`text-left p-4 rounded-2xl border transition-all duration-200 ${
+                        className={`text-left p-4 rounded-2xl border transition-all duration-200 cursor-pointer active:scale-[0.99] ${
                           isSelected
                             ? 'bg-[#4FA3D1]/15 border-[#4FA3D1] shadow-sm'
                             : 'bg-white border-[#D8D4C8] hover:border-[#4FA3D1]/50 hover:bg-[#F7F4EA]/40'
@@ -353,7 +377,7 @@ export function ItineraryBuilder() {
                     type="button"
                     onClick={handleUseCurrentLocation}
                     disabled={geoLocating}
-                    className="w-full sm:w-auto flex-1 inline-flex items-center justify-center gap-2 bg-[#F7F4EA] hover:bg-white text-[#3E4541] border border-[#D8D4C8] px-5 py-3 rounded-xl text-xs font-mono uppercase tracking-wider transition active:scale-95 disabled:opacity-50 shadow-sm"
+                    className="cursor-pointer w-full sm:w-auto flex-1 inline-flex items-center justify-center gap-2 bg-[#F7F4EA] hover:bg-white text-[#3E4541] border border-[#D8D4C8] px-5 py-3 rounded-xl text-xs font-mono uppercase tracking-wider transition active:scale-95 disabled:opacity-50 shadow-sm"
                   >
                     <Navigation className={`w-3.5 h-3.5 text-[#347F8C] ${geoLocating ? 'animate-spin' : ''}`} />
                     <span>{geoLocating ? 'Detecting GPS Satellite...' : 'Use Current Device Location'}</span>
@@ -362,7 +386,7 @@ export function ItineraryBuilder() {
                   <button
                     type="button"
                     onClick={() => setShowManualCoords(!showManualCoords)}
-                    className="text-xs font-mono text-[#3E4541]/70 hover:text-[#347F8C] transition underline underline-offset-4 px-2"
+                    className="cursor-pointer text-xs font-mono text-[#3E4541]/70 hover:text-[#347F8C] transition underline underline-offset-4 px-2"
                   >
                     {showManualCoords ? 'Hide Manual Coordinates' : 'Manual Coordinates'}
                   </button>
@@ -413,8 +437,11 @@ export function ItineraryBuilder() {
                   </div>
                   <button
                     type="button"
-                    onClick={() => setActiveStep(2)}
-                    className="inline-flex items-center gap-2 bg-[#347F8C] hover:bg-[#2A6772] text-[#F7F4EA] text-xs font-mono font-bold uppercase tracking-wider px-6 py-3 rounded-xl transition shadow-sm"
+                    onClick={() => {
+                      setError(null);
+                      setActiveStep(2);
+                    }}
+                    className="cursor-pointer inline-flex items-center gap-2 bg-[#347F8C] hover:bg-[#2A6772] text-[#F7F4EA] text-xs font-mono font-bold uppercase tracking-wider px-6 py-3 rounded-xl transition shadow-sm active:scale-95"
                   >
                     <span>Curatorial Focus</span>
                     <ArrowRight className="w-3.5 h-3.5" />
@@ -446,7 +473,7 @@ export function ItineraryBuilder() {
                         key={interest.id}
                         type="button"
                         onClick={() => toggleInterest(interest.id)}
-                        className={`text-left p-4 rounded-2xl border transition-all duration-200 ${
+                        className={`cursor-pointer text-left p-4 rounded-2xl border transition-all duration-200 active:scale-[0.98] ${
                           isSelected
                             ? 'bg-[#347F8C] text-[#F7F4EA] border-[#347F8C] shadow-sm'
                             : 'bg-white text-[#3E4541] border border-[#D8D4C8] hover:border-[#347F8C]/50 hover:bg-[#F7F4EA]/40'
@@ -469,16 +496,24 @@ export function ItineraryBuilder() {
                 <div className="pt-4 border-t border-[#D8D4C8] flex items-center justify-between">
                   <button
                     type="button"
-                    onClick={() => setActiveStep(1)}
-                    className="text-xs font-mono text-[#3E4541]/70 hover:text-[#347F8C] uppercase tracking-wider transition"
+                    onClick={() => {
+                      setError(null);
+                      setActiveStep(1);
+                    }}
+                    className="cursor-pointer text-xs font-mono text-[#3E4541]/70 hover:text-[#347F8C] uppercase tracking-wider transition"
                   >
                     &larr; Back to Location
                   </button>
                   <button
                     type="button"
-                    disabled={selectedInterests.length === 0}
-                    onClick={() => setActiveStep(3)}
-                    className="inline-flex items-center gap-2 bg-[#347F8C] hover:bg-[#2A6772] text-[#F7F4EA] text-xs font-mono font-bold uppercase tracking-wider px-6 py-3 rounded-xl transition disabled:opacity-40 shadow-sm"
+                    onClick={() => {
+                      if (selectedInterests.length === 0) {
+                        setSelectedInterests(['FOOD', 'CULTURE', 'WORKSHOPS']);
+                      }
+                      setError(null);
+                      setActiveStep(3);
+                    }}
+                    className="cursor-pointer inline-flex items-center gap-2 bg-[#347F8C] hover:bg-[#2A6772] text-[#F7F4EA] text-xs font-mono font-bold uppercase tracking-wider px-6 py-3 rounded-xl transition shadow-sm active:scale-95"
                   >
                     <span>Pacing & Budget</span>
                     <ArrowRight className="w-3.5 h-3.5" />
@@ -513,7 +548,7 @@ export function ItineraryBuilder() {
                         key={d.minutes}
                         type="button"
                         onClick={() => setDurationMinutes(String(d.minutes))}
-                        className={`p-3 rounded-xl text-center border transition-all ${
+                        className={`cursor-pointer p-3 rounded-xl text-center border transition-all active:scale-95 ${
                           durationMinutes === String(d.minutes)
                             ? 'bg-[#347F8C] text-[#F7F4EA] font-bold border-[#347F8C] shadow-sm'
                             : 'bg-white text-[#3E4541] border border-[#D8D4C8] hover:border-[#347F8C]/40 hover:bg-[#F7F4EA]/40'
@@ -537,7 +572,7 @@ export function ItineraryBuilder() {
                         key={b.amount}
                         type="button"
                         onClick={() => setTotalBudget(b.amount)}
-                        className={`p-2.5 rounded-xl text-xs font-mono text-center border transition-all ${
+                        className={`cursor-pointer p-2.5 rounded-xl text-xs font-mono text-center border transition-all active:scale-95 ${
                           totalBudget === b.amount
                             ? 'bg-[#347F8C] text-[#F7F4EA] font-bold border-[#347F8C] shadow-sm'
                             : 'bg-white text-[#3E4541] border border-[#D8D4C8] hover:border-[#347F8C]/40 hover:bg-[#F7F4EA]/40'
@@ -569,7 +604,7 @@ export function ItineraryBuilder() {
                         key={num}
                         type="button"
                         onClick={() => setGroupSize(num)}
-                        className={`flex-1 py-2 rounded-xl text-xs font-mono text-center border transition ${
+                        className={`cursor-pointer flex-1 py-2 rounded-xl text-xs font-mono text-center border transition active:scale-95 ${
                           groupSize === num
                             ? 'bg-[#347F8C] text-[#F7F4EA] font-bold border-[#347F8C] shadow-sm'
                             : 'bg-white text-[#3E4541] border border-[#D8D4C8] hover:border-[#347F8C]/40 hover:bg-[#F7F4EA]/40'
@@ -584,16 +619,19 @@ export function ItineraryBuilder() {
                 <div className="pt-4 border-t border-[#D8D4C8] flex items-center justify-between">
                   <button
                     type="button"
-                    onClick={() => setActiveStep(2)}
-                    className="text-xs font-mono text-[#3E4541]/70 hover:text-[#347F8C] uppercase tracking-wider transition"
+                    onClick={() => {
+                      setError(null);
+                      setActiveStep(2);
+                    }}
+                    className="cursor-pointer text-xs font-mono text-[#3E4541]/70 hover:text-[#347F8C] uppercase tracking-wider transition"
                   >
                     &larr; Back to Interests
                   </button>
                   <button
                     type="button"
-                    disabled={isLoading || !totalBudget}
+                    disabled={isLoading}
                     onClick={handleBuildRoute}
-                    className="inline-flex items-center gap-2.5 bg-[#347F8C] hover:bg-[#2A6772] text-[#F7F4EA] text-xs font-mono font-bold uppercase tracking-wider px-7 py-3.5 rounded-xl transition shadow-sm active:scale-95 disabled:opacity-40"
+                    className="cursor-pointer inline-flex items-center gap-2.5 bg-[#347F8C] hover:bg-[#2A6772] text-[#F7F4EA] text-xs font-mono font-bold uppercase tracking-wider px-7 py-3.5 rounded-xl transition shadow-sm active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isLoading ? (
                       <>

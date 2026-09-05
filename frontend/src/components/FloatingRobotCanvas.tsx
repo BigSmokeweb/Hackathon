@@ -1,17 +1,41 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { Sparkles } from 'lucide-react';
 
 export function FloatingRobotCanvas({
   onClick,
   isOpen,
+  className,
 }: {
-  onClick: () => void;
-  isOpen: boolean;
+  onClick?: () => void;
+  isOpen?: boolean;
+  className?: string;
 }) {
   const mountRef = useRef<HTMLDivElement>(null);
   const [loadError, setLoadError] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
+
+  const modelGroupRef = useRef<any>(null);
+  const spinStateRef = useRef({
+    active: false,
+    startTime: 0,
+    startRot: 0,
+    targetRot: 0,
+  });
+
+  // Whenever isOpen toggles, trigger a 360 spin in Three.js
+  useEffect(() => {
+    if (modelGroupRef.current) {
+      const currentRot = modelGroupRef.current.rotation.y;
+      spinStateRef.current = {
+        active: true,
+        startTime: performance.now(),
+        startRot: currentRot,
+        targetRot: currentRot + Math.PI * 2 * (isOpen ? 1 : -1),
+      };
+    }
+  }, [isOpen]);
 
   useEffect(() => {
     let isDisposed = false;
@@ -31,8 +55,8 @@ export function FloatingRobotCanvas({
         if (isDisposed || !mountRef.current) return;
 
         const container = mountRef.current;
-        const width = 112;
-        const height = 112;
+        const width = 128;
+        const height = 128;
 
         // Scene
         scene = new THREE.Scene();
@@ -42,7 +66,7 @@ export function FloatingRobotCanvas({
         camera.position.set(0, 0, 3.4);
         camera.lookAt(0, 0, 0);
 
-        // Renderer
+        // WebGL Renderer
         renderer = new THREE.WebGLRenderer({
           alpha: true,
           antialias: true,
@@ -52,15 +76,15 @@ export function FloatingRobotCanvas({
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         renderer.outputColorSpace = THREE.SRGBColorSpace;
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        renderer.toneMappingExposure = 1.3;
+        renderer.toneMappingExposure = 1.35;
         renderer.domElement.style.width = '100%';
         renderer.domElement.style.height = '100%';
-        renderer.domElement.style.borderRadius = '50%';
+        renderer.domElement.style.pointerEvents = 'none';
 
         container.appendChild(renderer.domElement);
 
-        // Pure neutral white studio lighting (no blue tint)
-        const ambientLight = new THREE.AmbientLight(0xffffff, 2.4);
+        // Pure neutral white studio lighting
+        const ambientLight = new THREE.AmbientLight(0xffffff, 2.5);
         scene.add(ambientLight);
 
         const keyLight = new THREE.DirectionalLight(0xffffff, 2.6);
@@ -71,9 +95,14 @@ export function FloatingRobotCanvas({
         fillLight.position.set(-2, -1, 2);
         scene.add(fillLight);
 
-        const rimLight = new THREE.PointLight(0xffffff, 1.8, 10);
-        rimLight.position.set(0, -1, -2);
-        scene.add(rimLight);
+        // Radiant Blue Accent Lights giving Celene a stand-out ethereal blue hue
+        const blueRimLight = new THREE.PointLight(0x4fa3d1, 3.8, 10);
+        blueRimLight.position.set(0, 1.5, 2.2);
+        scene.add(blueRimLight);
+
+        const blueBackLight = new THREE.DirectionalLight(0x38bdf8, 2.5);
+        blueBackLight.position.set(-2, -1, -2);
+        scene.add(blueBackLight);
 
         clock = new THREE.Clock();
 
@@ -102,7 +131,6 @@ export function FloatingRobotCanvas({
               }
             });
 
-            // Fallback if empty box
             if (box.isEmpty()) {
               box.setFromObject(robotScene);
             }
@@ -111,13 +139,13 @@ export function FloatingRobotCanvas({
             const size = box.getSize(new THREE.Vector3());
             const maxDim = Math.max(size.x, size.y, size.z);
 
-            // Center robot inside a pivot group so its physical center is at (0, 0, 0)
+            // Center robot inside a pivot group
             robotScene.position.set(-center.x, -center.y, -center.z);
 
             const pivotGroup = new THREE.Group();
             pivotGroup.add(robotScene);
 
-            // Scale to prominently fill circle while staying comfortably within bounds
+            // Scale to prominently fill view without clipping
             const targetSize = 2.15;
             const scale = targetSize / (maxDim || 1);
             pivotGroup.scale.set(scale, scale, scale);
@@ -125,8 +153,9 @@ export function FloatingRobotCanvas({
 
             scene.add(pivotGroup);
             modelGroup = pivotGroup;
+            modelGroupRef.current = pivotGroup;
 
-            // Handle animations if present
+            // Handle animations if present in GLTF
             if (gltf.animations && gltf.animations.length > 0) {
               mixer = new THREE.AnimationMixer(robotScene);
               gltf.animations.forEach((clip) => {
@@ -152,8 +181,25 @@ export function FloatingRobotCanvas({
           if (mixer) mixer.update(delta);
 
           if (modelGroup) {
-            const hoverY = Math.sin(time * 2.5) * 0.035;
+            // Organic floating hover bob
+            const hoverY = Math.sin(time * 2.6) * 0.04;
             modelGroup.position.y = hoverY;
+
+            // Playful 360 Spin Transition
+            if (spinStateRef.current.active) {
+              const elapsed = (performance.now() - spinStateRef.current.startTime) / 700;
+              if (elapsed < 1) {
+                // Smooth spring-like ease with a tiny playful overshoot
+                const p = elapsed;
+                const ease = 1 - Math.pow(1 - p, 3);
+                modelGroup.rotation.y =
+                  spinStateRef.current.startRot +
+                  (spinStateRef.current.targetRot - spinStateRef.current.startRot) * ease;
+              } else {
+                modelGroup.rotation.y = spinStateRef.current.targetRot;
+                spinStateRef.current.active = false;
+              }
+            }
           }
 
           if (renderer && scene && camera) {
@@ -183,27 +229,30 @@ export function FloatingRobotCanvas({
   return (
     <div
       onClick={onClick}
-      className="relative w-36 h-36 cursor-pointer select-none group flex items-center justify-center active:scale-95 transition-transform"
-      title="Chat with Celene AI Assistant"
+      className={`relative cursor-pointer select-none group flex items-center justify-center active:scale-95 transition-transform ${
+        className || 'w-28 h-28 sm:w-32 sm:h-32'
+      }`}
+      title={isOpen ? 'Celene Heritage Concierge' : 'Consult Celene AI Concierge'}
     >
-      {/* Circular Background */}
-      <div className="absolute inset-0 rounded-full bg-[#347F8C] shadow-xl shadow-[#347F8C]/40 group-hover:bg-[#2A6772] transition-colors" />
+      {/* Luminous Celestial Blue Hue Aura */}
+      <div className="absolute w-24 h-24 rounded-full bg-[#38bdf8]/40 blur-xl pointer-events-none z-0 animate-pulse" />
+      <div className="absolute w-16 h-16 rounded-full bg-[#4fa3d1]/35 blur-md pointer-events-none z-0" />
 
-      {/* 3D WebGL Canvas mount */}
+      {/* 3D WebGL Canvas mount with transparent background, depth shadow, and blue glow */}
       <div
         ref={mountRef}
-        className={`relative z-10 w-full h-full rounded-full overflow-hidden flex items-center justify-center pointer-events-none transition-opacity duration-500 ${
+        className={`relative z-10 w-full h-full flex items-center justify-center pointer-events-none transition-opacity duration-500 filter drop-shadow-[0_0_20px_rgba(56,189,248,0.55)] drop-shadow-[0_12px_24px_rgba(29,78,86,0.3)] ${
           isLoaded ? 'opacity-100' : 'opacity-0'
         }`}
       />
 
-      {/* Stylistic Fallback Avatar if GLTF is loading or fails */}
+      {/* Stylistic Editorial Fallback Avatar (No AI-slop emoji) */}
       {(!isLoaded || loadError) && (
-        <div className="absolute inset-0 rounded-full bg-[#347F8C] border-2 border-white/90 flex flex-col items-center justify-center shadow-lg">
-          <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center text-lg animate-bounce">
-            🤖
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#1D4E56] to-[#347F8C] border border-white/40 flex items-center justify-center text-white shadow-xl">
+            <Sparkles className="w-6 h-6 text-[#F7F4EA]" />
           </div>
-          <span className="text-[8px] font-mono text-[#F7F4EA] uppercase tracking-wider font-bold mt-0.5">
+          <span className="text-[9px] font-mono text-[#1D4E56] uppercase tracking-[0.2em] font-bold mt-1.5">
             Celene
           </span>
         </div>
@@ -211,9 +260,9 @@ export function FloatingRobotCanvas({
 
       {/* Hover tooltip when closed */}
       {!isOpen && (
-        <div className="absolute right-full mr-3 top-1/2 -translate-y-1/2 bg-[#3E4541] text-[#F7F4EA] font-mono text-[11px] px-3 py-1.5 rounded-xl whitespace-nowrap shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none border border-[#D8D4C8]/30 flex items-center gap-1.5">
+        <div className="absolute right-full mr-3 top-1/2 -translate-y-1/2 bg-[#1C4D56] text-[#F7F4EA] font-mono text-[10px] tracking-wider uppercase px-3 py-1.5 rounded-xl whitespace-nowrap shadow-xl opacity-0 group-hover:opacity-100 transition-all pointer-events-none border border-white/15 flex items-center gap-1.5 translate-x-1 group-hover:translate-x-0">
           <span>Ask Celene</span>
-          <span className="text-[#4FA3D1] font-bold">&rarr;</span>
+          <span className="text-[#8FAF82] font-bold">&rarr;</span>
         </div>
       )}
     </div>
