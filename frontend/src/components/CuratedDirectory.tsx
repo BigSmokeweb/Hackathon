@@ -247,14 +247,7 @@ function CityExpeditionSection({
       {/* ─── Top 3 Curated Experiences Grid ─── */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
         {topThree.map((exp) => (
-          <ExperienceCard
-            key={exp.id}
-            exp={exp}
-            isHovered={hoveredCardId === exp.id}
-            isFaded={hoveredCardId !== null && hoveredCardId !== exp.id}
-            onMouseEnter={() => setHoveredCardId(exp.id)}
-            onMouseLeave={() => setHoveredCardId(null)}
-          />
+          <ExperienceCard key={exp.id} exp={exp} />
         ))}
       </div>
 
