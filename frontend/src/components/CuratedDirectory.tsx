@@ -60,7 +60,21 @@ function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): nu
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-function ExperienceCard({ exp, compact = false }: { exp: CuratedExperience; compact?: boolean }) {
+function ExperienceCard({
+  exp,
+  compact = false,
+  isHovered = false,
+  isFaded = false,
+  onMouseEnter,
+  onMouseLeave,
+}: {
+  exp: CuratedExperience;
+  compact?: boolean;
+  isHovered?: boolean;
+  isFaded?: boolean;
+  onMouseEnter?: () => void;
+  onMouseLeave?: () => void;
+}) {
   const formattedPrice =
     (!exp.priceMin && !exp.priceMax) || (exp.priceMin === 0 && exp.priceMax === 0)
       ? 'Free'
@@ -70,8 +84,14 @@ function ExperienceCard({ exp, compact = false }: { exp: CuratedExperience; comp
 
   return (
     <article
-      className={`group relative bg-white border border-[#D8D4C8] hover:border-[#347F8C]/60 rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-xl flex flex-col justify-between h-full ${
-        compact ? 'shadow-sm hover:-translate-y-1' : ''
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+      className={`group relative bg-white rounded-2xl overflow-hidden flex flex-col justify-between h-full transform-gpu transition-all duration-300 ease-out cursor-pointer ${
+        isHovered
+          ? 'scale-105 -translate-y-3 z-30 shadow-2xl border-2 border-[#347F8C] ring-4 ring-[#347F8C]/25 brightness-105'
+          : isFaded
+          ? 'scale-95 opacity-50 blur-[1.5px] brightness-90 border border-[#D8D4C8]'
+          : 'scale-100 opacity-100 blur-0 border border-[#D8D4C8] hover:border-[#347F8C]/60 hover:shadow-lg'
       }`}
     >
       {/* Image Cover */}
@@ -159,13 +179,33 @@ function CityExpeditionSection({
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [hoveredCardId, setHoveredCardId] = useState<string | null>(null);
 
   const topThree = experiences.slice(0, 3);
   const remainingExperiences = experiences.slice(3);
 
+  // Wheel listener: map vertical wheel to sideways horizontal scroll
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el || !isExpanded) return;
+
+    const onWheel = (e: WheelEvent) => {
+      if (Math.abs(e.deltaY) > 0) {
+        e.preventDefault();
+        el.scrollBy({
+          left: e.deltaY * 1.5,
+          behavior: 'smooth',
+        });
+      }
+    };
+
+    el.addEventListener('wheel', onWheel, { passive: false });
+    return () => el.removeEventListener('wheel', onWheel);
+  }, [isExpanded]);
+
   const scroll = (direction: 'left' | 'right') => {
     if (scrollRef.current) {
-      const scrollAmount = direction === 'left' ? -380 : 380;
+      const scrollAmount = direction === 'left' ? -420 : 420;
       scrollRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
     }
   };
@@ -207,7 +247,14 @@ function CityExpeditionSection({
       {/* ─── Top 3 Curated Experiences Grid ─── */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
         {topThree.map((exp) => (
-          <ExperienceCard key={exp.id} exp={exp} />
+          <ExperienceCard
+            key={exp.id}
+            exp={exp}
+            isHovered={hoveredCardId === exp.id}
+            isFaded={hoveredCardId !== null && hoveredCardId !== exp.id}
+            onMouseEnter={() => setHoveredCardId(exp.id)}
+            onMouseLeave={() => setHoveredCardId(null)}
+          />
         ))}
       </div>
 
@@ -225,22 +272,22 @@ function CityExpeditionSection({
 
           {isExpanded && (
             <span className="text-[11px] font-mono text-[#7C8581] hidden sm:inline">
-              Swipe sideways or use arrow buttons to browse all {experiences.length} journeys
+              Scroll with wheel or swipe sideways &bull; Hover for 3D focus
             </span>
           )}
         </div>
       )}
 
-      {/* ─── Sideways Scroll Animation for all other experiences in the city ─── */}
+      {/* ─── Sideways Scroll 3D Animation for all other experiences in the city ─── */}
       {isExpanded && remainingExperiences.length > 0 && (
-        <div className="bg-[#F2EFE5]/70 border border-[#D8D4C8] rounded-2xl p-5 shadow-inner mb-6 transition-all duration-300">
+        <div className="bg-[#F2EFE5]/80 border border-[#D8D4C8] rounded-3xl p-6 shadow-inner mb-8 transition-all duration-300">
           <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2.5">
               <span className="text-xs font-mono uppercase tracking-wider text-[#3E4541] font-bold">
-                More {cityName} Expeditions ({remainingExperiences.length})
+                All {cityName} Expeditions ({experiences.length})
               </span>
-              <span className="text-[10px] font-mono text-[#7C8581] hidden sm:inline">
-                &bull; Scroll sideways to inspect all
+              <span className="text-[10px] font-mono text-[#7C8581] hidden sm:inline bg-white/80 border border-[#D8D4C8] px-2 py-0.5 rounded-md">
+                4 per view &bull; Scroll sideways right-to-left
               </span>
             </div>
 
@@ -249,7 +296,7 @@ function CityExpeditionSection({
               <button
                 type="button"
                 onClick={() => scroll('left')}
-                className="w-8 h-8 rounded-full bg-white border border-[#D8D4C8] hover:bg-[#347F8C] hover:text-white hover:border-[#347F8C] flex items-center justify-center transition cursor-pointer shadow-xs active:scale-95"
+                className="w-9 h-9 rounded-full bg-white border border-[#D8D4C8] hover:bg-[#347F8C] hover:text-white hover:border-[#347F8C] flex items-center justify-center transition cursor-pointer shadow-xs active:scale-95"
                 aria-label="Scroll left"
               >
                 <ChevronLeft className="w-4 h-4" />
@@ -257,7 +304,7 @@ function CityExpeditionSection({
               <button
                 type="button"
                 onClick={() => scroll('right')}
-                className="w-8 h-8 rounded-full bg-white border border-[#D8D4C8] hover:bg-[#347F8C] hover:text-white hover:border-[#347F8C] flex items-center justify-center transition cursor-pointer shadow-xs active:scale-95"
+                className="w-9 h-9 rounded-full bg-white border border-[#D8D4C8] hover:bg-[#347F8C] hover:text-white hover:border-[#347F8C] flex items-center justify-center transition cursor-pointer shadow-xs active:scale-95"
                 aria-label="Scroll right"
               >
                 <ChevronRight className="w-4 h-4" />
@@ -265,15 +312,25 @@ function CityExpeditionSection({
             </div>
           </div>
 
-          {/* Sideways Scroll Row */}
+          {/* Sideways Scroll Row - 4 cards visible across viewport */}
           <div
             ref={scrollRef}
-            className="flex gap-5 overflow-x-auto pb-4 pt-1 snap-x scroll-smooth no-scrollbar"
-            style={{ scrollbarWidth: 'thin' }}
+            className="flex gap-5 overflow-x-auto pb-8 pt-4 px-2 snap-x scroll-smooth no-scrollbar"
+            style={{ scrollbarWidth: 'none' }}
           >
             {remainingExperiences.map((exp) => (
-              <div key={exp.id} className="w-[290px] sm:w-[320px] shrink-0 snap-start">
-                <ExperienceCard exp={exp} compact />
+              <div
+                key={exp.id}
+                className="w-[calc(25%-15px)] min-w-[260px] max-w-[320px] shrink-0 snap-start"
+              >
+                <ExperienceCard
+                  exp={exp}
+                  compact
+                  isHovered={hoveredCardId === exp.id}
+                  isFaded={hoveredCardId !== null && hoveredCardId !== exp.id}
+                  onMouseEnter={() => setHoveredCardId(exp.id)}
+                  onMouseLeave={() => setHoveredCardId(null)}
+                />
               </div>
             ))}
           </div>
