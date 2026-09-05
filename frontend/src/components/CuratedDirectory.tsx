@@ -3,7 +3,7 @@
 import { Suspense, useState, useEffect, useMemo, useTransition, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
-import { Search, MapPin, Clock, Star, ShieldCheck, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, MapPin, Clock, Star, ShieldCheck, ArrowRight, ChevronLeft, ChevronRight, ChevronDown } from 'lucide-react';
 
 export interface CategoryOption {
   label: string;
@@ -158,6 +158,7 @@ function CityExpeditionSection({
   experiences: CuratedExperience[];
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const topThree = experiences.slice(0, 3);
   const remainingExperiences = experiences.slice(3);
@@ -201,25 +202,38 @@ function CityExpeditionSection({
             {tag}
           </p>
         </div>
-        <Link
-          href={`/cities/${cityName.toLowerCase()}`}
-          className="text-xs font-mono uppercase tracking-wider text-[#347F8C] hover:text-[#2A6772] font-bold inline-flex items-center gap-1 self-start sm:self-auto"
-        >
-          <span>Explore All {cityName}</span>
-          <ArrowRight className="w-3 h-3" />
-        </Link>
       </div>
 
       {/* ─── Top 3 Curated Experiences Grid ─── */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
         {topThree.map((exp) => (
           <ExperienceCard key={exp.id} exp={exp} />
         ))}
       </div>
 
-      {/* ─── Sideways Scroll Animation for all other experiences in the city ─── */}
+      {/* ─── Explore All Button below 3 experiences ─── */}
       {remainingExperiences.length > 0 && (
-        <div className="bg-[#F2EFE5]/70 border border-[#D8D4C8] rounded-2xl p-5 shadow-inner">
+        <div className="flex items-center justify-between mb-6">
+          <button
+            type="button"
+            onClick={() => setIsExpanded((prev) => !prev)}
+            className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-xl border border-[#347F8C] bg-white hover:bg-[#347F8C] text-[#347F8C] hover:text-[#F7F4EA] font-mono text-xs uppercase tracking-wider font-bold transition-all duration-200 shadow-xs hover:shadow-md active:scale-95 cursor-pointer"
+          >
+            <span>{isExpanded ? `Collapse ${cityName} Expeditions` : `Explore All ${cityName} (${experiences.length})`}</span>
+            <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} />
+          </button>
+
+          {isExpanded && (
+            <span className="text-[11px] font-mono text-[#7C8581] hidden sm:inline">
+              Swipe sideways or use arrow buttons to browse all {experiences.length} journeys
+            </span>
+          )}
+        </div>
+      )}
+
+      {/* ─── Sideways Scroll Animation for all other experiences in the city ─── */}
+      {isExpanded && remainingExperiences.length > 0 && (
+        <div className="bg-[#F2EFE5]/70 border border-[#D8D4C8] rounded-2xl p-5 shadow-inner mb-6 transition-all duration-300">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <span className="text-xs font-mono uppercase tracking-wider text-[#3E4541] font-bold">
