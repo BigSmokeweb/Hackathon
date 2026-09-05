@@ -11,7 +11,8 @@
   "scripts": {
     "dev:backend": "npm run start:dev --workspace=backend",
     "dev:frontend": "npm run dev --workspace=frontend",
-    "build": "npm run build --workspaces",
+    "build": "npm run build --workspace=shared && npm run build --workspace=frontend",
+    "build:all": "npm run build --workspace=shared && npm run db:generate --workspace=backend && npm run build --workspaces",
     "test": "npm run test --workspaces",
     "test:cov": "npm run test:cov --workspace=backend",
     "lint": "npm run lint --workspaces",

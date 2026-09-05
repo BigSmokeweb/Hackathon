@@ -322,7 +322,18 @@ export async function fetchTripSession(sessionId: string): Promise<SessionData> 
   if (typeof window !== 'undefined') {
     const raw = localStorage.getItem(`trip_session_${sessionId}`);
     if (raw) {
-      const parsed: SessionData = JSON.parse(raw);
+      const parsed: any = JSON.parse(raw);
+      // Automatically purge any stale legacy sessions that had pre-selected stops
+      if (!parsed._v || parsed._v < 2) {
+        parsed.selectedExperiences = [];
+        parsed.selectedExperienceIds = [];
+        parsed.remainingBudget = parsed.totalBudget || 5000;
+        parsed.remainingTimeMinutes = 180;
+        parsed._v = 2;
+        try {
+          localStorage.setItem(`trip_session_${sessionId}`, JSON.stringify(parsed));
+        } catch {}
+      }
       return normalizeSessionStops(parsed);
     }
   }
