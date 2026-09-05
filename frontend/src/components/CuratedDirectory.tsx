@@ -255,7 +255,7 @@ function CuratedDirectoryContent({
                   <div className="absolute bottom-3 left-4 right-4 flex items-center justify-between text-xs text-white">
                     <span className="text-[11px] font-mono text-zinc-200 flex items-center gap-1 font-medium">
                       <ShieldCheck className="w-3.5 h-3.5 text-[#4FA3D1]" />
-                      {exp.provider?.businessName || 'Verified Guild'}
+                      {exp.provider?.businessName ? `Listed by ${exp.provider.businessName}` : 'Listed by local traveller'}
                     </span>
                     <span className="text-[11px] font-mono text-zinc-200 flex items-center gap-1">
                       <Clock className="w-3 h-3 text-zinc-300" />
@@ -284,7 +284,11 @@ function CuratedDirectoryContent({
                         Tariff
                       </span>
                       <p className="font-bold text-[#3E4541] text-base">
-                        ₹{exp.priceMin?.toLocaleString()} – ₹{exp.priceMax?.toLocaleString()}
+                        {(!exp.priceMin && !exp.priceMax) || (exp.priceMin === 0 && exp.priceMax === 0)
+                          ? 'Free'
+                          : exp.priceMin === 0
+                          ? `Free – ₹${exp.priceMax?.toLocaleString()}`
+                          : `₹${exp.priceMin?.toLocaleString()} – ₹${exp.priceMax?.toLocaleString()}`}
                       </p>
                     </div>
                     <Link

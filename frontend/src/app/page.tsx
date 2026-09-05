@@ -125,7 +125,7 @@ const CURATED_DIRECTORY_FALLBACK = [
 
 async function getAllExperiences() {
   try {
-    const res = await fetch(`${API_BASE}/experiences/search?limit=50`, {
+    const res = await fetch(`${API_BASE}/experiences/search?limit=200`, {
       cache: 'no-store',
     });
     if (!res.ok) return CURATED_DIRECTORY_FALLBACK;

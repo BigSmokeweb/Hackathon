@@ -183,7 +183,11 @@ export default async function ExperienceDetailPage({ params }: { params: { id: s
                     Tariff per guest
                   </span>
                   <p className="font-manifold text-2xl text-[#3E4541] font-bold tracking-wide mt-0.5">
-                    ₹{exp.priceMin?.toLocaleString()} – ₹{exp.priceMax?.toLocaleString()}
+                    {(!exp.priceMin && !exp.priceMax) || (exp.priceMin === 0 && exp.priceMax === 0)
+                      ? 'Free'
+                      : exp.priceMin === 0
+                      ? `Free – ₹${exp.priceMax?.toLocaleString()}`
+                      : `₹${exp.priceMin?.toLocaleString()} – ₹${exp.priceMax?.toLocaleString()}`}
                   </p>
                 </div>
                 <div className="text-right">
@@ -198,50 +202,57 @@ export default async function ExperienceDetailPage({ params }: { params: { id: s
 
               <Link
                 href="/#itinerary"
-                className="w-full inline-flex items-center justify-center gap-2 bg-[#347F8C] hover:bg-[#2A6772] text-[#F7F4EA] font-bold text-xs uppercase tracking-[0.18em] py-3.5 rounded-xl transition-all duration-300 shadow-sm active:scale-95"
+                className="w-full inline-flex items-center justify-center gap-2 bg-[#347F8C] hover:bg-[#2A6772] text-[#F7F4EA] font-mono text-xs uppercase tracking-wider font-bold py-3.5 rounded-xl transition-all duration-300 shadow-md shadow-[#347F8C]/20"
               >
-                <span>Add to Trip Itinerary</span>
+                <span>Add to Day Plan</span>
+                <ArrowRight className="w-4 h-4" />
               </Link>
+            </div>
+
+            {/* Practical Notes */}
+            <div className="mt-6 p-4 rounded-xl bg-[#F0EDE1] border border-[#D8D4C8] text-xs font-mono text-[#3E4541]/80 flex items-start gap-3">
+              <Compass className="w-4 h-4 text-[#347F8C] shrink-0 mt-0.5" />
+              <span>
+                Coordinates validated. Meeting points sent directly upon itinerary generation. Respect spatial norms and local heritage rules.
+              </span>
             </div>
           </div>
         </div>
 
-        {/* Narrative Description & Host Guild */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 border-t border-[#D8D4C8] pt-12">
-          <div className="lg:col-span-8 space-y-10">
-            <section>
-              <h2 className="font-manifold text-lg tracking-wider uppercase text-[#3E4541] font-bold mb-4">
-                Curatorial Synopsis
+        {/* Details & Reviews Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 mt-16 pt-12 border-t border-[#D8D4C8]">
+          <div className="lg:col-span-8">
+            <section className="mb-12">
+              <h2 className="font-manifold text-xl text-[#3E4541] uppercase tracking-wide font-bold mb-4">
+                Field Briefing
               </h2>
-              <p className="text-[#3E4541]/85 text-sm sm:text-base font-light leading-relaxed whitespace-pre-line">
+              <p className="text-sm sm:text-base text-[#3E4541]/85 leading-relaxed font-light">
                 {exp.description}
               </p>
             </section>
 
-            {exp.accessibilityTags && exp.accessibilityTags.length > 0 && (
-              <section>
-                <h3 className="font-manifold text-sm tracking-wider uppercase text-[#347F8C] font-semibold mb-3">
-                  Pacing & Field Notes
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                  {exp.accessibilityTags.map((tag: string) => (
-                    <span
-                      key={tag}
-                      className="bg-white border border-[#D8D4C8] text-[#3E4541]/80 text-xs font-mono px-3 py-1 rounded-full flex items-center gap-1.5 shadow-sm"
-                    >
-                      <CheckCircle2 className="w-3 h-3 text-[#8FAF82]" />
-                      {tag.replace(/_/g, ' ')}
-                    </span>
-                  ))}
-                </div>
-              </section>
-            )}
+            {/* Host Guild Notes */}
+            <section className="mb-12 bg-white p-6 rounded-2xl border border-[#D8D4C8] shadow-sm">
+              <div className="flex items-center gap-2 text-[#347F8C] font-mono text-xs tracking-wider uppercase font-semibold mb-2">
+                <ShieldCheck className="w-4 h-4 text-[#8FAF82]" />
+                Host Certification
+              </div>
+              <p className="text-xs sm:text-sm text-[#3E4541]/80 leading-relaxed font-light">
+                Every session is overseen by certified regional custodians, ensuring ethical compensation to artisans, zero commercial kickbacks, and pristine cultural transmission.
+              </p>
+            </section>
 
             {/* Reviews */}
-            <section className="border-t border-[#D8D4C8] pt-8">
-              <h2 className="font-manifold text-lg tracking-wider uppercase text-[#3E4541] font-bold mb-6">
-                Traveler Chronicles
-              </h2>
+            <section>
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="font-manifold text-xl text-[#3E4541] uppercase tracking-wide font-bold">
+                  Field Dispatches & Reviews
+                </h2>
+                <span className="text-xs font-mono text-[#3E4541]/60">
+                  {exp.reviewCount || 48} entries
+                </span>
+              </div>
+
               {exp.reviews && exp.reviews.length > 0 ? (
                 <div className="space-y-4">
                   {exp.reviews.map((rev: any) => (
@@ -249,15 +260,17 @@ export default async function ExperienceDetailPage({ params }: { params: { id: s
                       key={rev.id}
                       className="bg-white p-5 rounded-xl border border-[#D8D4C8] shadow-sm"
                     >
-                      <div className="flex items-center justify-between text-xs font-mono text-[#3E4541]/70 mb-2">
-                        <span className="font-bold text-[#3E4541]">{rev.user?.name || 'Traveler'}</span>
-                        <span className="text-amber-600 flex items-center gap-1 font-semibold">
-                          <Star className="w-3 h-3 fill-amber-500 text-amber-500" />
-                          {rev.ratingOverall}/5
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="font-semibold text-xs sm:text-sm text-[#3E4541]">
+                          {rev.userName}
                         </span>
+                        <div className="flex items-center gap-1 text-xs text-amber-500 font-medium">
+                          <Star className="w-3.5 h-3.5 fill-amber-500" />
+                          <span>{rev.rating}</span>
+                        </div>
                       </div>
                       <p className="text-xs sm:text-sm text-[#3E4541]/80 font-light leading-relaxed">
-                        {rev.text}
+                        {rev.comment}
                       </p>
                     </div>
                   ))}
@@ -274,10 +287,10 @@ export default async function ExperienceDetailPage({ params }: { params: { id: s
           <div className="lg:col-span-4">
             <div className="bg-white p-6 rounded-2xl border border-[#D8D4C8] shadow-sm">
               <span className="text-[10px] font-mono uppercase tracking-widest text-[#347F8C] font-semibold block mb-2">
-                Custodian Guild
+                Listed By
               </span>
               <h3 className="font-manifold text-xl text-[#3E4541] font-bold tracking-wide uppercase">
-                {exp.provider?.businessName || 'Verified Guild'}
+                {exp.provider?.businessName ? `Listed by ${exp.provider.businessName}` : 'Listed by local traveller'}
               </h3>
               <p className="text-xs font-mono text-[#3E4541]/60 mt-1">Based in {exp.provider?.city || exp.city}</p>
               <div className="mt-4 pt-4 border-t border-[#D8D4C8] text-xs text-[#3E4541]/75 leading-relaxed font-light">

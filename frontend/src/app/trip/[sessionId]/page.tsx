@@ -534,7 +534,13 @@ export default function TripSessionLoopPage() {
                             <span className="text-[#D8D4C8]">&bull;</span>
                             <span>{cand.durationMinutes || 60}m</span>
                             <span className="text-[#D8D4C8]">&bull;</span>
-                            <span className="text-[#3E4541] font-semibold">₹{cand.priceMin}–{cand.priceMax}</span>
+                            <span className="text-[#3E4541] font-semibold">
+                              {(!cand.priceMin && !cand.priceMax) || (cand.priceMin === 0 && cand.priceMax === 0)
+                                ? 'Free'
+                                : cand.priceMin === 0
+                                ? `Free – ₹${cand.priceMax}`
+                                : `₹${cand.priceMin}–${cand.priceMax}`}
+                            </span>
                           </div>
                         </div>
                       </div>

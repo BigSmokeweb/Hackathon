@@ -165,7 +165,7 @@ export default async function CityDiscoveryPage({ params }: { params: { slug: st
                 <div className="absolute bottom-3 left-4 right-4 flex items-center justify-between text-xs text-white">
                   <span className="text-[11px] font-mono text-white flex items-center gap-1 font-medium">
                     <ShieldCheck className="w-3.5 h-3.5 text-[#8FAF82]" />
-                    {exp.provider?.businessName || 'Verified Guild'}
+                    {exp.provider?.businessName ? `Listed by ${exp.provider.businessName}` : 'Listed by local traveller'}
                   </span>
                   <span className="text-[11px] font-mono text-white/90 flex items-center gap-1">
                     <Clock className="w-3 h-3 text-white/80" />
@@ -190,7 +190,11 @@ export default async function CityDiscoveryPage({ params }: { params: { slug: st
                       Tariff
                     </span>
                     <p className="font-semibold text-[#3E4541] text-base">
-                      ₹{exp.priceMin?.toLocaleString()} – ₹{exp.priceMax?.toLocaleString()}
+                      {(!exp.priceMin && !exp.priceMax) || (exp.priceMin === 0 && exp.priceMax === 0)
+                        ? 'Free'
+                        : exp.priceMin === 0
+                        ? `Free – ₹${exp.priceMax?.toLocaleString()}`
+                        : `₹${exp.priceMin?.toLocaleString()} – ₹${exp.priceMax?.toLocaleString()}`}
                     </p>
                   </div>
                   <Link

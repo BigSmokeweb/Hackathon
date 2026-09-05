@@ -70,7 +70,9 @@ export function ItineraryStopCard({
 
         {/* Pricing & Rating */}
         <div className="flex items-center gap-3 mt-2 text-xs font-mono text-[#3E4541]/75">
-          <span className="text-[#3E4541] font-semibold">₹{priceMin?.toLocaleString()}</span>
+          <span className="text-[#3E4541] font-semibold">
+            {!priceMin || priceMin === 0 ? 'Free' : `₹${priceMin.toLocaleString()}`}
+          </span>
           <span className="text-[#D8D4C8]">&bull;</span>
           <span className="flex items-center gap-1 text-amber-600 font-semibold">
             <Star className="w-3 h-3 fill-amber-500 text-amber-500" />
