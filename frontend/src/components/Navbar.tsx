@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { NearbyCitiesDropdown } from '@/components/NearbyCitiesDropdown';
 
 export function Navbar() {
   const pathname = usePathname();
@@ -89,14 +90,9 @@ export function Navbar() {
             />
             Itinerary
           </Link>
-          <Link
-            href="/cities/ahmedabad"
-            className={`transition-colors duration-200 hidden sm:inline-block ${
-              isHome && !scrolled ? 'text-zinc-200 hover:text-white' : 'text-[#5C6460] hover:text-[#3E4541]'
-            }`}
-          >
-            Cities
-          </Link>
+          <div className="hidden sm:inline-block">
+            <NearbyCitiesDropdown isHome={isHome} scrolled={scrolled} />
+          </div>
           <Link
             href="/provider/portal"
             className={`transition-colors duration-200 hidden md:inline-block ${

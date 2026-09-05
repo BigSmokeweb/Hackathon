@@ -24,7 +24,7 @@ const AREA_COORDINATES: Record<string, { lat: number; lng: number; state: string
   'Bandra':         { lat: 19.0596, lng: 72.8295, state: 'Maharashtra' },
   'Dharavi':        { lat: 19.0421, lng: 72.8558, state: 'Maharashtra' },
   'Dadar':          { lat: 19.0178, lng: 72.8478, state: 'Maharashtra' },
-  'Worli':          { lat: 19.0128, lng: 72.8148, state: 'Maharashtra' },
+  'Worli':          { lat: 18.9950, lng: 72.8190, state: 'Maharashtra' },
   'Byculla':        { lat: 18.9804, lng: 72.8374, state: 'Maharashtra' },
   'Juhu':           { lat: 19.1075, lng: 72.8263, state: 'Maharashtra' },
   'Versova':        { lat: 19.1348, lng: 72.8098, state: 'Maharashtra' },

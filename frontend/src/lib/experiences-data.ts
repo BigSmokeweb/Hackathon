@@ -873,8 +873,8 @@ export const ALL_EXPERIENCES: ExperienceData[] = [
     "durationMinutes": 90,
     "ratingAverage": 4.96,
     "authenticityRating": 0.99,
-    "candidateLat": 19.011838,
-    "candidateLng": 72.81259,
+    "candidateLat": 18.9896,
+    "candidateLng": 72.8185,
     "mediaUrls": [
       "https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1200&q=80"
     ],
@@ -905,8 +905,8 @@ export const ALL_EXPERIENCES: ExperienceData[] = [
     "durationMinutes": 150,
     "ratingAverage": 4.94,
     "authenticityRating": 0.97,
-    "candidateLat": 19.01273,
-    "candidateLng": 72.812646,
+    "candidateLat": 18.9904,
+    "candidateLng": 72.8214,
     "mediaUrls": [
       "https://images.unsplash.com/photo-1507668077129-56e32842fceb?auto=format&fit=crop&w=1200&q=80"
     ],
@@ -1579,8 +1579,8 @@ export const ALL_EXPERIENCES: ExperienceData[] = [
     "durationMinutes": 90,
     "ratingAverage": 4.9,
     "authenticityRating": 0.99,
-    "candidateLat": 26.911996,
-    "candidateLng": 75.787718,
+    "candidateLat": 23.0248,
+    "candidateLng": 72.5873,
     "mediaUrls": [
       "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=1200&q=80"
     ],
@@ -1611,8 +1611,8 @@ export const ALL_EXPERIENCES: ExperienceData[] = [
     "durationMinutes": 150,
     "ratingAverage": 4.88,
     "authenticityRating": 0.97,
-    "candidateLat": 26.913481,
-    "candidateLng": 75.785993,
+    "candidateLat": 23.0235,
+    "candidateLng": 72.5892,
     "mediaUrls": [
       "https://images.unsplash.com/photo-1596178065887-1198b6148b2b?auto=format&fit=crop&w=1200&q=80"
     ],
@@ -3629,8 +3629,8 @@ export const ALL_EXPERIENCES: ExperienceData[] = [
     "durationMinutes": 60,
     "ratingAverage": 4.9,
     "authenticityRating": 0.94,
-    "candidateLat": 26.912042,
-    "candidateLng": 75.786653,
+    "candidateLat": 23.0238,
+    "candidateLng": 72.587,
     "mediaUrls": [
       "https://images.unsplash.com/photo-1597659840241-37e2b9c2f55f?auto=format&fit=crop&w=1200&q=80"
     ],
@@ -3950,8 +3950,8 @@ export const ALL_EXPERIENCES: ExperienceData[] = [
     "durationMinutes": 60,
     "ratingAverage": 4.91,
     "authenticityRating": 0.95,
-    "candidateLat": 26.913359,
-    "candidateLng": 75.786331,
+    "candidateLat": 23.0255,
+    "candidateLng": 72.5855,
     "mediaUrls": [
       "https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&w=1200&q=80"
     ],
@@ -4079,8 +4079,8 @@ export const ALL_EXPERIENCES: ExperienceData[] = [
     "durationMinutes": 120,
     "ratingAverage": 4.87,
     "authenticityRating": 0.93,
-    "candidateLat": 26.914783,
-    "candidateLng": 75.787423,
+    "candidateLat": 23.0241,
+    "candidateLng": 72.5885,
     "mediaUrls": [
       "https://images.unsplash.com/photo-1578916171728-46686eac8d58?auto=format&fit=crop&w=1200&q=80"
     ],
@@ -4111,8 +4111,8 @@ export const ALL_EXPERIENCES: ExperienceData[] = [
     "durationMinutes": 120,
     "ratingAverage": 4.82,
     "authenticityRating": 0.96,
-    "candidateLat": 26.911037,
-    "candidateLng": 75.785697,
+    "candidateLat": 23.0245,
+    "candidateLng": 72.589,
     "mediaUrls": [
       "https://images.unsplash.com/photo-1599839575945-a9e5af0c3fa5?auto=format&fit=crop&w=1200&q=80"
     ],
@@ -4303,8 +4303,8 @@ export const ALL_EXPERIENCES: ExperienceData[] = [
     "durationMinutes": 120,
     "ratingAverage": 4.86,
     "authenticityRating": 0.96,
-    "candidateLat": 26.912932,
-    "candidateLng": 75.788754,
+    "candidateLat": 23.0228,
+    "candidateLng": 72.5901,
     "mediaUrls": [
       "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=1200&q=80"
     ],
@@ -4335,8 +4335,8 @@ export const ALL_EXPERIENCES: ExperienceData[] = [
     "durationMinutes": 90,
     "ratingAverage": 4.98,
     "authenticityRating": 0.94,
-    "candidateLat": 26.912114,
-    "candidateLng": 75.789101,
+    "candidateLat": 23.0219,
+    "candidateLng": 72.5912,
     "mediaUrls": [
       "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1200&q=80"
     ],
@@ -4785,8 +4785,8 @@ export const ALL_EXPERIENCES: ExperienceData[] = [
     "durationMinutes": 90,
     "ratingAverage": 4.87,
     "authenticityRating": 0.97,
-    "candidateLat": 26.913251,
-    "candidateLng": 75.789089,
+    "candidateLat": 23.026,
+    "candidateLng": 72.584,
     "mediaUrls": [
       "https://images.unsplash.com/photo-1514306191717-452ec28c7814?auto=format&fit=crop&w=1200&q=80"
     ],
@@ -4817,8 +4817,8 @@ export const ALL_EXPERIENCES: ExperienceData[] = [
     "durationMinutes": 90,
     "ratingAverage": 4.91,
     "authenticityRating": 0.95,
-    "candidateLat": 26.914626,
-    "candidateLng": 75.788868,
+    "candidateLat": 23.025,
+    "candidateLng": 72.5865,
     "mediaUrls": [
       "https://images.unsplash.com/photo-1514565131-fce0801e5785?auto=format&fit=crop&w=1200&q=80"
     ],

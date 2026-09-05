@@ -535,7 +535,18 @@ export function TripAreaMap({
         setRouteTelemetry(null);
         setTrainRouteTelemetry(null);
         setIsRouting(false);
-        map.setView([userLocation.lat, userLocation.lng], 14);
+
+        const validCandCoords = (candidateStops || [])
+          .filter((c) => c.candidateLat != null && c.candidateLng != null)
+          .slice(0, 8)
+          .map((c) => [c.candidateLat!, c.candidateLng!] as [number, number]);
+
+        if (validCandCoords.length > 0) {
+          const bounds = L.latLngBounds([[userLocation.lat, userLocation.lng], ...validCandCoords]);
+          map.fitBounds(bounds, { padding: [40, 40], maxZoom: 15 });
+        } else {
+          map.setView([userLocation.lat, userLocation.lng], 14);
+        }
       }
     }
 

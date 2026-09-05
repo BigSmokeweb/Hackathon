@@ -279,9 +279,6 @@ function CityExpeditionSection({
               <span className="text-xs font-mono uppercase tracking-wider text-[#3E4541] font-bold">
                 All {cityName} Expeditions ({experiences.length})
               </span>
-              <span className="text-[10px] font-mono text-[#7C8581] hidden sm:inline bg-white/80 border border-[#D8D4C8] px-2 py-0.5 rounded-md">
-                4 per view &bull; Scroll sideways right-to-left
-              </span>
             </div>
 
             {/* Scroll Navigation Arrows */}

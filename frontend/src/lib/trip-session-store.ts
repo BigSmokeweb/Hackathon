@@ -216,44 +216,16 @@ export async function createTripSession(payload: {
     })
     .sort((a, b) => b.score - a.score);
 
-  // Auto-curate top 3-4 destinations fitting within time & budget
-  const initialSelected: SelectedExperience[] = [];
-  let curBudget = payload.totalBudget;
-  let curTime = payload.totalTimeMinutes;
-
-  for (const item of scoredInitial) {
-    if (initialSelected.length >= 4) break;
-    const exp = item.cand;
-    const duration = exp.durationMinutes || 90;
-    if (exp.priceMin <= curBudget && duration <= curTime) {
-      initialSelected.push({
-        id: exp.id,
-        title: exp.title,
-        category: exp.category,
-        city: exp.city,
-        priceMin: exp.priceMin,
-        priceMax: exp.priceMax,
-        ratingAverage: exp.ratingAverage,
-        authenticityRating: exp.authenticityRating,
-        mediaUrls: exp.mediaUrls,
-        durationMinutes: duration,
-        candidateLat: exp.candidateLat,
-        candidateLng: exp.candidateLng,
-      });
-      curBudget -= exp.priceMin;
-      curTime -= duration;
-    }
-  }
-
+  // Clean initial session: Start with 0 pre-selected stops as requested
   const localSession: SessionData = {
     id: sessionId,
     status: 'ACTIVE',
-    remainingTimeMinutes: curTime,
-    remainingBudget: curBudget,
+    remainingTimeMinutes: payload.totalTimeMinutes,
+    remainingBudget: payload.totalBudget,
     totalBudget: payload.totalBudget,
-    selectedExperienceIds: initialSelected.map((s) => s.id),
-    selectedCategories: Array.from(new Set(initialSelected.map((s) => s.category))),
-    selectedExperiences: initialSelected,
+    selectedExperienceIds: [],
+    selectedCategories: [],
+    selectedExperiences: [],
     city,
     rejectedExperienceIds: [],
     userLat: payload.latitude,
