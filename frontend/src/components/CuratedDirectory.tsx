@@ -187,11 +187,44 @@ function CityExpeditionSection({
   experiences: CuratedExperience[];
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const sentinelRef = useRef<HTMLDivElement>(null);
   const [isExpanded, setIsExpanded] = useState(false);
   const [hoveredCardId, setHoveredCardId] = useState<string | null>(null);
+  const [visibleLimit, setVisibleLimit] = useState(8);
 
   const topThree = experiences.slice(0, 3);
   const remainingExperiences = experiences.slice(3);
+  const visibleRemaining = remainingExperiences.slice(0, visibleLimit);
+  const hasMore = visibleLimit < remainingExperiences.length;
+
+  // Reset visible batch count when experiences or expansion state changes
+  useEffect(() => {
+    setVisibleLimit(8);
+  }, [experiences, isExpanded]);
+
+  // Infinite Scroll: automatically load next batch of cards when scrolling near the end
+  useEffect(() => {
+    if (!isExpanded || !hasMore) return;
+
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          setVisibleLimit((prev) => Math.min(prev + 8, remainingExperiences.length));
+        }
+      },
+      {
+        root: scrollRef.current,
+        rootMargin: '0px 350px 0px 0px',
+        threshold: 0.1,
+      }
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [isExpanded, hasMore, remainingExperiences.length]);
 
   // Wheel listener: map vertical wheel to sideways horizontal scroll
   useEffect(() => {
@@ -214,6 +247,9 @@ function CityExpeditionSection({
 
   const scroll = (direction: 'left' | 'right') => {
     if (scrollRef.current) {
+      if (direction === 'right' && hasMore) {
+        setVisibleLimit((prev) => Math.min(prev + 8, remainingExperiences.length));
+      }
       const scrollAmount = direction === 'left' ? -420 : 420;
       scrollRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
     }
@@ -310,7 +346,7 @@ function CityExpeditionSection({
             className="flex gap-4 overflow-x-auto pt-7 pb-10 px-6 scroll-pl-6 scroll-pr-6 snap-x scroll-smooth no-scrollbar"
             style={{ scrollbarWidth: 'none' }}
           >
-            {remainingExperiences.map((exp) => (
+            {visibleRemaining.map((exp) => (
               <div
                 key={exp.id}
                 className="w-[calc(25%-12px)] min-w-[270px] max-w-[320px] shrink-0 snap-start p-2.5"
@@ -329,6 +365,16 @@ function CityExpeditionSection({
                 />
               </div>
             ))}
+
+            {/* Seamless Infinite Scroll Sentinel */}
+            {hasMore && (
+              <div
+                ref={sentinelRef}
+                className="w-16 shrink-0 flex items-center justify-center p-4 snap-start text-[#347F8C]"
+              >
+                <div className="w-6 h-6 rounded-full border-2 border-[#347F8C] border-t-transparent animate-spin opacity-60" />
+              </div>
+            )}
           </div>
         </div>
       )}
