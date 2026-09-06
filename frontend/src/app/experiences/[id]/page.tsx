@@ -89,6 +89,7 @@ At 5:30 AM, witness the vibrant arrival of Bombay's indigenous Koli fishing traw
 };
 
 import { ALL_EXPERIENCES } from '@/lib/experiences-data';
+import { ExperienceGallery } from '@/components/ExperienceGallery';
 
 async function getExperience(id: string) {
   const localMatch = ALL_EXPERIENCES.find((e) => e.id === id);
@@ -98,7 +99,20 @@ async function getExperience(id: string) {
     });
     if (!res.ok) return localMatch || FALLBACK_DIRECTORY[id] || FALLBACK_DIRECTORY['exp-1'];
     const data = await res.json();
-    return data || localMatch || FALLBACK_DIRECTORY[id] || FALLBACK_DIRECTORY['exp-1'];
+    return {
+      ...(localMatch || {}),
+      ...(data || {}),
+      mediaUrls:
+        localMatch?.mediaUrls && localMatch.mediaUrls.length > 1
+          ? localMatch.mediaUrls
+          : data?.mediaUrls?.length
+          ? data.mediaUrls
+          : localMatch?.mediaUrls || [],
+      images:
+        localMatch?.images && localMatch.images.length > 0
+          ? localMatch.images
+          : data?.images || localMatch?.mediaUrls || [],
+    };
   } catch {
     return localMatch || FALLBACK_DIRECTORY[id] || FALLBACK_DIRECTORY['exp-1'];
   }
@@ -247,6 +261,14 @@ export default async function ExperienceDetailPage({ params }: { params: { id: s
               <p className="text-sm sm:text-base text-[#2C2C2C]/85 leading-relaxed font-light">
                 {exp.description}
               </p>
+
+              {/* Extra 5-6 Images Loaded Under Field Briefing */}
+              <ExperienceGallery
+                images={exp.images && exp.images.length > 0 ? exp.images : (exp.mediaUrls || [])}
+                title={exp.title}
+                city={exp.city}
+                area={exp.area}
+              />
             </section>
 
             {/* Host Guild Notes */}
