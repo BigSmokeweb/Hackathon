@@ -110,7 +110,6 @@ export function HeroParallaxVideo() {
           src="data:text/vtt;charset=utf-8,WEBVTT%0A%0A1%0A00:00:00.000%20--%3E%2000:01:00.000%0AAtmospheric%20scenic%20travel%20landscape"
           srcLang="en"
           label="English"
-          default
         />
       </video>
 
