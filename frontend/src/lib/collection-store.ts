@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { CuratedExperience } from '@/lib/experiences-data';
 
 export interface SavedCollectionItem {
   id: string;
