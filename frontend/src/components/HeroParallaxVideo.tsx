@@ -5,6 +5,7 @@ import { useEffect, useRef } from 'react';
 export function HeroParallaxVideo() {
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const blendRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -14,7 +15,7 @@ export function HeroParallaxVideo() {
     let rafId: number | null = null;
     let isObserving = false;
 
-    // Direct CSS transform and opacity update for 60/120fps hardware acceleration
+    // Smooth scroll handler: keeps hero video crystal clear at top and blends only as you scroll to second page
     const handleScroll = () => {
       if (rafId !== null) return;
 
@@ -25,46 +26,41 @@ export function HeroParallaxVideo() {
         const rect = container.getBoundingClientRect();
         const height = rect.height || window.innerHeight;
 
-        // Calculate scroll progress through the hero section: 0 (top) -> 1 (scrolled past)
+        // Progress: 0 at top of hero, 1 when scrolled completely past hero
         const progress = Math.min(1, Math.max(0, -rect.top / height));
 
-        // Scale from 1.0 to 1.15
-        const scale = 1.0 + progress * 0.15;
-        // Fade out from 1.0 to 0.0
-        const opacity = Math.max(0, 1.0 - progress * 1.1);
+        // Subtle scale effect on scroll
+        const scale = 1.0 + progress * 0.08;
+
+        // Keep video crystal clear (opacity 1.0) while in view, only fading as we scroll down to page 2
+        const videoOpacity = progress < 0.2 ? 1 : Math.max(0, 1 - (progress - 0.2) / 0.8);
 
         video.style.transform = `scale(${scale.toFixed(4)}) translateZ(0)`;
-        video.style.opacity = `${opacity.toFixed(4)}`;
+        video.style.opacity = `${videoOpacity.toFixed(4)}`;
+
+        // Dynamic Blend: 0 at top (100% clear), fades in only as we scroll towards Section 2
+        if (blendRef.current) {
+          const blendOpacity = Math.min(1, Math.max(0, (progress - 0.05) / 0.85));
+          blendRef.current.style.opacity = `${blendOpacity.toFixed(4)}`;
+        }
       });
     };
 
-    // IntersectionObserver with 101 thresholds for granular visibility tracking
     const observer = new IntersectionObserver(
       (entries) => {
         const entry = entries[0];
         if (!entry) return;
 
         if (entry.isIntersecting) {
-          // Play video when visible and bind scroll listener for smooth cinematic pull
           if (video.paused) {
             video.play().catch(() => {});
           }
-
           if (!isObserving) {
             isObserving = true;
             window.addEventListener('scroll', handleScroll, { passive: true });
-            handleScroll();
           }
-
-          // Fallback direct update based on intersection ratio
-          const progress = Math.min(1, Math.max(0, 1 - entry.intersectionRatio));
-          const scale = 1.0 + progress * 0.15;
-          const opacity = Math.max(0, entry.intersectionRatio);
-
-          video.style.transform = `scale(${scale.toFixed(4)}) translateZ(0)`;
-          video.style.opacity = `${opacity.toFixed(4)}`;
+          handleScroll();
         } else {
-          // Hero out of view: pause video and remove scroll listener to save CPU/GPU
           if (isObserving) {
             isObserving = false;
             window.removeEventListener('scroll', handleScroll);
@@ -80,13 +76,11 @@ export function HeroParallaxVideo() {
       },
       {
         root: null,
-        threshold: Array.from({ length: 101 }, (_, i) => i / 100),
+        threshold: [0, 0.2, 0.5, 0.8, 1.0],
       }
     );
 
     observer.observe(container);
-
-    // Initial calculation
     handleScroll();
 
     return () => {
@@ -102,13 +96,14 @@ export function HeroParallaxVideo() {
 
   return (
     <div ref={containerRef} className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+      {/* Crystal Clear Video */}
       <video
         ref={videoRef}
         autoPlay
         loop
         muted
         playsInline
-        className="w-full h-full object-cover object-center will-change-transform transition-[transform,opacity] duration-75 ease-out"
+        className="w-full h-full object-cover object-center will-change-transform"
         style={{
           transform: 'scale(1.0) translateZ(0)',
           opacity: 1,
@@ -116,8 +111,19 @@ export function HeroParallaxVideo() {
       >
         <source src="/hero-bg-2.mp4" type="video/mp4" />
       </video>
-      {/* Subtle cinematic gradient overlays that fade into Warm Parchment #F5F1E6 */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/55 via-transparent to-[#F5F1E6] pointer-events-none" />
+
+      {/* Gentle top gradient for top navbar legibility */}
+      <div className="absolute top-0 left-0 right-0 h-28 bg-gradient-to-b from-black/40 to-transparent pointer-events-none" />
+
+      {/* Dynamic Scroll Blend: 0% opacity at top (crystal clear), only blends into #F5F1E6 as we scroll down to Section 2 */}
+      <div
+        ref={blendRef}
+        className="absolute inset-0 pointer-events-none will-change-[opacity]"
+        style={{
+          background: 'linear-gradient(to bottom, transparent 0%, rgba(245, 241, 230, 0.25) 35%, rgba(245, 241, 230, 0.85) 75%, #F5F1E6 100%)',
+          opacity: 0,
+        }}
+      />
     </div>
   );
 }
