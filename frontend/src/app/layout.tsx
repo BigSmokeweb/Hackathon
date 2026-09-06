@@ -57,23 +57,6 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <meta name="referrer" content="no-referrer" />
-        <meta
-          httpEquiv="Content-Security-Policy"
-          content="default-src 'self' blob:; media-src 'self' data: blob:; img-src 'self' data: blob: https: https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com https://images.unsplash.com https://*.wikimedia.org https://unpkg.com; script-src 'self' 'unsafe-eval' 'unsafe-inline' blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com; font-src 'self' https://fonts.gstatic.com data:; connect-src 'self' blob: data: http://localhost:4000 https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com https://nominatim.openstreetmap.org;"
-        />
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              try {
-                if ('scrollRestoration' in history) {
-                  history.scrollRestoration = 'manual';
-                }
-                window.scrollTo(0, 0);
-              } catch (e) {}
-            `,
-          }}
-        />
         <link
           rel="stylesheet"
           href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useMemo } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { 
   MapPin, 
@@ -401,10 +402,12 @@ export function NearbyCitiesDropdown({ isHome, scrolled }: NearbyCitiesDropdownP
                 <div className="flex items-center gap-3">
                   {/* City Thumbnail */}
                   <div className="relative w-16 h-16 rounded-xl overflow-hidden shrink-0 bg-stone-200 border border-[#D4CFC0]">
-                    <img
+                    <Image
                       src={activeCity.image}
                       alt={activeCity.name}
-                      className="w-full h-full object-cover"
+                      fill
+                      sizes="64px"
+                      className="object-cover"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
                     <span className="absolute bottom-1 left-1.5 text-[9px] font-mono text-white font-bold uppercase">
@@ -495,10 +498,12 @@ export function NearbyCitiesDropdown({ isHome, scrolled }: NearbyCitiesDropdownP
                     >
                       {/* City Thumbnail */}
                       <div className="relative w-14 h-14 rounded-lg overflow-hidden shrink-0 bg-stone-200">
-                        <img
+                        <Image
                           src={city.image}
                           alt={city.name}
-                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                          fill
+                          sizes="56px"
+                          className="object-cover transition-transform duration-300 group-hover:scale-105"
                         />
                         <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors" />
                       </div>

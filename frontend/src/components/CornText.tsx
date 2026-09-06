@@ -95,47 +95,51 @@ export function CornText({
   );
 
   return (
-    <div
-      className={`w-full flex items-center justify-center px-4 sm:px-8 select-none ${className}`}
-      onMouseMove={handleMouseMove}
-    >
-      <svg
-        ref={svgRef}
-        viewBox={`0 0 ${viewBoxWidth} ${viewBoxHeight}`}
-        className="w-full max-w-[95vw] lg:max-w-[92vw] xl:max-w-7xl h-auto overflow-visible cursor-pointer select-none"
-        onClick={handleTitleClick}
+    <h1 className="contents">
+      <span className="sr-only">{text}</span>
+      <div
+        className={`w-full flex items-center justify-center px-4 sm:px-8 select-none ${className}`}
         onMouseMove={handleMouseMove}
+        aria-hidden="true"
       >
-        <text
-          ref={textRef}
-          x="50%"
-          y="50%"
-          textAnchor="middle"
-          dominantBaseline="central"
-          className="select-none font-luxurious-script"
-          style={{
-            fontFamily,
-            fontSize,
-            fontWeight,
-            letterSpacing,
-            textTransform,
-          }}
+        <svg
+          ref={svgRef}
+          viewBox={`0 0 ${viewBoxWidth} ${viewBoxHeight}`}
+          className="w-full max-w-[95vw] lg:max-w-[92vw] xl:max-w-7xl h-auto overflow-visible cursor-pointer select-none"
+          onClick={handleTitleClick}
+          onMouseMove={handleMouseMove}
         >
-          {chars.map((char, index) => (
-            <tspan
-              key={`${index}-${charKeys[index]}`}
-              data-char={char}
-              className={charKeys[index] > 0 ? 'animate-corn-revolution' : ''}
-              style={{
-                fill: '#ffffff',
-              }}
-            >
-              {char}
-            </tspan>
-          ))}
-        </text>
-      </svg>
-    </div>
+          <text
+            ref={textRef}
+            x="50%"
+            y="50%"
+            textAnchor="middle"
+            dominantBaseline="central"
+            className="select-none font-luxurious-script"
+            style={{
+              fontFamily,
+              fontSize,
+              fontWeight,
+              letterSpacing,
+              textTransform,
+            }}
+          >
+            {chars.map((char, index) => (
+              <tspan
+                key={`${index}-${charKeys[index]}`}
+                data-char={char}
+                className={charKeys[index] > 0 ? 'animate-corn-revolution' : ''}
+                style={{
+                  fill: '#ffffff',
+                }}
+              >
+                {char}
+              </tspan>
+            ))}
+          </text>
+        </svg>
+      </div>
+    </h1>
   );
 }
 export default CornText;

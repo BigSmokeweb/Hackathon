@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { X, Bookmark, Compass, Trash2, ArrowRight, Sparkles, MapPin, ExternalLink } from 'lucide-react';
 import { useCollection, SavedCollectionItem } from '@/lib/collection-store';
@@ -103,12 +104,14 @@ export function CollectionDrawer({ isOpen, onClose }: CollectionDrawerProps) {
               >
                 {/* Image */}
                 <div className="w-20 h-20 rounded-lg overflow-hidden shrink-0 bg-zinc-100 relative">
-                  <img
+                  <Image
                     src={item.image}
                     alt={item.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    fill
+                    sizes="80px"
+                    className="object-cover group-hover:scale-105 transition-transform duration-300"
                   />
-                  <span className="absolute top-1 left-1 bg-black/70 backdrop-blur-xs text-white text-[9px] font-mono px-1.5 py-0.5 rounded">
+                  <span className="absolute top-1 left-1 bg-black/70 backdrop-blur-xs text-white text-[9px] font-mono px-1.5 py-0.5 rounded z-10">
                     {item.city}
                   </span>
                 </div>

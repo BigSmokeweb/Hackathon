@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { 
   ShieldCheck, 
   Lock, 
@@ -190,8 +191,8 @@ export default function ProviderPortalPage() {
                   <div key={item.id} className="p-5 sm:p-6 space-y-3 hover:bg-[#F5F1E6]/30 transition-colors">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-5">
                       <div className="flex items-start gap-4 min-w-0">
-                        <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden border border-[#D4CFC0] bg-zinc-100 shrink-0">
-                          <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
+                        <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden border border-[#D4CFC0] bg-zinc-100 shrink-0">
+                          <Image src={item.image} alt={item.title} fill sizes="80px" className="object-cover" />
                         </div>
                         <div className="min-w-0">
                           <div className="flex items-center gap-2 mb-1">
@@ -298,6 +299,7 @@ export default function ProviderPortalPage() {
                   <div>
                     <label className="block text-xs font-mono uppercase tracking-wider text-[#2C2C2C] font-bold mb-2">Accreditation Document Type</label>
                     <select value={docType} onChange={(e) => setDocType(e.target.value)}
+                      aria-label="Select accreditation document type"
                       className="w-full text-xs font-mono bg-[#F5F1E6]/60 border border-[#D4CFC0] rounded-xl p-3.5 text-[#2C2C2C] focus:outline-none focus:border-[#347F8C] transition">
                       <option value="GST_CERTIFICATE">GST Registration Certificate (Artisan Guild / LLP)</option>
                       <option value="BUSINESS_REGISTRATION">Shop & Establishment Act / MSME Udyam License</option>

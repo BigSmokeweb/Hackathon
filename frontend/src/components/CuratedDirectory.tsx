@@ -1,6 +1,7 @@
 'use client';
 
 import { Suspense, useState, useEffect, useMemo, useTransition, useRef, memo } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { Search, MapPin, Clock, Star, ShieldCheck, ArrowRight, ChevronLeft, ChevronRight, ChevronDown } from 'lucide-react';
@@ -99,12 +100,12 @@ const ExperienceCard = memo(function ExperienceCard({
     >
       {/* Image Cover */}
       <div className={`relative ${compact ? 'h-48' : 'h-60'} w-full overflow-hidden bg-zinc-100`}>
-        <img
+        <Image
           src={exp.mediaUrls?.[0] || 'https://images.unsplash.com/photo-1596178065887-1198b6148b2b?auto=format&fit=crop&w=1000&q=80'}
           alt={exp.title}
-          loading="lazy"
-          decoding="async"
-          className="w-full h-full object-cover"
+          fill
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          className="object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent opacity-80" />
 
@@ -528,6 +529,7 @@ function CuratedDirectoryContent({
                   value={searchQuery}
                   onChange={(e) => handleSearchChange(e.target.value)}
                   placeholder="Search master or craft..."
+                  aria-label="Search master or craft"
                   className="bg-transparent text-xs text-[#2C2C2C] placeholder-[#7C8581] focus:outline-none w-36 sm:w-44 font-light"
                 />
               </div>
@@ -539,6 +541,7 @@ function CuratedDirectoryContent({
                 <select
                   value={selectedCity}
                   onChange={(e) => handleCityChange(e.target.value)}
+                  aria-label="Filter experiences by city"
                   className="bg-transparent text-xs text-[#2C2C2C] focus:outline-none cursor-pointer [&>option]:bg-white [&>option]:text-[#2C2C2C]"
                 >
                   {cities.map((c) => (

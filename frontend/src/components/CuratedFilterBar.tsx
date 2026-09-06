@@ -85,6 +85,7 @@ export function CuratedFilterBar({
         <select
           value={selectedCity}
           onChange={handleCityChange}
+          aria-label="Filter experiences by city"
           className="bg-transparent text-xs text-[#2C2C2C] focus:outline-none cursor-pointer [&>option]:bg-white [&>option]:text-[#2C2C2C]"
         >
           {cities.map((c) => (

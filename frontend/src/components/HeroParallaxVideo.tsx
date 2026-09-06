@@ -95,6 +95,9 @@ export function HeroParallaxVideo() {
         loop
         muted
         playsInline
+        preload="metadata"
+        poster="/images/hero-bg.png"
+        aria-label="Scenic travel landscape background video"
         className="w-full h-full object-cover object-center will-change-transform"
         style={{
           transform: 'scale(1.0) translateZ(0)',
@@ -102,6 +105,13 @@ export function HeroParallaxVideo() {
         }}
       >
         <source src="/hero-bg-2.mp4" type="video/mp4" />
+        <track
+          kind="captions"
+          src="data:text/vtt;charset=utf-8,WEBVTT%0A%0A1%0A00:00:00.000%20--%3E%2000:01:00.000%0AAtmospheric%20scenic%20travel%20landscape"
+          srcLang="en"
+          label="English"
+          default
+        />
       </video>
 
       {/* Subtle top header gradient solely for navbar contrast */}

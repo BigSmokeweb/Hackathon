@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { 
   Sparkles, 
   MapPin, 
@@ -87,10 +88,12 @@ export function SeasonalGoodiesSection() {
         <div className="space-y-12 animate-in fade-in duration-300">
           {/* Hero Festive Banner Card */}
           <div className="relative rounded-3xl overflow-hidden border border-[#D4CFC0] shadow-md bg-[#2C2C2C] text-white min-h-[300px] flex flex-col justify-end">
-            <img
+            <Image
               src={activeFestival.bannerImage}
               alt={activeFestival.name}
-              className="absolute inset-0 w-full h-full object-cover opacity-60"
+              fill
+              sizes="(max-width: 1024px) 100vw, 1200px"
+              className="object-cover opacity-60"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/20" />
 

@@ -89,6 +89,7 @@ export function HeroSearchConsole() {
             <select
               value={category}
               onChange={(e) => setCategory(e.target.value)}
+              aria-label="Filter by experience category"
               className="w-full bg-transparent text-sm font-semibold text-white focus:outline-none mt-0.5 cursor-pointer [&>option]:bg-slate-900 [&>option]:text-white"
             >
               {CATEGORIES.map((cat) => (

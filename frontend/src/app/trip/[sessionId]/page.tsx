@@ -387,6 +387,8 @@ function TripSessionContent() {
   return (
     <div className="min-h-screen bg-[#F5F1E6] text-[#2C2C2C] flex flex-col pt-16 selection:bg-[#8B7355]/30 selection:text-[#2C2C2C]">
       <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
+        {/* Visually-hidden h1 for heading hierarchy */}
+        <h1 className="sr-only">Your Trip Itinerary</h1>
         {/* Navigation Back Button */}
         <div className="mb-6 flex items-center justify-between">
           <button

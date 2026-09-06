@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+import Image from 'next/image';
 import Link from 'next/link';
 import { API_BASE } from '@/lib/api-client';
 import { Star, Clock, ShieldCheck, MapPin, ArrowLeft, ArrowRight, Compass, CheckCircle2 } from 'lucide-react';
@@ -132,10 +133,13 @@ export default async function ExperienceDetailPage({ params }: { params: { id: s
         {/* Main Experience Header Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 mb-14">
           <div className="lg:col-span-7 rounded-3xl overflow-hidden border border-[#D4CFC0] h-80 sm:h-96 lg:h-[460px] bg-[#EAE5D6] relative shadow-sm">
-            <img
+            <Image
               src={exp.mediaUrls?.[0] || 'https://images.unsplash.com/photo-1596178065887-1198b6148b2b?auto=format&fit=crop&w=1200&q=80'}
               alt={exp.title}
-              className="w-full h-full object-cover"
+              fill
+              priority
+              sizes="(max-width: 1024px) 100vw, 58vw"
+              className="object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-60" />
             <div className="absolute top-4 right-4 z-20">

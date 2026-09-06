@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { API_BASE } from '@/lib/api-client';
@@ -126,10 +127,13 @@ export default async function CityDiscoveryPage({ params }: { params: { slug: st
 
         {/* City Hero Banner */}
         <div className="relative rounded-3xl overflow-hidden border border-[#D4CFC0] h-96 mb-16 flex items-end p-8 sm:p-12 shadow-sm">
-          <img
+          <Image
             src={city.heroImage}
             alt={city.name}
-            className="absolute inset-0 w-full h-full object-cover"
+            fill
+            priority
+            sizes="(max-width: 1280px) 100vw, 1280px"
+            className="object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/40 to-transparent" />
           <div className="relative z-10 text-white max-w-3xl">
@@ -169,10 +173,12 @@ export default async function CityDiscoveryPage({ params }: { params: { slug: st
               className="group relative bg-white border border-[#D4CFC0] hover:border-[#347F8C]/60 rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-md flex flex-col justify-between shadow-sm"
             >
               <div className="relative h-60 w-full overflow-hidden bg-[#EAE5D6]">
-                <img
+                <Image
                   src={exp.mediaUrls?.[0] || city.heroImage}
                   alt={exp.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                  fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-80" />
 
@@ -224,6 +230,7 @@ export default async function CityDiscoveryPage({ params }: { params: { slug: st
                   </div>
                   <Link
                     href={`/experiences/${exp.id}`}
+                    aria-label={`Explore ${exp.title}`}
                     className="group/btn inline-flex items-center gap-1.5 text-xs font-mono uppercase tracking-wider text-[#F5F1E6] bg-[#347F8C] hover:bg-[#2A6772] font-bold px-4 py-2 rounded-xl transition-all duration-300 active:scale-95 shadow-sm"
                   >
                     <span>Explore</span>
