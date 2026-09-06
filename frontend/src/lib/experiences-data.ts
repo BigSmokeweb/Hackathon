@@ -1,23 +1,25 @@
 // Auto-generated comprehensive experiences catalog
 export interface ExperienceData {
   id: string;
-  title: string;
+  title?: string;
+  name?: string;
   category: string;
   categoryLabel?: string;
   city: string;
   area: string;
-  priceMin: number;
-  priceMax: number;
-  durationMinutes: number;
-  ratingAverage: number;
-  authenticityRating: number;
+  priceMin?: number;
+  priceMax?: number;
+  durationMinutes?: number;
+  ratingAverage?: number;
+  authenticityRating?: number;
+  authenticityScore?: number;
   candidateLat: number;
   candidateLng: number;
   mediaUrls: string[];
   images?: string[];
-  description: string;
+  description?: string;
   bestTime?: string;
-  bestFor?: string;
+  bestFor?: string | string[];
   vibe?: string;
   tags?: string[];
   humanTip?: string;
@@ -33,6 +35,7 @@ export interface ExperienceData {
   };
   'cover row'?: string;
   cover?: string;
+  [key: string]: any;
 }
 
 export const ALL_EXPERIENCES: ExperienceData[] = [
