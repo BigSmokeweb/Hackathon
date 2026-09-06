@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Playfair_Display, Cormorant_Garamond, Source_Serif_4, JetBrains_Mono, Luxurious_Script } from 'next/font/google';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { FloatingChatSupport } from '@/components/FloatingChatSupport';
@@ -71,6 +72,7 @@ export default function RootLayout({
         <main>{children}</main>
         <Footer />
         <FloatingChatSupport />
+        <SpeedInsights />
       </body>
     </html>
   );
