@@ -1,25 +1,28 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { Suspense, useEffect, useState, useCallback } from 'react';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { API_BASE } from '@/lib/api-client';
 import { ItineraryStopCard } from '@/components/ItineraryStopCard';
 import { TripAreaMap } from '@/components/TripAreaMap';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Share2, Check, Copy, MessageCircle } from 'lucide-react';
 
 import {
   fetchTripSession,
   fetchRecommendations,
   saveLocalSession,
+  encodeShareableTrip,
+  decodeShareableTrip,
   SessionData,
   RecommendationItem,
   RecommendApiResponse,
 } from '@/lib/trip-session-store';
 
-export default function TripSessionLoopPage() {
+function TripSessionContent() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const sessionId = params?.sessionId as string;
 
   const [session, setSession] = useState<SessionData | null>(null);
@@ -32,6 +35,7 @@ export default function TripSessionLoopPage() {
   const [isActionLoading, setIsActionLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isCompleted, setIsCompleted] = useState(false);
+  const [copiedShareLink, setCopiedShareLink] = useState(false);
 
   const getAuthToken = () => {
     if (typeof window !== 'undefined') {
@@ -46,6 +50,19 @@ export default function TripSessionLoopPage() {
     setErrorMessage(null);
 
     try {
+      // Check if this page is being loaded from a fellow traveler's shared link
+      const sharedParam = searchParams?.get('route');
+      if (sharedParam) {
+        const decoded = decodeShareableTrip(sharedParam);
+        if (decoded) {
+          saveLocalSession(decoded);
+          setSession(decoded);
+          setIsCompleted(true);
+          setIsLoading(false);
+          return;
+        }
+      }
+
       const sessionData = await fetchTripSession(sessionId);
       setSession(sessionData);
 
@@ -66,11 +83,50 @@ export default function TripSessionLoopPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [sessionId]);
+  }, [sessionId, searchParams]);
 
   useEffect(() => {
     loadSessionAndRecommendations();
   }, [loadSessionAndRecommendations]);
+
+  // Generate self-contained shareable URL for travelling companions
+  const getShareableUrl = useCallback(() => {
+    if (typeof window === 'undefined' || !session) return '';
+    const sharePayload = encodeShareableTrip(session);
+    const origin = window.location.origin;
+    return `${origin}/trip/${session.id}?route=${encodeURIComponent(sharePayload)}`;
+  }, [session]);
+
+  const handleCopyShareLink = async () => {
+    if (!session) return;
+    const url = getShareableUrl();
+    try {
+      if (navigator.clipboard) {
+        await navigator.clipboard.writeText(url);
+      } else {
+        const textarea = document.createElement('textarea');
+        textarea.value = url;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+      }
+      setCopiedShareLink(true);
+      setTimeout(() => setCopiedShareLink(false), 3000);
+    } catch {
+      // Fallback
+    }
+  };
+
+  const handleShareWhatsApp = () => {
+    if (!session) return;
+    const url = getShareableUrl();
+    const stopsCount = session.selectedExperiences?.length || 0;
+    const text = encodeURIComponent(
+      `Hey! Check out our continuous verified itinerary (${stopsCount} stops in ${session.city || 'our trip'}): ${url}`
+    );
+    window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
+  };
 
   // Handler: Add selection
   async function handleSelect(cand: RecommendationItem) {
@@ -352,14 +408,24 @@ export default function TripSessionLoopPage() {
               </button>
             )}
             {isCompleted && (
-              <button
-                type="button"
-                onClick={reactivateSession}
-                disabled={isActionLoading}
-                className="inline-flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-[#F5F1E6] bg-[#347F8C] hover:bg-[#2A6772] px-4 py-2 rounded-xl transition shadow-sm font-semibold cursor-pointer active:scale-95"
-              >
-                + Add More Stops
-              </button>
+              <>
+                <button
+                  type="button"
+                  onClick={handleCopyShareLink}
+                  className="inline-flex items-center gap-1.5 text-xs font-mono uppercase tracking-widest text-[#2C2C2C]/80 hover:text-[#347F8C] border border-[#D4CFC0] hover:border-[#347F8C] bg-white px-3.5 py-2 rounded-xl transition shadow-sm font-semibold cursor-pointer active:scale-95"
+                >
+                  {copiedShareLink ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Share2 className="w-3.5 h-3.5 text-[#347F8C]" />}
+                  <span>{copiedShareLink ? 'Copied' : 'Share'}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={reactivateSession}
+                  disabled={isActionLoading}
+                  className="inline-flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-[#F5F1E6] bg-[#347F8C] hover:bg-[#2A6772] px-4 py-2 rounded-xl transition shadow-sm font-semibold cursor-pointer active:scale-95"
+                >
+                  + Add More Stops
+                </button>
+              </>
             )}
           </div>
         </div>
@@ -420,51 +486,107 @@ export default function TripSessionLoopPage() {
 
         {/* Inline Completion Screen */}
         {isCompleted ? (
-          <div className="bg-white rounded-3xl p-8 sm:p-12 border border-[#D4CFC0] shadow-lg text-center max-w-3xl mx-auto">
-            <div className="w-12 h-12 bg-[#A69B80]/20 text-[#347F8C] rounded-2xl flex items-center justify-center text-xl mx-auto mb-4 border border-[#A69B80]/30">
-              ✓
-            </div>
-            <h2 className="font-edu-cursive font-normal text-4xl sm:text-5xl lg:text-6xl tracking-wide text-[#2C2C2C] leading-normal py-1">
-              Your Itinerary Is Finalized
-            </h2>
-            <p className="text-[#2C2C2C]/70 mt-2 text-xs sm:text-sm font-light">
-              {stopCondition?.stopReason || 'Your personalized route has been finalized. Review your continuous schedule below.'}
-            </p>
+          <div className="bg-white rounded-3xl p-6 sm:p-10 lg:p-12 border border-[#D4CFC0] shadow-lg max-w-7xl mx-auto">
+            <div className="text-center max-w-2xl mx-auto mb-8">
+              <div className="w-12 h-12 bg-[#A69B80]/20 text-[#347F8C] rounded-2xl flex items-center justify-center text-xl mx-auto mb-4 border border-[#A69B80]/30">
+                ✓
+              </div>
+              <h2 className="font-edu-cursive font-normal text-4xl sm:text-5xl lg:text-6xl tracking-wide text-[#2C2C2C] leading-normal py-1">
+                Your Itinerary Is Finalized
+              </h2>
+              <p className="text-[#2C2C2C]/70 mt-2 text-xs sm:text-sm font-light">
+                {stopCondition?.stopReason || 'Your personalized route has been finalized. Review your continuous schedule below.'}
+              </p>
 
-            <div className="mt-8 text-left space-y-3">
-              <h3 className="font-mono text-xs uppercase tracking-widest text-[#347F8C] font-semibold">
-                Itinerary Summary ({selectedStops.length} Stops)
-              </h3>
-              {selectedStops.map((stop, idx) => (
-                <ItineraryStopCard
-                  key={stop.id}
-                  stopNumber={idx + 1}
-                  title={stop.title}
-                  category={stop.category}
-                  city={stop.city}
-                  distanceKm={0}
-                  priceMin={stop.priceMin}
-                  priceMax={stop.priceMax}
-                  ratingAverage={stop.ratingAverage}
-                  authenticityRating={stop.authenticityRating}
-                  mediaUrl={stop.mediaUrls?.[0]}
+              {/* Share With Travel Companions Action Bar */}
+              <div className="mt-6 inline-flex flex-wrap items-center justify-center gap-3 p-2 bg-[#F5F1E6] rounded-2xl border border-[#D4CFC0] shadow-xs">
+                <button
+                  type="button"
+                  onClick={handleCopyShareLink}
+                  className="inline-flex items-center gap-2 bg-[#347F8C] hover:bg-[#2A6772] text-[#F5F1E6] font-mono font-bold text-xs uppercase tracking-wider px-4 py-2.5 rounded-xl transition cursor-pointer shadow-sm active:scale-95"
+                >
+                  {copiedShareLink ? <Check className="w-4 h-4 text-emerald-300" /> : <Copy className="w-4 h-4" />}
+                  <span>{copiedShareLink ? 'Link Copied to Clipboard!' : 'Copy Shareable Link'}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleShareWhatsApp}
+                  className="inline-flex items-center gap-2 bg-[#25D366] hover:bg-[#20bd5a] text-white font-mono font-bold text-xs uppercase tracking-wider px-4 py-2.5 rounded-xl transition cursor-pointer shadow-sm active:scale-95"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                  <span>Share via WhatsApp</span>
+                </button>
+              </div>
+              {copiedShareLink && (
+                <p className="text-[11px] font-mono text-emerald-700 mt-2 animate-fade-in font-medium">
+                  ✓ Anyone who opens this link will see this exact continuous verified itinerary & map!
+                </p>
+              )}
+            </div>
+
+            {/* 2-Column Grid: Summary on Left, Map on Right */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+              {/* Left Column: Itinerary Summary */}
+              <div className="lg:col-span-6 space-y-4 text-left">
+                <div className="flex items-center justify-between border-b border-[#D4CFC0] pb-2">
+                  <h3 className="font-mono text-xs uppercase tracking-widest text-[#347F8C] font-semibold">
+                    Itinerary Summary ({selectedStops.length} Stops)
+                  </h3>
+                  <span className="text-[11px] font-mono text-[#2C2C2C]/60">
+                    Sequential Route
+                  </span>
+                </div>
+
+                <div className="space-y-3">
+                  {selectedStops.map((stop, idx) => (
+                    <ItineraryStopCard
+                      key={stop.id}
+                      stopNumber={idx + 1}
+                      title={stop.title}
+                      category={stop.category}
+                      city={stop.city}
+                      distanceKm={0}
+                      priceMin={stop.priceMin}
+                      priceMax={stop.priceMax}
+                      ratingAverage={stop.ratingAverage}
+                      authenticityRating={stop.authenticityRating}
+                      mediaUrl={stop.mediaUrls?.[0]}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {/* Right Column: Map of Finalized Route & User Location */}
+              <div className="lg:col-span-6 text-left lg:sticky lg:top-24">
+                <div className="flex items-center justify-between border-b border-[#D4CFC0] pb-2 mb-4">
+                  <h3 className="font-mono text-xs uppercase tracking-widest text-[#347F8C] font-semibold">
+                    Live Route & Navigation
+                  </h3>
+                  <span className="text-[11px] font-mono text-[#2C2C2C]/60">
+                    Interactive Map
+                  </span>
+                </div>
+                <TripAreaMap
+                  city={session?.city}
+                  initialUserLat={session?.userLat}
+                  initialUserLng={session?.userLng}
+                  stops={selectedStops}
+                  candidateStops={recommendations}
+                  onAddStop={handleSelect}
                 />
-              ))}
+              </div>
             </div>
 
-            {/* Map of Finalized Route & User Location */}
-            <div className="mt-8 text-left">
-              <TripAreaMap
-                city={session?.city}
-                initialUserLat={session?.userLat}
-                initialUserLng={session?.userLng}
-                stops={selectedStops}
-                candidateStops={recommendations}
-                onAddStop={handleSelect}
-              />
-            </div>
-
-            <div className="mt-10 pt-6 border-t border-[#D4CFC0] flex flex-col sm:flex-row gap-3 justify-center">
+            <div className="mt-10 pt-6 border-t border-[#D4CFC0] flex flex-col sm:flex-row gap-3 justify-center items-center">
+              <button
+                type="button"
+                onClick={handleCopyShareLink}
+                className="inline-flex items-center gap-2 border border-[#347F8C] bg-white hover:bg-[#347F8C]/10 text-[#347F8C] font-mono font-bold text-xs uppercase tracking-wider px-6 py-3 rounded-xl transition text-center shadow-sm cursor-pointer active:scale-95"
+              >
+                {copiedShareLink ? <Check className="w-4 h-4 text-emerald-600" /> : <Share2 className="w-4 h-4 text-[#347F8C]" />}
+                <span>{copiedShareLink ? 'Link Copied!' : 'Share With Companions'}</span>
+              </button>
               <button
                 type="button"
                 onClick={reactivateSession}
@@ -675,3 +797,23 @@ export default function TripSessionLoopPage() {
     </div>
   );
 }
+
+export default function TripSessionLoopPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-[#F5F1E6] text-[#2C2C2C] flex items-center justify-center pt-16">
+          <div className="text-center">
+            <div className="w-10 h-10 border-2 border-[#347F8C] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+            <p className="text-[#2C2C2C]/70 font-mono text-xs uppercase tracking-widest">
+              Loading itinerary atelier...
+            </p>
+          </div>
+        </div>
+      }
+    >
+      <TripSessionContent />
+    </Suspense>
+  );
+}
+
