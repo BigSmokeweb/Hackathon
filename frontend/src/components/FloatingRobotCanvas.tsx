@@ -236,7 +236,7 @@ export function FloatingRobotCanvas({
     >
       {/* Luminous Celestial Blue Hue Aura */}
       <div className="absolute w-24 h-24 rounded-full bg-[#38bdf8]/40 blur-xl pointer-events-none z-0 animate-pulse" />
-      <div className="absolute w-16 h-16 rounded-full bg-[#4fa3d1]/35 blur-md pointer-events-none z-0" />
+      <div className="absolute w-16 h-16 rounded-full bg-[#8B7355]/35 blur-md pointer-events-none z-0" />
 
       {/* 3D WebGL Canvas mount with transparent background, depth shadow, and blue glow */}
       <div
@@ -250,7 +250,7 @@ export function FloatingRobotCanvas({
       {(!isLoaded || loadError) && (
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#1D4E56] to-[#347F8C] border border-white/40 flex items-center justify-center text-white shadow-xl">
-            <Sparkles className="w-6 h-6 text-[#F7F4EA]" />
+            <Sparkles className="w-6 h-6 text-[#F5F1E6]" />
           </div>
           <span className="text-[9px] font-mono text-[#1D4E56] uppercase tracking-[0.2em] font-bold mt-1.5">
             Celene
@@ -260,9 +260,9 @@ export function FloatingRobotCanvas({
 
       {/* Hover tooltip when closed */}
       {!isOpen && (
-        <div className="absolute right-full mr-3 top-1/2 -translate-y-1/2 bg-[#1C4D56] text-[#F7F4EA] font-mono text-[10px] tracking-wider uppercase px-3 py-1.5 rounded-xl whitespace-nowrap shadow-xl opacity-0 group-hover:opacity-100 transition-all pointer-events-none border border-white/15 flex items-center gap-1.5 translate-x-1 group-hover:translate-x-0">
+        <div className="absolute right-full mr-3 top-1/2 -translate-y-1/2 bg-[#1C4D56] text-[#F5F1E6] font-mono text-[10px] tracking-wider uppercase px-3 py-1.5 rounded-xl whitespace-nowrap shadow-xl opacity-0 group-hover:opacity-100 transition-all pointer-events-none border border-white/15 flex items-center gap-1.5 translate-x-1 group-hover:translate-x-0">
           <span>Ask Celene</span>
-          <span className="text-[#8FAF82] font-bold">&rarr;</span>
+          <span className="text-[#A69B80] font-bold">&rarr;</span>
         </div>
       )}
     </div>

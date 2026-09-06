@@ -1,9 +1,11 @@
 'use client';
 
-import { Suspense, useState, useEffect, useMemo, useTransition, useRef } from 'react';
+import { Suspense, useState, useEffect, useMemo, useTransition, useRef, memo } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { Search, MapPin, Clock, Star, ShieldCheck, ArrowRight, ChevronLeft, ChevronRight, ChevronDown } from 'lucide-react';
+import { AnimatedCounter } from '@/components/AnimatedCounter';
+import { BookmarkButton } from '@/components/BookmarkButton';
 
 export interface CategoryOption {
   label: string;
@@ -43,11 +45,12 @@ interface CuratedDirectoryProps {
 
 const CITY_COORDINATES: Record<string, { lat: number; lng: number; tag: string }> = {
   mumbai: { lat: 19.0760, lng: 72.8777, tag: 'Coastal Heritage & Art Deco' },
-  ahmedabad: { lat: 23.0225, lng: 72.5714, tag: 'UNESCO Pols & Generational Guilds' },
-  jaipur: { lat: 26.9124, lng: 75.7873, tag: 'Pink City Ateliers & Block Prints' },
-  varanasi: { lat: 25.3176, lng: 82.9739, tag: 'Ancient Ghats & Weaver Guilds' },
-  kochi: { lat: 9.9312, lng: 76.2673, tag: 'Spice Ports & Kathakali Masters' },
-  kolkata: { lat: 22.5726, lng: 88.3639, tag: 'Clay Sculptors & Heritage Alleys' },
+  thane: { lat: 19.2183, lng: 72.9781, tag: 'City of Lakes & Ancient Shrines' },
+  'navi mumbai': { lat: 19.0330, lng: 73.0297, tag: 'Flamingo Sanctuaries & Creek Trails' },
+  powai: { lat: 19.1197, lng: 72.9051, tag: 'Lakeside Promenades & High-Tech Cafes' },
+  'kanjur marg': { lat: 19.1300, lng: 72.9300, tag: 'Local Food Trails & Shrines' },
+  panvel: { lat: 18.9894, lng: 73.1175, tag: 'Monsoon Waterfalls & Heritage Forts' },
+  'kalyan-dombivli': { lat: 19.2211, lng: 73.0919, tag: 'Ganesh Ghat Riverfronts & Malvani Food' },
 };
 
 function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
@@ -60,7 +63,7 @@ function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): nu
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-function ExperienceCard({
+const ExperienceCard = memo(function ExperienceCard({
   exp,
   compact = false,
   isHovered = false,
@@ -90,8 +93,8 @@ function ExperienceCard({
         isHovered
           ? 'scale-[1.04] -translate-y-2 z-30 shadow-2xl border-2 border-[#347F8C] ring-4 ring-[#347F8C]/25 brightness-105'
           : isFaded
-          ? 'scale-[0.96] opacity-50 blur-[1.5px] brightness-90 border border-[#D8D4C8]'
-          : 'scale-100 opacity-100 blur-0 border border-[#D8D4C8] hover:border-[#347F8C]/60 hover:shadow-lg'
+          ? 'scale-[0.96] opacity-50 blur-[1.5px] brightness-90 border border-[#D4CFC0]'
+          : 'scale-100 opacity-100 blur-0 border border-[#D4CFC0] hover:border-[#347F8C]/60 hover:shadow-lg'
       }`}
     >
       {/* Image Cover */}
@@ -99,27 +102,32 @@ function ExperienceCard({
         <img
           src={exp.mediaUrls?.[0] || 'https://images.unsplash.com/photo-1596178065887-1198b6148b2b?auto=format&fit=crop&w=1000&q=80'}
           alt={exp.title}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+          loading="lazy"
+          decoding="async"
+          className="w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent opacity-80" />
 
         {/* Top Badges */}
         <div className="absolute top-3 left-3 flex items-center gap-2">
-          <span className="bg-white/95 backdrop-blur-md px-2.5 py-0.5 rounded-full text-[10px] font-mono tracking-wider text-[#3E4541] font-bold border border-[#D8D4C8] uppercase shadow-sm">
+          <span className="bg-white/95 backdrop-blur-md px-2.5 py-0.5 rounded-full text-[10px] font-mono tracking-wider text-[#2C2C2C] font-bold border border-[#D4CFC0] uppercase shadow-sm">
             {exp.city}
           </span>
         </div>
 
-        <div className="absolute top-3 right-3 bg-white/95 backdrop-blur-md px-2.5 py-0.5 rounded-full text-[10px] font-medium text-[#3E4541] border border-[#D8D4C8] flex items-center gap-1 shadow-sm font-bold">
-          <Star className="w-3 h-3 text-amber-500 fill-amber-500" />
-          <span>{Number(exp.ratingAverage || 4.9).toFixed(2)}</span>
+        <div className="absolute top-3 right-3 flex items-center gap-1.5 z-20">
+          <BookmarkButton experience={exp} size="sm" />
+          <div className="bg-white/95 backdrop-blur-md px-2.5 py-0.5 rounded-full text-[10px] font-medium text-[#2C2C2C] border border-[#D4CFC0] flex items-center gap-1 shadow-sm font-bold">
+            <Star className="w-3 h-3 text-amber-500 fill-amber-500" />
+            <span>{Number(exp.ratingAverage || 4.9).toFixed(2)}</span>
+          </div>
         </div>
 
         {/* Host Guild Base Meta */}
         <div className="absolute bottom-2.5 left-3 right-3 flex items-center justify-between text-xs text-white">
           <span className="text-[10px] font-mono text-zinc-200 flex items-center gap-1 font-medium truncate max-w-[65%]">
-            <ShieldCheck className="w-3.5 h-3.5 text-[#4FA3D1] shrink-0" />
-            <span className="truncate">{exp.provider?.businessName ? `Listed by ${exp.provider.businessName}` : 'Listed by local traveller'}</span>
+            <ShieldCheck className="w-3.5 h-3.5 text-[#8B7355] shrink-0" />
+            <span className="truncate">{exp.provider?.businessName ? `Listed by ${exp.provider.businessName}` : 'Presented by a local connoisseur'}</span>
           </span>
           <span className="text-[10px] font-mono text-zinc-200 flex items-center gap-1 shrink-0">
             <Clock className="w-3 h-3 text-zinc-300" />
@@ -134,7 +142,7 @@ function ExperienceCard({
           <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-[#347F8C] mb-1.5 block font-bold">
             {exp.category}
           </span>
-          <h3 className={`font-manifold font-extrabold uppercase ${compact ? 'text-base line-clamp-2' : 'text-lg sm:text-xl line-clamp-2'} tracking-wide text-[#3E4541] group-hover:text-[#347F8C] transition-colors leading-snug`}>
+          <h3 className={`font-cormorant font-bold normal-case ${compact ? 'text-lg sm:text-xl line-clamp-2' : 'text-xl sm:text-2xl line-clamp-2'} tracking-normal text-[#2C2C2C] group-hover:text-[#347F8C] transition-colors leading-snug`}>
             {exp.title}
           </h3>
           <p className={`text-[#5C6460] ${compact ? 'text-xs line-clamp-2 mt-2' : 'text-xs sm:text-sm line-clamp-3 mt-3'} leading-relaxed font-light`}>
@@ -142,27 +150,27 @@ function ExperienceCard({
           </p>
         </div>
 
-        <div className={`${compact ? 'mt-4 pt-3' : 'mt-8 pt-5'} border-t border-[#D8D4C8] flex items-center justify-between`}>
+        <div className={`${compact ? 'mt-4 pt-3' : 'mt-8 pt-5'} border-t border-[#D4CFC0] flex items-center justify-between`}>
           <div>
             <span className="text-[9px] font-mono uppercase tracking-widest text-[#7C8581] block">
-              Tariff
+              Starting at
             </span>
-            <p className="font-bold text-[#3E4541] text-sm sm:text-base">
+            <p className="font-bold font-cormorant oldstyle-nums text-[#2C2C2C] text-base sm:text-lg tracking-wide">
               {formattedPrice}
             </p>
           </div>
           <Link
             href={`/experiences/${exp.id}`}
-            className="inline-flex items-center gap-1 text-xs font-mono uppercase tracking-wider text-[#F7F4EA] bg-[#347F8C] hover:bg-[#2A6772] font-bold px-3.5 py-1.5 rounded-lg transition-all duration-300 active:scale-95 shadow-md shadow-[#347F8C]/20"
+            className="group/btn inline-flex items-center gap-1.5 text-xs font-mono uppercase tracking-wider text-[#F5F1E6] bg-[#347F8C] hover:bg-[#2A6772] font-bold px-3.5 py-1.5 rounded-lg transition-all duration-300 active:scale-95 shadow-md shadow-[#347F8C]/20"
           >
-            <span>Inspect</span>
-            <ArrowRight className="w-3 h-3" />
+            <span>Explore</span>
+            <span className="inline-block transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover/btn:translate-x-1">&rarr;</span>
           </Link>
         </div>
       </div>
     </article>
   );
-}
+});
 
 function CityExpeditionSection({
   cityName,
@@ -213,34 +221,33 @@ function CityExpeditionSection({
   return (
     <section className="mb-20 last:mb-0">
       {/* ─── City Subheading & Distance Indicator ─── */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 border-b border-[#D8D4C8] pb-4 mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 border-b border-[#C4A265] pb-4 mb-6">
         <div>
-          <div className="flex items-center gap-2 mb-1">
+          <div className="flex items-center gap-2 mb-3">
             <span className="text-[#347F8C] font-mono text-[11px] tracking-[0.25em] uppercase font-bold">
-              Signature Enclave
+              Heritage Quarter
             </span>
             {isNearest && (
-              <span className="bg-[#347F8C] text-[#F7F4EA] font-mono text-[10px] px-2.5 py-0.5 rounded-full font-bold flex items-center gap-1 shadow-xs animate-pulse">
+              <span className="bg-[#347F8C] text-[#F5F1E6] font-mono text-[10px] px-2.5 py-0.5 rounded-full font-bold flex items-center gap-1 shadow-xs animate-pulse">
                 <MapPin className="w-2.5 h-2.5" />
-                Nearest to you {distanceKm !== Infinity ? `(~${Math.round(distanceKm)} km)` : ''}
+                Near You {distanceKm !== Infinity ? `(~${Math.round(distanceKm)} km)` : ''}
               </span>
             )}
             {!isNearest && distanceKm !== Infinity && distanceKm < 2000 && (
-              <span className="bg-[#EFEBE0] text-[#5C6460] font-mono text-[10px] px-2 py-0.5 rounded-full font-medium flex items-center gap-1">
+              <span className="bg-[#EAE5D6] text-[#5C6460] font-mono text-[10px] px-2 py-0.5 rounded-full font-medium flex items-center gap-1">
                 <MapPin className="w-2.5 h-2.5 text-[#347F8C]" />
                 ~{Math.round(distanceKm)} km away
               </span>
             )}
           </div>
-          <h3 className="font-manifold text-2xl sm:text-4xl uppercase tracking-wide text-[#3E4541] font-extrabold flex items-baseline gap-3">
-            <span>{cityName}</span>
-            <span className="text-sm font-mono text-[#5C6460] font-normal tracking-normal">
-              ({experiences.length} Experiences)
+          <h3 className="flex items-baseline gap-3 my-1 sm:my-1.5">
+            <span className="font-edu-cursive font-normal text-3xl sm:text-4xl lg:text-[42px] text-[#2C2C2C] tracking-wide leading-normal">
+              {cityName}
+            </span>
+            <span className="text-base font-cormorant font-semibold oldstyle-nums text-[#5C6460] tracking-normal">
+              (<AnimatedCounter target={experiences.length} /> Experiences)
             </span>
           </h3>
-          <p className="text-xs text-[#5C6460] font-light mt-1">
-            {tag}
-          </p>
         </div>
       </div>
 
@@ -257,27 +264,21 @@ function CityExpeditionSection({
           <button
             type="button"
             onClick={() => setIsExpanded((prev) => !prev)}
-            className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-xl border border-[#347F8C] bg-white hover:bg-[#347F8C] text-[#347F8C] hover:text-[#F7F4EA] font-mono text-xs uppercase tracking-wider font-bold transition-all duration-200 shadow-xs hover:shadow-md active:scale-95 cursor-pointer"
+            className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-xl border border-[#347F8C] bg-white hover:bg-[#347F8C] text-[#347F8C] hover:text-[#F5F1E6] font-mono text-xs uppercase tracking-wider font-bold transition-all duration-200 shadow-xs hover:shadow-md active:scale-95 cursor-pointer"
           >
-            <span>{isExpanded ? `Collapse ${cityName} Expeditions` : `Explore All ${cityName} (${experiences.length})`}</span>
+            <span>{isExpanded ? `Collapse ${cityName} Experiences` : `Explore All ${cityName} (${experiences.length})`}</span>
             <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} />
           </button>
-
-          {isExpanded && (
-            <span className="text-[11px] font-mono text-[#7C8581] hidden sm:inline">
-              Scroll with wheel or swipe sideways &bull; Hover for 3D focus
-            </span>
-          )}
         </div>
       )}
 
       {/* ─── Sideways Scroll 3D Animation for all other experiences in the city ─── */}
       {isExpanded && remainingExperiences.length > 0 && (
-        <div className="bg-[#F2EFE5]/80 border border-[#D8D4C8] rounded-3xl p-6 shadow-inner mb-8 transition-all duration-300">
+        <div className="bg-[#EFEAE0]/80 border border-[#D4CFC0] rounded-3xl p-6 shadow-inner mb-8 transition-all duration-300">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2.5">
-              <span className="text-xs font-mono uppercase tracking-wider text-[#3E4541] font-bold">
-                All {cityName} Expeditions ({experiences.length})
+              <span className="text-xs font-mono uppercase tracking-wider text-[#2C2C2C] font-bold">
+                All {cityName} Experiences ({experiences.length})
               </span>
             </div>
 
@@ -286,7 +287,7 @@ function CityExpeditionSection({
               <button
                 type="button"
                 onClick={() => scroll('left')}
-                className="w-9 h-9 rounded-full bg-white border border-[#D8D4C8] hover:bg-[#347F8C] hover:text-white hover:border-[#347F8C] flex items-center justify-center transition cursor-pointer shadow-xs active:scale-95"
+                className="w-9 h-9 rounded-full bg-white border border-[#D4CFC0] hover:bg-[#347F8C] hover:text-white hover:border-[#347F8C] flex items-center justify-center transition cursor-pointer shadow-xs active:scale-95"
                 aria-label="Scroll left"
               >
                 <ChevronLeft className="w-4 h-4" />
@@ -294,7 +295,7 @@ function CityExpeditionSection({
               <button
                 type="button"
                 onClick={() => scroll('right')}
-                className="w-9 h-9 rounded-full bg-white border border-[#D8D4C8] hover:bg-[#347F8C] hover:text-white hover:border-[#347F8C] flex items-center justify-center transition cursor-pointer shadow-xs active:scale-95"
+                className="w-9 h-9 rounded-full bg-white border border-[#D4CFC0] hover:bg-[#347F8C] hover:text-white hover:border-[#347F8C] flex items-center justify-center transition cursor-pointer shadow-xs active:scale-95"
                 aria-label="Scroll right"
               >
                 <ChevronRight className="w-4 h-4" />
@@ -312,6 +313,10 @@ function CityExpeditionSection({
               <div
                 key={exp.id}
                 className="w-[calc(25%-12px)] min-w-[270px] max-w-[320px] shrink-0 snap-start p-2.5"
+                style={{
+                  contentVisibility: 'auto',
+                  containIntrinsicSize: '280px 380px',
+                }}
               >
                 <ExperienceCard
                   exp={exp}
@@ -470,8 +475,8 @@ function CuratedDirectoryContent({
         if (userCoords && a.distanceKm !== Infinity && b.distanceKm !== Infinity) {
           return a.distanceKm - b.distanceKm;
         }
-        // Default ranking: Mumbai -> Ahmedabad -> Jaipur -> others
-        const order = ['mumbai', 'ahmedabad', 'jaipur', 'varanasi', 'kochi', 'kolkata'];
+        // Default ranking for Maharashtra
+        const order = ['mumbai', 'thane', 'navi mumbai', 'powai', 'kanjur marg', 'panvel', 'kalyan-dombivli'];
         const aIdx = order.indexOf(a.cityName.toLowerCase());
         const bIdx = order.indexOf(b.cityName.toLowerCase());
         if (aIdx !== -1 && bIdx !== -1) return aIdx - bIdx;
@@ -498,8 +503,8 @@ function CuratedDirectoryContent({
                     onClick={() => handleCategoryClick(cat.value)}
                     className={`cursor-pointer px-4 py-2 rounded-full text-xs font-mono uppercase tracking-wider whitespace-nowrap transition-all duration-200 border shrink-0 active:scale-95 ${
                       isActive
-                        ? 'bg-[#347F8C] text-[#F7F4EA] border-[#347F8C] font-bold shadow-md shadow-[#347F8C]/20'
-                        : 'bg-white/90 text-[#3E4541] border-[#D8D4C8] hover:border-[#347F8C]/50 hover:bg-white shadow-sm'
+                        ? 'bg-[#347F8C] text-[#F5F1E6] border-[#347F8C] font-bold shadow-md shadow-[#347F8C]/20'
+                        : 'bg-white/90 text-[#2C2C2C] border-[#D4CFC0] hover:border-[#347F8C]/50 hover:bg-white shadow-sm'
                     }`}
                   >
                     {cat.label}
@@ -514,7 +519,7 @@ function CuratedDirectoryContent({
                 e.preventDefault();
                 updateUrl(activeCategory, selectedCity, searchQuery);
               }}
-              className="flex items-center gap-2 bg-white/95 border border-[#D8D4C8] p-1.5 rounded-2xl focus-within:border-[#347F8C] transition-colors shadow-sm shrink-0"
+              className="flex items-center gap-2 bg-white/95 border border-[#D4CFC0] p-1.5 rounded-2xl focus-within:border-[#347F8C] transition-colors shadow-sm shrink-0"
             >
               <div className="flex items-center gap-2 px-3 text-[#5C6460]">
                 <Search className={`w-3.5 h-3.5 text-[#5C6460] ${isPending ? 'animate-spin' : ''}`} />
@@ -523,18 +528,18 @@ function CuratedDirectoryContent({
                   value={searchQuery}
                   onChange={(e) => handleSearchChange(e.target.value)}
                   placeholder="Search master or craft..."
-                  className="bg-transparent text-xs text-[#3E4541] placeholder-[#7C8581] focus:outline-none w-36 sm:w-44 font-light"
+                  className="bg-transparent text-xs text-[#2C2C2C] placeholder-[#7C8581] focus:outline-none w-36 sm:w-44 font-light"
                 />
               </div>
 
-              <div className="h-5 w-px bg-[#D8D4C8]" />
+              <div className="h-5 w-px bg-[#D4CFC0]" />
 
-              <div className="flex items-center gap-1 px-2 text-xs text-[#3E4541]">
+              <div className="flex items-center gap-1 px-2 text-xs text-[#2C2C2C]">
                 <MapPin className="w-3 h-3 text-[#347F8C]" />
                 <select
                   value={selectedCity}
                   onChange={(e) => handleCityChange(e.target.value)}
-                  className="bg-transparent text-xs text-[#3E4541] focus:outline-none cursor-pointer [&>option]:bg-white [&>option]:text-[#3E4541]"
+                  className="bg-transparent text-xs text-[#2C2C2C] focus:outline-none cursor-pointer [&>option]:bg-white [&>option]:text-[#2C2C2C]"
                 >
                   {cities.map((c) => (
                     <option key={c.value} value={c.value}>
@@ -546,7 +551,7 @@ function CuratedDirectoryContent({
 
               <button
                 type="submit"
-                className="cursor-pointer bg-[#347F8C] hover:bg-[#2A6772] text-[#F7F4EA] text-xs font-mono font-bold uppercase tracking-wider px-3.5 py-1.5 rounded-xl transition-all active:scale-95 shadow-md shadow-[#347F8C]/20"
+                className="cursor-pointer bg-[#347F8C] hover:bg-[#2A6772] text-[#F5F1E6] text-xs font-mono font-bold uppercase tracking-wider px-3.5 py-1.5 rounded-xl transition-all active:scale-95 shadow-md shadow-[#347F8C]/20"
               >
                 Filter
               </button>
@@ -558,8 +563,8 @@ function CuratedDirectoryContent({
       {/* ─── City Sections with Top 3 + Sideways Scrolling Experiences ─── */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {groupedCitySections.length === 0 ? (
-          <div className="text-center py-28 bg-white border border-[#D8D4C8] rounded-3xl shadow-sm">
-            <h3 className="font-manifold text-xl tracking-wider text-[#3E4541] uppercase">
+          <div className="text-center py-28 bg-white border border-[#D4CFC0] rounded-3xl shadow-sm">
+            <h3 className="font-manifold text-xl tracking-wider text-[#2C2C2C] uppercase">
               No matching expeditions
             </h3>
             <p className="text-[#5C6460] text-xs sm:text-sm max-w-sm mx-auto mt-2 font-light">
@@ -568,7 +573,7 @@ function CuratedDirectoryContent({
             <button
               type="button"
               onClick={handleReset}
-              className="mt-6 inline-flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-[#347F8C] border border-[#347F8C]/40 hover:bg-[#347F8C] hover:text-[#F7F4EA] px-5 py-2.5 rounded-xl transition-all cursor-pointer"
+              className="mt-6 inline-flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-[#347F8C] border border-[#347F8C]/40 hover:bg-[#347F8C] hover:text-[#F5F1E6] px-5 py-2.5 rounded-xl transition-all cursor-pointer"
             >
               Reset Filters
             </button>

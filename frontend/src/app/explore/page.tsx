@@ -9,23 +9,24 @@ export const metadata: Metadata = {
 };
 
 const CATEGORIES = [
-  { label: 'All Expeditions', value: '' },
+  { label: 'All Experiences', value: '' },
   { label: 'Culinary & Food', value: 'FOOD' },
   { label: 'Heritage & Culture', value: 'CULTURE' },
   { label: 'Artisan Workshops', value: 'WORKSHOPS' },
   { label: 'Outdoor & Adventure', value: 'ADVENTURE' },
-  { label: 'Hidden Enclaves', value: 'HIDDEN_GEMS' },
+  { label: 'Off the Map', value: 'HIDDEN_GEMS' },
   { label: 'Nightlife & Music', value: 'NIGHTLIFE' },
 ];
 
 const CITIES = [
   { label: 'All Cities', value: '' },
-  { label: 'Ahmedabad', value: 'Ahmedabad' },
   { label: 'Mumbai', value: 'Mumbai' },
-  { label: 'Jaipur', value: 'Jaipur' },
-  { label: 'Varanasi', value: 'Varanasi' },
-  { label: 'Kochi', value: 'Kochi' },
-  { label: 'Kolkata', value: 'Kolkata' },
+  { label: 'Thane', value: 'Thane' },
+  { label: 'Navi Mumbai', value: 'Navi Mumbai' },
+  { label: 'Powai', value: 'Powai' },
+  { label: 'Panvel', value: 'Panvel' },
+  { label: 'Kalyan-Dombivli', value: 'Kalyan-Dombivli' },
+  { label: 'Kanjur Marg', value: 'Kanjur Marg' },
 ];
 
 import { ALL_EXPERIENCES } from '@/lib/experiences-data';
@@ -52,19 +53,19 @@ export default async function ExplorePage() {
   const experiences = await getAllExperiences();
 
   return (
-    <div className="bg-[#F7F4EA] text-[#3E4541] min-h-screen pt-28 pb-24 selection:bg-[#4FA3D1]/30 selection:text-[#3E4541]">
+    <div className="bg-[#F5F1E6] text-[#2C2C2C] min-h-screen pt-28 pb-24 selection:bg-[#8B7355]/30 selection:text-[#2C2C2C]">
       {/* ─── Editorial Header ─── */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-12">
-        <div className="border-b border-[#D8D4C8] pb-10">
-          <div className="inline-flex items-center gap-2 text-[#347F8C] font-mono text-xs tracking-[0.28em] uppercase mb-3">
-            <span className="w-2 h-2 rounded-full bg-[#8FAF82]" />
-            Verified Guild Directory
+        <div className="border-b border-[#C4A265] pb-10">
+          <div className="inline-flex items-center gap-2 text-[#347F8C] font-mono text-xs tracking-[0.28em] uppercase mb-4 sm:mb-5">
+            <span className="w-2 h-2 rounded-full bg-[#A69B80]" />
+            Our Curated Registry
           </div>
-          <h1 className="font-manifold text-3xl sm:text-5xl lg:text-6xl tracking-[0.06em] text-[#3E4541] uppercase leading-none">
-            Curated Experiences
+          <h1 className="font-edu-cursive font-normal text-4xl sm:text-5xl lg:text-[60px] tracking-wide text-[#2C2C2C] leading-normal py-1">
+            A Living Catalogue
           </h1>
-          <p className="text-[#5C6460] text-sm sm:text-base mt-4 max-w-2xl font-light leading-relaxed">
-            Living artisan workshops, dawn cultural walks, and culinary lineages across India. Verified on-site for depth and historical rigor.
+          <p className="text-[#5C6460] text-sm sm:text-base mt-5 sm:mt-6 max-w-2xl font-light leading-relaxed">
+            Dawn walks through centuries-old ateliers. Culinary traditions held in family kitchens since the Mughal courts. Each experience verified in person, on site.
           </p>
         </div>
       </section>

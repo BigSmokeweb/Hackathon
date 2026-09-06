@@ -1,11 +1,43 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import { Playfair_Display, Cormorant_Garamond, Source_Serif_4, JetBrains_Mono, Luxurious_Script } from 'next/font/google';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { FloatingChatSupport } from '@/components/FloatingChatSupport';
+import { ScrollFadeObserver } from '@/components/ScrollFadeObserver';
+import { PageTransition } from '@/components/PageTransition';
 import './globals.css';
 
-const inter = Inter({ subsets: ['latin'] });
+const playfair = Playfair_Display({
+  subsets: ['latin'],
+  variable: '--font-playfair',
+  display: 'swap',
+});
+
+const cormorant = Cormorant_Garamond({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-cormorant',
+  display: 'swap',
+});
+
+const sourceSerif = Source_Serif_4({
+  subsets: ['latin'],
+  variable: '--font-source-serif',
+  display: 'swap',
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ['latin'],
+  variable: '--font-jetbrains-mono',
+  display: 'swap',
+});
+
+const luxuriousScript = Luxurious_Script({
+  weight: '400',
+  subsets: ['latin'],
+  variable: '--font-luxurious-script',
+  display: 'swap',
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://experienceplatform.in'),
@@ -14,7 +46,7 @@ export const metadata: Metadata = {
     template: '%s | Experience Platform',
   },
   description: 'Deterministic discovery platform for authentic culinary, cultural, artisan, and adventure experiences across India.',
-  keywords: ['India Travel', 'Local Experiences', 'Authentic Food Tours', 'Artisan Workshops', 'Culture Walk', 'Ahmedabad', 'Mumbai', 'Jaipur'],
+  keywords: ['Maharashtra Travel', 'Local Experiences', 'Authentic Food Tours', 'Artisan Workshops', 'Culture Walk', 'Mumbai', 'Thane', 'Navi Mumbai', 'Panvel', 'Powai'],
 };
 
 export default function RootLayout({
@@ -49,7 +81,9 @@ export default function RootLayout({
           crossOrigin=""
         />
       </head>
-      <body className={`${inter.className} bg-[#F7F4EA] text-[#3E4541] antialiased selection:bg-[#4FA3D1]/30 selection:text-[#3E4541] overflow-x-hidden`}>
+      <body className={`${sourceSerif.className} ${playfair.variable} ${cormorant.variable} ${sourceSerif.variable} ${jetbrainsMono.variable} ${luxuriousScript.variable} bg-[#F5F1E6] text-[#2C2C2C] antialiased selection:bg-[#8B7355]/30 selection:text-[#2C2C2C] overflow-x-hidden`}>
+        <PageTransition />
+        <ScrollFadeObserver />
         <Navbar />
         <main>{children}</main>
         <Footer />

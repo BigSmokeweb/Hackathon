@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Edu+NSW+ACT+Cursive:wght@400..700&family=Edu+NSW+ACT+Foundation:wght@400..700&family=Luxurious+Script&display=swap');
+
 @font-face {
   font-family: 'Manifold CF';
   src: url('/fonts/manifold-cf-extra-bold.woff2') format('woff2'),
@@ -12,10 +14,29 @@
 @tailwind components;
 @tailwind utilities;
 
+.font-cormorant {
+  font-family: 'Cormorant Garamond', var(--font-cormorant), Garamond, Georgia, serif;
+}
+
+.font-luxurious-script,
+.font-luxurious {
+  font-family: 'Luxurious Script', var(--font-luxurious-script), cursive;
+  font-weight: 400;
+}
+
+.font-edu-cursive,
+.font-cursive,
+.font-hand-cursive,
+.font-script {
+  font-family: 'Edu NSW ACT Cursive', 'Edu NSW ACT Hand Cursive', 'Edu NSW ACT Foundation', cursive;
+  font-weight: 400 !important;
+  -webkit-text-stroke: 0px transparent !important;
+}
+
 :root {
-  --foreground-rgb: 62, 69, 65;
-  --background-start-rgb: 247, 244, 234;
-  --background-end-rgb: 247, 244, 234;
+  --foreground-rgb: 44, 44, 44;
+  --background-start-rgb: 245, 241, 230;
+  --background-end-rgb: 245, 241, 230;
 }
 
 html {
@@ -23,8 +44,15 @@ html {
 }
 
 body {
-  color: #3E4541;
-  background-color: #F7F4EA;
+  font-family: var(--font-source-serif), Georgia, serif;
+  color: #2C2C2C;
+  background-color: #F5F1E6;
+  background-image: 
+    radial-gradient(rgba(196, 162, 101, 0.05) 1px, transparent 0),
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.032'/%3E%3C/svg%3E");
+  background-size: 24px 24px, 180px 180px;
+  background-repeat: repeat;
+  background-attachment: fixed;
   min-height: 100vh;
   margin: 0;
   padding: 0;
@@ -33,16 +61,48 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Typography Hierarchy */
+h1, h2, h3, .font-display, .font-playfair {
+  font-family: var(--font-playfair), 'Playfair Display', Georgia, serif;
+}
+
+h4, h5, h6, .font-subheading, .font-cormorant {
+  font-family: var(--font-cormorant), 'Cormorant Garamond', Garamond, serif;
+  font-feature-settings: "onum" 1, "kern" 1;
+  font-variant-numeric: oldstyle-nums;
+}
+
+.oldstyle-nums,
+.font-oldstyle {
+  font-family: 'Cormorant Garamond', var(--font-cormorant), Garamond, Georgia, serif;
+  font-feature-settings: "onum" 1, "kern" 1;
+  font-variant-numeric: oldstyle-nums;
+}
+
+/* ─── Thin Gold / Brass Rules ─── */
+.gold-rule,
+.border-gold-rule {
+  border-color: #C4A265 !important;
+}
+
+.gold-divider {
+  border-bottom: 1px solid #C4A265 !important;
+}
+
+code, kbd, samp, pre, .font-mono, [data-tag] {
+  font-family: var(--font-jetbrains-mono), 'JetBrains Mono', monospace;
+}
+
 /* Custom minimal scrollbar in Alpine + Ivory palette */
 ::-webkit-scrollbar {
   width: 7px;
   height: 7px;
 }
 ::-webkit-scrollbar-track {
-  background: #F7F4EA;
+  background: #F5F1E6;
 }
 ::-webkit-scrollbar-thumb {
-  background: #D8D4C8;
+  background: #D4CFC0;
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
@@ -125,14 +185,14 @@ body {
 /* Leaflet Real Map Custom Theme (Alpine + Ivory) */
 .leaflet-container {
   font-family: inherit !important;
-  background-color: #F7F4EA !important;
+  background-color: #F5F1E6 !important;
 }
 
 .leaflet-popup-content-wrapper {
   background: #FFFFFF !important;
-  color: #3E4541 !important;
+  color: #2C2C2C !important;
   border-radius: 0.75rem !important;
-  border: 1px solid #D8D4C8 !important;
+  border: 1px solid #D4CFC0 !important;
   box-shadow: 0 8px 24px -4px rgba(52, 127, 140, 0.18) !important;
   padding: 0px !important;
 }
@@ -144,7 +204,7 @@ body {
 
 .leaflet-popup-tip {
   background: #FFFFFF !important;
-  border: 1px solid #D8D4C8 !important;
+  border: 1px solid #D4CFC0 !important;
 }
 
 .compact-leaflet-popup .leaflet-popup-content-wrapper {
@@ -170,7 +230,7 @@ body {
 }
 
 .compact-leaflet-popup a.leaflet-popup-close-button:hover {
-  color: #3E4541 !important;
+  color: #2C2C2C !important;
 }
 
 .compact-popup-add-btn:hover {
@@ -184,6 +244,15 @@ body {
 .custom-map-pin {
   background: transparent;
   border: none;
+}
+
+/* Ensure Leaflet vector paths never animate geometry/d on zoom */
+.leaflet-pane > svg path {
+  transition-property: fill, fill-opacity, stroke, stroke-opacity, stroke-width !important;
+}
+
+.city-area-polygon {
+  transition: fill-opacity 0.2s ease, stroke 0.2s ease, stroke-width 0.2s ease, fill 0.2s ease !important;
 }
 
 
@@ -212,5 +281,69 @@ body {
   -ms-overflow-style: none;  /* IE and Edge */
   scrollbar-width: none;  /* Firefox */
 }
+
+/* ─── Hero Scroll Indicator Breathe Animation ─── */
+@keyframes heroBreathe {
+  0%, 100% {
+    transform: translateY(0);
+    opacity: 0.9;
+  }
+  50% {
+    transform: translateY(7px);
+    opacity: 0.35;
+  }
+}
+
+.animate-hero-breathe {
+  animation: heroBreathe 2.4s ease-in-out infinite;
+}
+
+/* ─── Fade-Up On Scroll Animation System ─── */
+.fade-up-init {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1), transform 0.75s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+.fade-up-in {
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fade-up-init {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}
+
+/* ─── Leather-Bound Journal Page-Fold Bookmark Animation ─── */
+@keyframes pageDogEarFold {
+  0% {
+    transform: perspective(300px) rotate3d(0, 0, 0, 0deg) scale(1);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  }
+  50% {
+    transform: perspective(300px) rotate3d(-1, 1, 0, 38deg) scale(0.92);
+    box-shadow: -4px 4px 10px rgba(44, 44, 44, 0.35);
+  }
+  100% {
+    transform: perspective(300px) rotate3d(0, 0, 0, 0deg) scale(1);
+    box-shadow: 0 2px 6px rgba(196, 162, 101, 0.3);
+  }
+}
+
+.animate-page-fold {
+  animation: pageDogEarFold 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.journal-leather-panel {
+  background-color: #F8F5EE;
+  background-image: radial-gradient(#D4CFC0 0.75px, transparent 0.75px);
+  background-size: 16px 16px;
+}
+
 
 

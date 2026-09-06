@@ -2,7 +2,7 @@ import { MetadataRoute } from 'next';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://experienceplatform.in';
-  const cities = ['ahmedabad', 'mumbai', 'jaipur'];
+  const cities = ['mumbai', 'thane', 'navi-mumbai', 'powai', 'panvel', 'kalyan-dombivli', 'kanjur-marg'];
   const categories = ['FOOD', 'CULTURE', 'WORKSHOPS', 'ADVENTURE', 'HIDDEN_GEMS', 'NIGHTLIFE'];
 
   const cityEntries = cities.map((city) => ({

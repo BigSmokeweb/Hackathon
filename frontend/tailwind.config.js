@@ -8,18 +8,32 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
+        body: ['var(--font-source-serif)', 'Georgia', 'serif'],
+        serif: ['var(--font-source-serif)', 'Georgia', 'serif'],
+        display: ['var(--font-playfair)', 'Playfair Display', 'Georgia', 'serif'],
+        playfair: ['var(--font-playfair)', 'Playfair Display', 'Georgia', 'serif'],
+        subheading: ['var(--font-cormorant)', 'Cormorant Garamond', 'Garamond', 'serif'],
+        cormorant: ['var(--font-cormorant)', 'Cormorant Garamond', 'Garamond', 'serif'],
+        mono: ['var(--font-jetbrains-mono)', 'JetBrains Mono', 'monospace'],
+        jetbrains: ['var(--font-jetbrains-mono)', 'JetBrains Mono', 'monospace'],
+        'edu-cursive': ['"Edu NSW ACT Cursive"', '"Edu NSW ACT Hand Cursive"', '"Edu NSW ACT Foundation"', 'cursive'],
+        'luxurious-script': ['"Luxurious Script"', 'var(--font-luxurious-script)', 'cursive'],
+        luxurious: ['"Luxurious Script"', 'var(--font-luxurious-script)', 'cursive'],
+        script: ['"Edu NSW ACT Cursive"', '"Edu NSW ACT Hand Cursive"', '"Edu NSW ACT Foundation"', 'cursive'],
+        cursive: ['"Edu NSW ACT Cursive"', '"Edu NSW ACT Hand Cursive"', '"Edu NSW ACT Foundation"', 'cursive'],
         'corn-font': ['"Manifold CF"', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
         corn: ['"Manifold CF"', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
       },
       colors: {
         alpine: {
-          sky: '#4FA3D1',
-          sage: '#8FAF82',
-          ivory: '#F7F4EA',
-          stone: '#D8D4C8',
-          charcoal: '#3E4541',
+          sky: '#8B7355',
+          sage: '#A69B80',
+          ivory: '#F5F1E6',
+          stone: '#D4CFC0',
+          charcoal: '#2C2C2C',
           teal: '#347F8C',
           'teal-dark': '#2A6772',
+          gold: '#C4A265',
         },
         primary: {
           50: '#fff7ed',

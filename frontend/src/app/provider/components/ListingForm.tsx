@@ -136,7 +136,7 @@ export default function ListingForm({ token, onDraftSaved, onPublished }: Listin
 
   const renderStep1 = () => (
     <div>
-      <h3 className="font-manifold text-xl text-[#3E4541] font-bold uppercase tracking-wide mb-1">
+      <h3 className="font-manifold text-xl text-[#2C2C2C] font-bold uppercase tracking-wide mb-1">
         What kind of experience is this?
       </h3>
       <p className="text-xs font-mono text-[#5C6460] mb-6">
@@ -151,14 +151,14 @@ export default function ListingForm({ token, onDraftSaved, onPublished }: Listin
             className={`flex flex-col items-center gap-2 p-4 rounded-xl border text-center transition-all ${
               draft.category === value
                 ? 'border-[#347F8C] bg-[#347F8C]/10 shadow-md shadow-[#347F8C]/10'
-                : 'border-[#D8D4C8] bg-white hover:border-[#347F8C]/40 hover:bg-[#F7F4EA]'
+                : 'border-[#D4CFC0] bg-white hover:border-[#347F8C]/40 hover:bg-[#F5F1E6]'
             }`}
           >
             <Icon className={`w-6 h-6 ${draft.category === value ? 'text-[#347F8C]' : 'text-[#5C6460]'}`} />
             <span className={`text-[10px] font-mono font-bold uppercase tracking-wider ${
-              draft.category === value ? 'text-[#347F8C]' : 'text-[#3E4541]'
+              draft.category === value ? 'text-[#347F8C]' : 'text-[#2C2C2C]'
             }`}>{label}</span>
-            <span className="text-[9px] font-mono text-[#3E4541]/50 leading-snug">{hint}</span>
+            <span className="text-[9px] font-mono text-[#2C2C2C]/50 leading-snug">{hint}</span>
           </button>
         ))}
       </div>
@@ -168,7 +168,7 @@ export default function ListingForm({ token, onDraftSaved, onPublished }: Listin
   const renderStep2 = () => (
     <div className="space-y-5">
       <div>
-        <h3 className="font-manifold text-xl text-[#3E4541] font-bold uppercase tracking-wide mb-1">
+        <h3 className="font-manifold text-xl text-[#2C2C2C] font-bold uppercase tracking-wide mb-1">
           Core details
         </h3>
         <p className="text-xs font-mono text-[#5C6460]">
@@ -186,7 +186,7 @@ export default function ListingForm({ token, onDraftSaved, onPublished }: Listin
           value={draft.title}
           onChange={(e) => update('title', e.target.value)}
           placeholder="e.g. Old Quarter Heritage Walk at Dusk"
-          className="w-full text-sm font-mono bg-[#F7F4EA]/60 border border-[#D8D4C8] rounded-xl p-3.5 text-[#3E4541] placeholder-[#3E4541]/30 focus:outline-none focus:border-[#347F8C] transition"
+          className="w-full text-sm font-mono bg-[#F5F1E6]/60 border border-[#D4CFC0] rounded-xl p-3.5 text-[#2C2C2C] placeholder-[#2C2C2C]/30 focus:outline-none focus:border-[#347F8C] transition"
         />
       </div>
 
@@ -200,8 +200,8 @@ export default function ListingForm({ token, onDraftSaved, onPublished }: Listin
             type="text"
             value={draft.city}
             onChange={(e) => update('city', e.target.value)}
-            placeholder="e.g. Jaipur"
-            className="w-full text-sm font-mono bg-[#F7F4EA]/60 border border-[#D8D4C8] rounded-xl p-3.5 text-[#3E4541] placeholder-[#3E4541]/30 focus:outline-none focus:border-[#347F8C] transition"
+            placeholder="e.g. Mumbai"
+            className="w-full text-sm font-mono bg-[#F5F1E6]/60 border border-[#D4CFC0] rounded-xl p-3.5 text-[#2C2C2C] placeholder-[#2C2C2C]/30 focus:outline-none focus:border-[#347F8C] transition"
           />
         </div>
         <div>
@@ -213,7 +213,7 @@ export default function ListingForm({ token, onDraftSaved, onPublished }: Listin
             value={draft.state}
             onChange={(e) => update('state', e.target.value)}
             placeholder="e.g. Rajasthan"
-            className="w-full text-sm font-mono bg-[#F7F4EA]/60 border border-[#D8D4C8] rounded-xl p-3.5 text-[#3E4541] placeholder-[#3E4541]/30 focus:outline-none focus:border-[#347F8C] transition"
+            className="w-full text-sm font-mono bg-[#F5F1E6]/60 border border-[#D4CFC0] rounded-xl p-3.5 text-[#2C2C2C] placeholder-[#2C2C2C]/30 focus:outline-none focus:border-[#347F8C] transition"
           />
         </div>
       </div>
@@ -230,7 +230,7 @@ export default function ListingForm({ token, onDraftSaved, onPublished }: Listin
             value={draft.latitude ?? ''}
             onChange={(e) => update('latitude', e.target.value ? parseFloat(e.target.value) : undefined)}
             placeholder="e.g. 26.9124"
-            className="w-full text-sm font-mono bg-[#F7F4EA]/60 border border-[#D8D4C8] rounded-xl p-3.5 text-[#3E4541] placeholder-[#3E4541]/30 focus:outline-none focus:border-[#347F8C] transition"
+            className="w-full text-sm font-mono bg-[#F5F1E6]/60 border border-[#D4CFC0] rounded-xl p-3.5 text-[#2C2C2C] placeholder-[#2C2C2C]/30 focus:outline-none focus:border-[#347F8C] transition"
           />
         </div>
         <div>
@@ -243,7 +243,7 @@ export default function ListingForm({ token, onDraftSaved, onPublished }: Listin
             value={draft.longitude ?? ''}
             onChange={(e) => update('longitude', e.target.value ? parseFloat(e.target.value) : undefined)}
             placeholder="e.g. 75.7873"
-            className="w-full text-sm font-mono bg-[#F7F4EA]/60 border border-[#D8D4C8] rounded-xl p-3.5 text-[#3E4541] placeholder-[#3E4541]/30 focus:outline-none focus:border-[#347F8C] transition"
+            className="w-full text-sm font-mono bg-[#F5F1E6]/60 border border-[#D4CFC0] rounded-xl p-3.5 text-[#2C2C2C] placeholder-[#2C2C2C]/30 focus:outline-none focus:border-[#347F8C] transition"
           />
         </div>
       </div>
@@ -260,7 +260,7 @@ export default function ListingForm({ token, onDraftSaved, onPublished }: Listin
             value={draft.priceMin ?? ''}
             onChange={(e) => update('priceMin', e.target.value ? parseFloat(e.target.value) : undefined)}
             placeholder="Min price"
-            className="w-full text-sm font-mono bg-[#F7F4EA]/60 border border-[#D8D4C8] rounded-xl p-3.5 text-[#3E4541] placeholder-[#3E4541]/30 focus:outline-none focus:border-[#347F8C] transition"
+            className="w-full text-sm font-mono bg-[#F5F1E6]/60 border border-[#D4CFC0] rounded-xl p-3.5 text-[#2C2C2C] placeholder-[#2C2C2C]/30 focus:outline-none focus:border-[#347F8C] transition"
           />
           <input
             type="number"
@@ -268,7 +268,7 @@ export default function ListingForm({ token, onDraftSaved, onPublished }: Listin
             value={draft.priceMax ?? ''}
             onChange={(e) => update('priceMax', e.target.value ? parseFloat(e.target.value) : undefined)}
             placeholder="Max price"
-            className="w-full text-sm font-mono bg-[#F7F4EA]/60 border border-[#D8D4C8] rounded-xl p-3.5 text-[#3E4541] placeholder-[#3E4541]/30 focus:outline-none focus:border-[#347F8C] transition"
+            className="w-full text-sm font-mono bg-[#F5F1E6]/60 border border-[#D4CFC0] rounded-xl p-3.5 text-[#2C2C2C] placeholder-[#2C2C2C]/30 focus:outline-none focus:border-[#347F8C] transition"
           />
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -280,7 +280,7 @@ export default function ListingForm({ token, onDraftSaved, onPublished }: Listin
               className={`py-2 px-3 rounded-xl border text-[10px] font-mono text-center transition ${
                 draft.budgetBand === value
                   ? 'border-[#347F8C] bg-[#347F8C]/10 text-[#347F8C] font-bold'
-                  : 'border-[#D8D4C8] bg-white text-[#5C6460] hover:border-[#347F8C]/40'
+                  : 'border-[#D4CFC0] bg-white text-[#5C6460] hover:border-[#347F8C]/40'
               }`}
             >
               <div className="font-bold uppercase tracking-wider">{label}</div>
@@ -300,7 +300,7 @@ export default function ListingForm({ token, onDraftSaved, onPublished }: Listin
           min={15}
           value={draft.durationMinutes}
           onChange={(e) => update('durationMinutes', parseInt(e.target.value) || 120)}
-          className="w-40 text-sm font-mono bg-[#F7F4EA]/60 border border-[#D8D4C8] rounded-xl p-3.5 text-[#3E4541] focus:outline-none focus:border-[#347F8C] transition"
+          className="w-40 text-sm font-mono bg-[#F5F1E6]/60 border border-[#D4CFC0] rounded-xl p-3.5 text-[#2C2C2C] focus:outline-none focus:border-[#347F8C] transition"
         />
       </div>
     </div>
@@ -311,7 +311,7 @@ export default function ListingForm({ token, onDraftSaved, onPublished }: Listin
     return (
       <div className="space-y-5">
         <div>
-          <h3 className="font-manifold text-xl text-[#3E4541] font-bold uppercase tracking-wide mb-1">
+          <h3 className="font-manifold text-xl text-[#2C2C2C] font-bold uppercase tracking-wide mb-1">
             {draft.category ? `${CATEGORIES.find((c) => c.value === draft.category)?.label} details` : 'Category details'}
           </h3>
           <p className="text-xs font-mono text-[#5C6460]">
@@ -329,7 +329,7 @@ export default function ListingForm({ token, onDraftSaved, onPublished }: Listin
             value={draft.description}
             onChange={(e) => update('description', e.target.value)}
             placeholder="Tell travelers what makes this experience uniquely yours. What will they see, do, taste, or learn?"
-            className="w-full text-sm font-mono bg-[#F7F4EA]/60 border border-[#D8D4C8] rounded-xl p-3.5 text-[#3E4541] placeholder-[#3E4541]/30 focus:outline-none focus:border-[#347F8C] transition resize-none"
+            className="w-full text-sm font-mono bg-[#F5F1E6]/60 border border-[#D4CFC0] rounded-xl p-3.5 text-[#2C2C2C] placeholder-[#2C2C2C]/30 focus:outline-none focus:border-[#347F8C] transition resize-none"
           />
           <p className="text-[10px] font-mono text-[#5C6460] mt-1">{draft.description.length} / 4000 chars</p>
         </div>
@@ -345,7 +345,7 @@ export default function ListingForm({ token, onDraftSaved, onPublished }: Listin
               value={(draft.extras['cuisineType'] as string) ?? ''}
               onChange={(e) => update('extras', { ...draft.extras, cuisineType: e.target.value })}
               placeholder="e.g. Rajasthani street food, Bengali sweets"
-              className="w-full text-sm font-mono bg-[#F7F4EA]/60 border border-[#D8D4C8] rounded-xl p-3.5 text-[#3E4541] placeholder-[#3E4541]/30 focus:outline-none focus:border-[#347F8C] transition"
+              className="w-full text-sm font-mono bg-[#F5F1E6]/60 border border-[#D4CFC0] rounded-xl p-3.5 text-[#2C2C2C] placeholder-[#2C2C2C]/30 focus:outline-none focus:border-[#347F8C] transition"
             />
           </div>
         )}
@@ -361,7 +361,7 @@ export default function ListingForm({ token, onDraftSaved, onPublished }: Listin
               value={(draft.extras['groupSize'] as string) ?? ''}
               onChange={(e) => update('extras', { ...draft.extras, groupSize: e.target.value })}
               placeholder="e.g. 10"
-              className="w-32 text-sm font-mono bg-[#F7F4EA]/60 border border-[#D8D4C8] rounded-xl p-3.5 text-[#3E4541] placeholder-[#3E4541]/30 focus:outline-none focus:border-[#347F8C] transition"
+              className="w-32 text-sm font-mono bg-[#F5F1E6]/60 border border-[#D4CFC0] rounded-xl p-3.5 text-[#2C2C2C] placeholder-[#2C2C2C]/30 focus:outline-none focus:border-[#347F8C] transition"
             />
           </div>
         )}
@@ -389,7 +389,7 @@ export default function ListingForm({ token, onDraftSaved, onPublished }: Listin
                   className={`px-3 py-1.5 text-[10px] font-mono rounded-full border transition ${
                     active
                       ? 'bg-[#347F8C] border-[#347F8C] text-white font-bold'
-                      : 'bg-white border-[#D8D4C8] text-[#5C6460] hover:border-[#347F8C]/40'
+                      : 'bg-white border-[#D4CFC0] text-[#5C6460] hover:border-[#347F8C]/40'
                   }`}
                 >
                   {opt}
@@ -405,7 +405,7 @@ export default function ListingForm({ token, onDraftSaved, onPublished }: Listin
   const renderStep4 = () => (
     <div className="space-y-5">
       <div>
-        <h3 className="font-manifold text-xl text-[#3E4541] font-bold uppercase tracking-wide mb-1">
+        <h3 className="font-manifold text-xl text-[#2C2C2C] font-bold uppercase tracking-wide mb-1">
           Photos & Availability
         </h3>
         <p className="text-xs font-mono text-[#5C6460]">
@@ -428,7 +428,7 @@ export default function ListingForm({ token, onDraftSaved, onPublished }: Listin
             )
           }
           placeholder={'https://images.unsplash.com/...\nhttps://images.unsplash.com/...'}
-          className="w-full text-xs font-mono bg-[#F7F4EA]/60 border border-[#D8D4C8] rounded-xl p-3.5 text-[#3E4541] placeholder-[#3E4541]/30 focus:outline-none focus:border-[#347F8C] transition resize-none"
+          className="w-full text-xs font-mono bg-[#F5F1E6]/60 border border-[#D4CFC0] rounded-xl p-3.5 text-[#2C2C2C] placeholder-[#2C2C2C]/30 focus:outline-none focus:border-[#347F8C] transition resize-none"
         />
         <p className="text-[10px] font-mono text-[#5C6460] mt-1">
           {draft.mediaUrls.length} photo{draft.mediaUrls.length !== 1 ? 's' : ''} added
@@ -443,7 +443,7 @@ export default function ListingForm({ token, onDraftSaved, onPublished }: Listin
         </label>
 
         {draft.availabilityRules.map((rule, idx) => (
-          <div key={idx} className="flex flex-wrap items-center gap-2 mb-2 text-xs font-mono text-[#3E4541] bg-[#F7F4EA] px-3 py-2 rounded-lg border border-[#D8D4C8]">
+          <div key={idx} className="flex flex-wrap items-center gap-2 mb-2 text-xs font-mono text-[#2C2C2C] bg-[#F5F1E6] px-3 py-2 rounded-lg border border-[#D4CFC0]">
             <span>Days: {rule.daysOfWeek.map((d) => ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d]).join(', ')}</span>
             <span>·</span>
             <span>{rule.openTime} – {rule.closeTime}</span>
@@ -472,7 +472,7 @@ export default function ListingForm({ token, onDraftSaved, onPublished }: Listin
       </div>
 
       {/* Summary */}
-      <div className={`p-4 rounded-xl border ${isPublishEligible ? 'bg-[#8FAF82]/15 border-[#8FAF82]/40' : 'bg-[#F7F4EA] border-[#D8D4C8]'}`}>
+      <div className={`p-4 rounded-xl border ${isPublishEligible ? 'bg-[#A69B80]/15 border-[#A69B80]/40' : 'bg-[#F5F1E6] border-[#D4CFC0]'}`}>
         <p className="text-[10px] font-mono uppercase tracking-widest font-bold text-[#347F8C] mb-2">
           {isPublishEligible ? 'Ready to publish' : 'Draft — required fields missing'}
         </p>
@@ -485,7 +485,7 @@ export default function ListingForm({ token, onDraftSaved, onPublished }: Listin
             { label: 'At least 1 photo', ok: draft.mediaUrls.length >= 1 },
           ].map(({ label, ok }) => (
             <li key={label} className={`flex items-center gap-2 ${ok ? 'text-[#347F8C]' : ''}`}>
-              <CheckCircle2 className={`w-3 h-3 ${ok ? 'text-[#8FAF82]' : 'text-[#D8D4C8]'}`} />
+              <CheckCircle2 className={`w-3 h-3 ${ok ? 'text-[#A69B80]' : 'text-[#D4CFC0]'}`} />
               {label}
             </li>
           ))}
@@ -511,9 +511,9 @@ export default function ListingForm({ token, onDraftSaved, onPublished }: Listin
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
       {/* Form column */}
-      <div className="lg:col-span-7 bg-white rounded-2xl border border-[#D8D4C8] shadow-sm overflow-hidden">
+      <div className="lg:col-span-7 bg-white rounded-2xl border border-[#D4CFC0] shadow-sm overflow-hidden">
         {/* Step progress */}
-        <div className="px-6 py-4 border-b border-[#D8D4C8] bg-[#F7F4EA]/60">
+        <div className="px-6 py-4 border-b border-[#C4A265] bg-[#F5F1E6]/60">
           <div className="flex items-center gap-0">
             {([1, 2, 3, 4] as FormStep[]).map((s) => (
               <div key={s} className="flex items-center flex-1 last:flex-none">
@@ -524,16 +524,16 @@ export default function ListingForm({ token, onDraftSaved, onPublished }: Listin
                     s === step
                       ? 'border-[#347F8C] bg-[#347F8C] text-white'
                       : s < step
-                      ? 'border-[#8FAF82] bg-[#8FAF82] text-white'
-                      : 'border-[#D8D4C8] bg-white text-[#3E4541]/40'
+                      ? 'border-[#A69B80] bg-[#A69B80] text-white'
+                      : 'border-[#D4CFC0] bg-white text-[#2C2C2C]/40'
                   }`}
                 >
                   {s < step ? '✓' : s}
                 </button>
-                <span className={`text-[9px] font-mono uppercase tracking-wider ml-1.5 hidden sm:block ${s === step ? 'text-[#347F8C] font-bold' : 'text-[#3E4541]/40'}`}>
+                <span className={`text-[9px] font-mono uppercase tracking-wider ml-1.5 hidden sm:block ${s === step ? 'text-[#347F8C] font-bold' : 'text-[#2C2C2C]/40'}`}>
                   {STEP_LABELS[s]}
                 </span>
-                {s < 4 && <div className={`flex-1 h-0.5 mx-2 ${s < step ? 'bg-[#8FAF82]' : 'bg-[#D8D4C8]'}`} />}
+                {s < 4 && <div className={`flex-1 h-0.5 mx-2 ${s < step ? 'bg-[#A69B80]' : 'bg-[#D4CFC0]'}`} />}
               </div>
             ))}
           </div>
@@ -551,7 +551,7 @@ export default function ListingForm({ token, onDraftSaved, onPublished }: Listin
               <button
                 type="button"
                 onClick={() => setStep((s) => (s - 1) as FormStep)}
-                className="inline-flex items-center gap-1.5 px-4 py-2.5 text-xs font-mono uppercase tracking-wider text-[#3E4541]/70 border border-[#D8D4C8] rounded-xl hover:bg-[#F7F4EA] transition"
+                className="inline-flex items-center gap-1.5 px-4 py-2.5 text-xs font-mono uppercase tracking-wider text-[#2C2C2C]/70 border border-[#D4CFC0] rounded-xl hover:bg-[#F5F1E6] transition"
               >
                 <ArrowLeft className="w-3.5 h-3.5" />Back
               </button>
@@ -572,7 +572,7 @@ export default function ListingForm({ token, onDraftSaved, onPublished }: Listin
               type="button"
               onClick={() => setStep((s) => (s + 1) as FormStep)}
               disabled={step === 1 && !draft.category}
-              className="inline-flex items-center gap-1.5 px-5 py-2.5 bg-[#347F8C] hover:bg-[#2A6772] text-[#F7F4EA] text-xs font-mono uppercase tracking-wider font-bold rounded-xl shadow-md shadow-[#347F8C]/20 transition disabled:opacity-40"
+              className="inline-flex items-center gap-1.5 px-5 py-2.5 bg-[#347F8C] hover:bg-[#2A6772] text-[#F5F1E6] text-xs font-mono uppercase tracking-wider font-bold rounded-xl shadow-md shadow-[#347F8C]/20 transition disabled:opacity-40"
             >
               Continue <ArrowRight className="w-3.5 h-3.5" />
             </button>
@@ -581,7 +581,7 @@ export default function ListingForm({ token, onDraftSaved, onPublished }: Listin
               type="button"
               disabled={!isPublishEligible}
               onClick={() => onPublished?.()}
-              className="inline-flex items-center gap-1.5 px-5 py-2.5 bg-[#8FAF82] hover:bg-[#7a9e6e] disabled:opacity-40 text-white text-xs font-mono uppercase tracking-wider font-bold rounded-xl shadow-md shadow-[#8FAF82]/20 transition"
+              className="inline-flex items-center gap-1.5 px-5 py-2.5 bg-[#A69B80] hover:bg-[#7a9e6e] disabled:opacity-40 text-white text-xs font-mono uppercase tracking-wider font-bold rounded-xl shadow-md shadow-[#A69B80]/20 transition"
             >
               <Globe className="w-3.5 h-3.5" />
               Publish listing

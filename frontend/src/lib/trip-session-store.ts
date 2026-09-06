@@ -139,9 +139,6 @@ export function sanitizeExperienceCoordinates(exp: {
   }
 
   // 4. Default fallback to city center on land
-  const cityName = (exp.city || '').toLowerCase();
-  if (cityName === 'ahmedabad') return { lat: 23.0225, lng: 72.5714 };
-  if (cityName === 'jaipur') return { lat: 26.9124, lng: 75.7873 };
   return { lat: 18.9220, lng: 72.8347 };
 }
 
@@ -220,9 +217,6 @@ export function inferCityName(lat: number, lng: number): string {
     { city: 'Powai', lat: 19.119, lng: 72.905 },
     { city: 'Kanjur Marg', lat: 19.130, lng: 72.930 },
     { city: 'Mumbai', lat: 18.944, lng: 72.821 },
-    { city: 'Ahmedabad', lat: 23.022, lng: 72.571 },
-    { city: 'Jaipur', lat: 26.912, lng: 75.787 },
-    { city: 'Varanasi', lat: 25.317, lng: 82.973 },
   ];
 
   let closestCity = 'Mumbai';

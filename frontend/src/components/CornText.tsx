@@ -10,16 +10,24 @@ interface CornTextProps {
   fontSize?: string;
   viewBoxWidth?: number;
   viewBoxHeight?: number;
+  fontFamily?: string;
+  letterSpacing?: string;
+  fontWeight?: number | string;
+  textTransform?: 'uppercase' | 'lowercase' | 'capitalize' | 'none';
 }
 
 export function CornText({
-  text = 'EXPERIENCE. PLATFORM.',
+  text = 'Explore Platform',
   className = '',
   forceFieldRadius = 78,
   maxLetters = 4,
-  fontSize = '92px',
-  viewBoxWidth = 2050,
-  viewBoxHeight = 240,
+  fontSize = '150px',
+  viewBoxWidth = 1600,
+  viewBoxHeight = 280,
+  fontFamily = "'Luxurious Script', var(--font-luxurious-script), cursive",
+  letterSpacing = '0.02em',
+  fontWeight = 400,
+  textTransform = 'none',
 }: CornTextProps) {
   const chars = text.split('');
   const [charKeys, setCharKeys] = useState<number[]>(() => new Array(chars.length).fill(1));
@@ -104,12 +112,13 @@ export function CornText({
           y="50%"
           textAnchor="middle"
           dominantBaseline="central"
-          className="corn-font select-none"
+          className="select-none font-luxurious-script"
           style={{
-            fontFamily: "'Manifold CF', sans-serif",
+            fontFamily,
             fontSize,
-            fontWeight: 800,
-            letterSpacing: '0.12em',
+            fontWeight,
+            letterSpacing,
+            textTransform,
           }}
         >
           {chars.map((char, index) => (

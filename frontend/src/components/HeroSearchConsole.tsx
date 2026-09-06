@@ -5,10 +5,12 @@ import { useRouter } from 'next/navigation';
 import { Search, MapPin, Compass, ArrowRight, Sparkles } from 'lucide-react';
 
 const CITIES = [
-  { name: 'All India', value: '' },
-  { name: 'Ahmedabad', value: 'Ahmedabad' },
+  { name: 'All Maharashtra', value: '' },
   { name: 'Mumbai', value: 'Mumbai' },
-  { name: 'Jaipur', value: 'Jaipur' },
+  { name: 'Thane', value: 'Thane' },
+  { name: 'Navi Mumbai', value: 'Navi Mumbai' },
+  { name: 'Powai', value: 'Powai' },
+  { name: 'Panvel', value: 'Panvel' },
 ];
 
 const CATEGORIES = [
@@ -72,7 +74,7 @@ export function HeroSearchConsole() {
               type="text"
               value={city}
               onChange={(e) => setCity(e.target.value)}
-              placeholder="Any City (e.g. Mumbai, Jaipur)"
+              placeholder="Any City (e.g. Mumbai, Thane, Navi Mumbai)"
               className="w-full bg-transparent text-sm font-semibold text-white placeholder:text-slate-400 focus:outline-none mt-0.5"
             />
           </div>

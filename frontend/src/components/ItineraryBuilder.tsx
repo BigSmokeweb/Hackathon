@@ -29,25 +29,25 @@ interface CityPreset {
 
 const CITY_PRESETS: CityPreset[] = [
   { id: 'mumbai', name: 'Mumbai', region: 'Colaba & Fort', lat: 18.9220, lng: 72.8347, tag: 'Art Deco & Coastal Guilds' },
-  { id: 'ahmedabad', name: 'Ahmedabad', region: 'Old Walled City', lat: 23.0225, lng: 72.5714, tag: 'UNESCO Pols & Textile Masters' },
-  { id: 'jaipur', name: 'Jaipur', region: 'Pink City & Bagru', lat: 26.9124, lng: 75.7873, tag: 'Block Print & Gem Cutters' },
-  { id: 'varanasi', name: 'Varanasi', region: 'Ghats & Weavers Colony', lat: 25.3176, lng: 82.9739, tag: 'Dawn Rites & Silk Lineages' },
+  { id: 'thane', name: 'Thane', region: 'Upvan & Lakes', lat: 19.2183, lng: 72.9781, tag: 'City of Lakes & Shrines' },
+  { id: 'navi-mumbai', name: 'Navi Mumbai', region: 'Belapur & Creek', lat: 19.0330, lng: 73.0297, tag: 'Flamingo Trails & Forts' },
+  { id: 'powai', name: 'Powai', region: 'Hiranandani & Lake', lat: 19.1197, lng: 72.9051, tag: 'Lakeside Promenades' },
 ];
 
 const CURATORIAL_INTERESTS = [
-  { id: 'FOOD', label: 'Culinary Lineages', desc: 'Family-run kitchens, spice masters & heritage tastings' },
-  { id: 'CULTURE', label: 'Living Heritage', desc: 'Protected architectural walks & private shrines' },
-  { id: 'WORKSHOPS', label: 'Artisan Ateliers', desc: 'Hands-on block printing, brass casting & miniature art' },
+  { id: 'FOOD', label: 'The Table', desc: 'Family-run kitchens, spice masters & heritage tastings' },
+  { id: 'CULTURE', label: 'Through the Centuries', desc: 'Protected architectural walks & private shrines' },
+  { id: 'WORKSHOPS', label: 'The Maker\'s Hand', desc: 'Hands-on block printing, brass casting & miniature art' },
   { id: 'ADVENTURE', label: 'Field Expeditions', desc: 'Dawn harbor navigations, stepwells & ridge treks' },
-  { id: 'HIDDEN_GEMS', label: 'Secret Archives', desc: 'Private collections & off-circuit guild houses' },
-  { id: 'NIGHTLIFE', label: 'Evening Soirees', desc: 'Classical baithaks, rooftop poetry & lantern walks' },
+  { id: 'HIDDEN_GEMS', label: 'Hidden Chapters', desc: 'Private collections & off-circuit guild houses' },
+  { id: 'NIGHTLIFE', label: 'After Dark', desc: 'Classical baithaks, rooftop poetry & lantern walks' },
 ];
 
 const DURATION_PRESETS = [
-  { minutes: 120, label: '2 Hours', note: 'Intimate Focus' },
-  { minutes: 180, label: '3 Hours', note: 'Half-Day Circuit' },
-  { minutes: 240, label: '4 Hours', note: 'Deep Immersion' },
-  { minutes: 360, label: '6 Hours', note: 'Full-Day Journey' },
+  { minutes: 120, label: '2 Hours', note: 'A Quiet Afternoon' },
+  { minutes: 180, label: '3 Hours', note: 'A Morning Expedition' },
+  { minutes: 240, label: '4 Hours', note: 'The Full Chapter' },
+  { minutes: 360, label: '6 Hours', note: 'Dawn to Dusk' },
 ];
 
 const BUDGET_PRESETS = [
@@ -201,24 +201,24 @@ export function ItineraryBuilder() {
   };
 
   return (
-    <section id="itinerary" className="relative scroll-mt-20 pt-24 pb-36 border-t border-[#D8D4C8] bg-[#F7F4EA] text-[#3E4541] z-10">
+    <section id="itinerary" className="relative scroll-mt-20 pt-24 pb-36 border-t border-[#D4CFC0] bg-[#F5F1E6] text-[#2C2C2C] z-10">
       {/* Ambient background glow */}
-      <div className="absolute top-1/3 left-1/4 w-96 h-96 bg-[#8FAF82]/10 blur-[140px] rounded-full pointer-events-none" />
-      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-[#4FA3D1]/10 blur-[140px] rounded-full pointer-events-none" />
+      <div className="absolute top-1/3 left-1/4 w-96 h-96 bg-[#A69B80]/10 blur-[140px] rounded-full pointer-events-none" />
+      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-[#8B7355]/10 blur-[140px] rounded-full pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <div className="mb-12">
-          <div className="inline-flex items-center gap-2 text-[#347F8C] font-mono text-xs tracking-[0.28em] uppercase mb-3">
-            <span className="w-2 h-2 rounded-full bg-[#8FAF82]" />
+        <div className="mb-12 pb-8 border-b border-[#C4A265]">
+          <div className="inline-flex items-center gap-2 text-[#347F8C] font-mono text-xs tracking-[0.28em] uppercase mb-4 sm:mb-5">
+            <span className="w-2 h-2 rounded-full bg-[#A69B80]" />
             Bespoke Route Atelier
           </div>
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div>
-              <h2 className="font-manifold text-3xl sm:text-5xl lg:text-6xl tracking-[0.05em] text-[#3E4541] uppercase leading-none font-bold">
-                Curate Your Itinerary
+              <h2 className="font-edu-cursive font-normal text-4xl sm:text-5xl lg:text-[60px] tracking-wide text-[#2C2C2C] leading-normal py-1">
+                Create Your Itinerary
               </h2>
-              <p className="text-[#3E4541]/75 text-sm sm:text-base mt-4 max-w-2xl font-light leading-relaxed">
+              <p className="text-[#2C2C2C]/75 text-sm sm:text-base mt-5 sm:mt-6 max-w-2xl font-light leading-relaxed">
                 Define your departure origin, curatorial inclinations, and pacing. We link verified guilds and master workshops into a continuous schedule.
               </p>
             </div>
@@ -227,12 +227,12 @@ export function ItineraryBuilder() {
             {activeSession && (
               <div className="flex items-center gap-3 bg-white border border-[#347F8C]/40 px-4 py-2.5 rounded-2xl shadow-sm">
                 <span className="w-2 h-2 rounded-full bg-[#347F8C] animate-ping" />
-                <span className="text-xs font-mono text-[#3E4541]">Existing Journey Detected</span>
+                <span className="text-xs font-mono text-[#2C2C2C]">Existing Journey Detected</span>
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
                     onClick={() => router.push(`/trip/${activeSession.id}`)}
-                    className="text-xs font-mono font-bold text-[#F7F4EA] bg-[#347F8C] hover:bg-[#2A6772] px-3 py-1 rounded-xl transition shadow-sm cursor-pointer"
+                    className="text-xs font-mono font-bold text-[#F5F1E6] bg-[#347F8C] hover:bg-[#2A6772] px-3 py-1 rounded-xl transition shadow-sm cursor-pointer"
                   >
                     Resume &rarr;
                   </button>
@@ -261,9 +261,9 @@ export function ItineraryBuilder() {
           {/* Step Navigation Sidebar */}
           <div className="lg:col-span-4 space-y-3">
             {[
-              { num: 1, title: 'Departure Origin', subtitle: locationLabel || 'Select base city', icon: MapPin },
-              { num: 2, title: 'Curatorial Focus', subtitle: `${selectedInterests.length} selected interests`, icon: Compass },
-              { num: 3, title: 'Pace & Allocation', subtitle: `${parseInt(durationMinutes || '180') / 60}h · ₹${Number(totalBudget || 5000).toLocaleString()}`, icon: Wallet },
+              { num: 1, title: 'Where shall we begin?', subtitle: locationLabel || 'Select base city', icon: MapPin },
+              { num: 2, title: 'Your Interests', subtitle: `${selectedInterests.length} selected interests`, icon: Compass },
+              { num: 3, title: 'Duration & Budget', subtitle: `${parseInt(durationMinutes || '180') / 60}h · ₹${Number(totalBudget || 5000).toLocaleString()}`, icon: Wallet },
             ].map((s) => {
               const Icon = s.icon;
               const isActive = activeStep === s.num;
@@ -279,29 +279,29 @@ export function ItineraryBuilder() {
                   }}
                   className={`w-full text-left p-5 rounded-2xl border transition-all duration-300 flex items-start gap-4 cursor-pointer active:scale-[0.99] ${
                     isActive
-                      ? 'bg-white border-[#347F8C] shadow-md shadow-[#347F8C]/10 text-[#3E4541]'
-                      : 'bg-white/80 border-[#D8D4C8] hover:border-[#347F8C]/40 hover:bg-white text-[#3E4541]/75'
+                      ? 'bg-white border-[#347F8C] shadow-md shadow-[#347F8C]/10 text-[#2C2C2C]'
+                      : 'bg-white/80 border-[#D4CFC0] hover:border-[#347F8C]/40 hover:bg-white text-[#2C2C2C]/75'
                   }`}
                 >
                   <div
                     className={`w-9 h-9 rounded-xl flex items-center justify-center font-mono text-xs font-bold transition-all ${
                       isActive
-                        ? 'bg-[#347F8C] text-[#F7F4EA] shadow-sm shadow-[#347F8C]/20'
+                        ? 'bg-[#347F8C] text-[#F5F1E6] shadow-sm shadow-[#347F8C]/20'
                         : isCompleted
-                        ? 'bg-[#8FAF82] text-white'
-                        : 'bg-[#F7F4EA] text-[#3E4541]/70 border border-[#D8D4C8]'
+                        ? 'bg-[#A69B80] text-white'
+                        : 'bg-[#F5F1E6] text-[#2C2C2C]/70 border border-[#D4CFC0]'
                     }`}
                   >
                     {isCompleted ? <Check className="w-4 h-4" /> : `0${s.num}`}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
-                      <h4 className={`font-manifold text-base tracking-wide uppercase ${isActive ? 'text-[#3E4541] font-bold' : 'text-[#3E4541]/70'}`}>
+                      <h4 className={`font-manifold text-base tracking-wide uppercase ${isActive ? 'text-[#2C2C2C] font-bold' : 'text-[#2C2C2C]/70'}`}>
                         {s.title}
                       </h4>
-                      <Icon className={`w-4 h-4 ${isActive ? 'text-[#347F8C]' : 'text-[#3E4541]/50'}`} />
+                      <Icon className={`w-4 h-4 ${isActive ? 'text-[#347F8C]' : 'text-[#2C2C2C]/50'}`} />
                     </div>
-                    <p className="text-xs font-mono text-[#3E4541]/60 mt-1 truncate">
+                    <p className="text-xs font-mono text-[#2C2C2C]/60 mt-1 truncate">
                       {s.subtitle}
                     </p>
                   </div>
@@ -310,31 +310,31 @@ export function ItineraryBuilder() {
             })}
 
             {/* Quick Summary Pill Box */}
-            <div className="p-5 rounded-2xl bg-white border border-[#D8D4C8] space-y-3 font-mono text-xs shadow-sm">
+            <div className="p-5 rounded-2xl bg-white border border-[#D4CFC0] space-y-3 font-mono text-xs shadow-sm">
               <div className="text-[11px] uppercase tracking-widest text-[#347F8C] font-semibold">
                 Expedition Calibrations
               </div>
-              <div className="flex justify-between text-[#3E4541]/70">
+              <div className="flex justify-between text-[#2C2C2C]/70">
                 <span>Hub:</span>
-                <span className="text-[#3E4541] font-semibold">{locationLabel.split('(')[0].trim()}</span>
+                <span className="text-[#2C2C2C] font-semibold">{locationLabel.split('(')[0].trim()}</span>
               </div>
-              <div className="flex justify-between text-[#3E4541]/70">
+              <div className="flex justify-between text-[#2C2C2C]/70">
                 <span>Duration:</span>
-                <span className="text-[#3E4541] font-semibold">{parseInt(durationMinutes) / 60} Hours</span>
+                <span className="text-[#2C2C2C] font-semibold">{parseInt(durationMinutes) / 60} Hours</span>
               </div>
-              <div className="flex justify-between text-[#3E4541]/70">
+              <div className="flex justify-between text-[#2C2C2C]/70">
                 <span>Party:</span>
-                <span className="text-[#3E4541] font-semibold">{groupSize} {groupSize === '1' ? 'Traveler' : 'Travelers'}</span>
+                <span className="text-[#2C2C2C] font-semibold">{groupSize} {groupSize === '1' ? 'Traveler' : 'Travelers'}</span>
               </div>
-              <div className="flex justify-between text-[#3E4541]/70">
+              <div className="flex justify-between text-[#2C2C2C]/70">
                 <span>Cap:</span>
-                <span className="text-[#3E4541] font-semibold">₹{Number(totalBudget).toLocaleString()}</span>
+                <span className="text-[#2C2C2C] font-semibold">₹{Number(totalBudget).toLocaleString()}</span>
               </div>
             </div>
           </div>
 
           {/* Interactive Workspace Panel */}
-          <div className="lg:col-span-8 bg-white border border-[#D8D4C8] rounded-3xl p-6 sm:p-10 shadow-sm relative z-20">
+          <div className="lg:col-span-8 bg-white border border-[#D4CFC0] rounded-3xl p-6 sm:p-10 shadow-sm relative z-20">
             {error && (
               <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-xs font-mono flex items-center justify-between">
                 <span>{error}</span>
@@ -349,10 +349,10 @@ export function ItineraryBuilder() {
                   <span className="text-[10px] font-mono uppercase tracking-widest text-[#347F8C] block mb-1 font-bold">
                     Phase 01
                   </span>
-                  <h3 className="font-manifold text-2xl tracking-wide uppercase text-[#3E4541] font-bold">
-                    Where does your expedition begin?
+                  <h3 className="font-manifold text-2xl tracking-wide uppercase text-[#2C2C2C] font-bold">
+                    Where shall we begin?
                   </h3>
-                  <p className="text-xs text-[#3E4541]/70 mt-1 font-light">
+                  <p className="text-xs text-[#2C2C2C]/70 mt-1 font-light">
                     Choose an authentic heritage sector or use your device GPS coordinates.
                   </p>
                 </div>
@@ -368,19 +368,19 @@ export function ItineraryBuilder() {
                         onClick={() => handleSelectCity(preset)}
                         className={`text-left p-4 rounded-2xl border transition-all duration-200 cursor-pointer active:scale-[0.99] ${
                           isSelected
-                            ? 'bg-[#4FA3D1]/15 border-[#4FA3D1] shadow-sm'
-                            : 'bg-white border-[#D8D4C8] hover:border-[#4FA3D1]/50 hover:bg-[#F7F4EA]/40'
+                            ? 'bg-[#8B7355]/15 border-[#8B7355] shadow-sm'
+                            : 'bg-white border-[#D4CFC0] hover:border-[#8B7355]/50 hover:bg-[#F5F1E6]/40'
                         }`}
                       >
                         <div className="flex items-center justify-between">
-                          <span className="font-manifold text-base tracking-wide text-[#3E4541] uppercase font-bold">
+                          <span className="font-edu-cursive font-normal text-xl sm:text-2xl tracking-wide text-[#2C2C2C]">
                             {preset.name}
                           </span>
                           <span className="text-[11px] font-mono text-[#347F8C] font-semibold">
                             {preset.region}
                           </span>
                         </div>
-                        <p className="text-[11px] text-[#3E4541]/70 mt-1.5 font-light">
+                        <p className="text-[11px] text-[#2C2C2C]/70 mt-1.5 font-light">
                           {preset.tag}
                         </p>
                       </button>
@@ -394,7 +394,7 @@ export function ItineraryBuilder() {
                     type="button"
                     onClick={handleUseCurrentLocation}
                     disabled={geoLocating}
-                    className="cursor-pointer w-full sm:w-auto flex-1 inline-flex items-center justify-center gap-2 bg-[#F7F4EA] hover:bg-white text-[#3E4541] border border-[#D8D4C8] px-5 py-3 rounded-xl text-xs font-mono uppercase tracking-wider transition active:scale-95 disabled:opacity-50 shadow-sm"
+                    className="cursor-pointer w-full sm:w-auto flex-1 inline-flex items-center justify-center gap-2 bg-[#F5F1E6] hover:bg-white text-[#2C2C2C] border border-[#D4CFC0] px-5 py-3 rounded-xl text-xs font-mono uppercase tracking-wider transition active:scale-95 disabled:opacity-50 shadow-sm"
                   >
                     <Navigation className={`w-3.5 h-3.5 text-[#347F8C] ${geoLocating ? 'animate-spin' : ''}`} />
                     <span>{geoLocating ? 'Detecting GPS Satellite...' : 'Use Current Device Location'}</span>
@@ -403,7 +403,7 @@ export function ItineraryBuilder() {
                   <button
                     type="button"
                     onClick={() => setShowManualCoords(!showManualCoords)}
-                    className="cursor-pointer text-xs font-mono text-[#3E4541]/70 hover:text-[#347F8C] transition underline underline-offset-4 px-2"
+                    className="cursor-pointer text-xs font-mono text-[#2C2C2C]/70 hover:text-[#347F8C] transition underline underline-offset-4 px-2"
                   >
                     {showManualCoords ? 'Hide Manual Coordinates' : 'Manual Coordinates'}
                   </button>
@@ -411,9 +411,9 @@ export function ItineraryBuilder() {
 
                 {/* Collapsible Manual Coordinates */}
                 {showManualCoords && (
-                  <div className="p-4 rounded-2xl bg-[#F7F4EA] border border-[#D8D4C8] grid grid-cols-2 gap-4">
+                  <div className="p-4 rounded-2xl bg-[#F5F1E6] border border-[#D4CFC0] grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-[10px] font-mono text-[#3E4541]/70 uppercase tracking-wider mb-1">
+                      <label className="block text-[10px] font-mono text-[#2C2C2C]/70 uppercase tracking-wider mb-1">
                         Latitude (Decimal)
                       </label>
                       <input
@@ -424,12 +424,12 @@ export function ItineraryBuilder() {
                           setLatitude(e.target.value);
                           setSelectedCityId('custom');
                         }}
-                        className="w-full text-xs font-mono bg-white border border-[#D8D4C8] rounded-xl px-3 py-2 text-[#3E4541] focus:outline-none focus:border-[#347F8C]"
+                        className="w-full text-xs font-mono bg-white border border-[#D4CFC0] rounded-xl px-3 py-2 text-[#2C2C2C] focus:outline-none focus:border-[#347F8C]"
                         placeholder="e.g. 18.9220"
                       />
                     </div>
                     <div>
-                      <label className="block text-[10px] font-mono text-[#3E4541]/70 uppercase tracking-wider mb-1">
+                      <label className="block text-[10px] font-mono text-[#2C2C2C]/70 uppercase tracking-wider mb-1">
                         Longitude (Decimal)
                       </label>
                       <input
@@ -440,7 +440,7 @@ export function ItineraryBuilder() {
                           setLongitude(e.target.value);
                           setSelectedCityId('custom');
                         }}
-                        className="w-full text-xs font-mono bg-white border border-[#D8D4C8] rounded-xl px-3 py-2 text-[#3E4541] focus:outline-none focus:border-[#347F8C]"
+                        className="w-full text-xs font-mono bg-white border border-[#D4CFC0] rounded-xl px-3 py-2 text-[#2C2C2C] focus:outline-none focus:border-[#347F8C]"
                         placeholder="e.g. 72.8347"
                       />
                     </div>
@@ -448,9 +448,9 @@ export function ItineraryBuilder() {
                 )}
 
                 {/* Confirmation Footer */}
-                <div className="pt-4 border-t border-[#D8D4C8] flex items-center justify-between">
-                  <div className="text-xs font-mono text-[#3E4541]/70">
-                    Active Point: <span className="text-[#3E4541] font-bold">{locationLabel}</span>
+                <div className="pt-4 border-t border-[#D4CFC0] flex items-center justify-between">
+                  <div className="text-xs font-mono text-[#2C2C2C]/70">
+                    Active Point: <span className="text-[#2C2C2C] font-bold">{locationLabel}</span>
                   </div>
                   <button
                     type="button"
@@ -458,9 +458,9 @@ export function ItineraryBuilder() {
                       setError(null);
                       setActiveStep(2);
                     }}
-                    className="cursor-pointer inline-flex items-center gap-2 bg-[#347F8C] hover:bg-[#2A6772] text-[#F7F4EA] text-xs font-mono font-bold uppercase tracking-wider px-6 py-3 rounded-xl transition shadow-sm active:scale-95"
+                    className="cursor-pointer inline-flex items-center gap-2 bg-[#347F8C] hover:bg-[#2A6772] text-[#F5F1E6] text-xs font-mono font-bold uppercase tracking-wider px-6 py-3 rounded-xl transition shadow-sm active:scale-95"
                   >
-                    <span>Curatorial Focus</span>
+                    <span>Your Interests</span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </button>
                 </div>
@@ -474,10 +474,10 @@ export function ItineraryBuilder() {
                   <span className="text-[10px] font-mono uppercase tracking-widest text-[#347F8C] block mb-1 font-bold">
                     Phase 02
                   </span>
-                  <h3 className="font-manifold text-2xl tracking-wide uppercase text-[#3E4541] font-bold">
-                    Curatorial Focus
+                  <h3 className="font-manifold text-2xl tracking-wide uppercase text-[#2C2C2C] font-bold">
+                    Your Interests
                   </h3>
-                  <p className="text-xs text-[#3E4541]/70 mt-1 font-light">
+                  <p className="text-xs text-[#2C2C2C]/70 mt-1 font-light">
                     Select the themes that will guide route stops and chronological continuity.
                   </p>
                 </div>
@@ -492,17 +492,17 @@ export function ItineraryBuilder() {
                         onClick={() => toggleInterest(interest.id)}
                         className={`cursor-pointer text-left p-4 rounded-2xl border transition-all duration-200 active:scale-[0.98] ${
                           isSelected
-                            ? 'bg-[#347F8C] text-[#F7F4EA] border-[#347F8C] shadow-sm'
-                            : 'bg-white text-[#3E4541] border border-[#D8D4C8] hover:border-[#347F8C]/50 hover:bg-[#F7F4EA]/40'
+                            ? 'bg-[#347F8C] text-[#F5F1E6] border-[#347F8C] shadow-sm'
+                            : 'bg-white text-[#2C2C2C] border border-[#D4CFC0] hover:border-[#347F8C]/50 hover:bg-[#F5F1E6]/40'
                         }`}
                       >
                         <div className="flex items-center justify-between">
-                          <span className={`font-manifold text-sm tracking-wide uppercase font-bold ${isSelected ? 'text-white' : 'text-[#3E4541]'}`}>
+                          <span className={`font-manifold text-sm tracking-wide uppercase font-bold ${isSelected ? 'text-white' : 'text-[#2C2C2C]'}`}>
                             {interest.label}
                           </span>
                           {isSelected && <Check className="w-4 h-4 text-white" />}
                         </div>
-                        <p className={`text-[11px] mt-1.5 font-light ${isSelected ? 'text-[#F7F4EA]/90' : 'text-[#3E4541]/70'}`}>
+                        <p className={`text-[11px] mt-1.5 font-light ${isSelected ? 'text-[#F5F1E6]/90' : 'text-[#2C2C2C]/70'}`}>
                           {interest.desc}
                         </p>
                       </button>
@@ -510,14 +510,14 @@ export function ItineraryBuilder() {
                   })}
                 </div>
 
-                <div className="pt-4 border-t border-[#D8D4C8] flex items-center justify-between">
+                <div className="pt-4 border-t border-[#D4CFC0] flex items-center justify-between">
                   <button
                     type="button"
                     onClick={() => {
                       setError(null);
                       setActiveStep(1);
                     }}
-                    className="cursor-pointer text-xs font-mono text-[#3E4541]/70 hover:text-[#347F8C] uppercase tracking-wider transition"
+                    className="cursor-pointer text-xs font-mono text-[#2C2C2C]/70 hover:text-[#347F8C] uppercase tracking-wider transition"
                   >
                     &larr; Back to Location
                   </button>
@@ -530,9 +530,9 @@ export function ItineraryBuilder() {
                       setError(null);
                       setActiveStep(3);
                     }}
-                    className="cursor-pointer inline-flex items-center gap-2 bg-[#347F8C] hover:bg-[#2A6772] text-[#F7F4EA] text-xs font-mono font-bold uppercase tracking-wider px-6 py-3 rounded-xl transition shadow-sm active:scale-95"
+                    className="cursor-pointer inline-flex items-center gap-2 bg-[#347F8C] hover:bg-[#2A6772] text-[#F5F1E6] text-xs font-mono font-bold uppercase tracking-wider px-6 py-3 rounded-xl transition shadow-sm active:scale-95"
                   >
-                    <span>Pacing & Budget</span>
+                    <span>Duration & Budget</span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </button>
                 </div>
@@ -546,17 +546,17 @@ export function ItineraryBuilder() {
                   <span className="text-[10px] font-mono uppercase tracking-widest text-[#347F8C] block mb-1 font-bold">
                     Phase 03
                   </span>
-                  <h3 className="font-manifold text-2xl tracking-wide uppercase text-[#3E4541] font-bold">
-                    Pace & Tariff Allocation
+                  <h3 className="font-manifold text-2xl tracking-wide uppercase text-[#2C2C2C] font-bold">
+                    Duration & Budget
                   </h3>
-                  <p className="text-xs text-[#3E4541]/70 mt-1 font-light">
+                  <p className="text-xs text-[#2C2C2C]/70 mt-1 font-light">
                     Establish temporal thresholds and budget allocation for guild tariffs and workshops.
                   </p>
                 </div>
 
                 {/* Duration Picker */}
                 <div>
-                  <label className="block text-[11px] font-mono text-[#3E4541]/70 uppercase tracking-wider mb-2 font-semibold">
+                  <label className="block text-[11px] font-mono text-[#2C2C2C]/70 uppercase tracking-wider mb-2 font-semibold">
                     Temporal Duration
                   </label>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -567,8 +567,8 @@ export function ItineraryBuilder() {
                         onClick={() => setDurationMinutes(String(d.minutes))}
                         className={`cursor-pointer p-3 rounded-xl text-center border transition-all active:scale-95 ${
                           durationMinutes === String(d.minutes)
-                            ? 'bg-[#347F8C] text-[#F7F4EA] font-bold border-[#347F8C] shadow-sm'
-                            : 'bg-white text-[#3E4541] border border-[#D8D4C8] hover:border-[#347F8C]/40 hover:bg-[#F7F4EA]/40'
+                            ? 'bg-[#347F8C] text-[#F5F1E6] font-bold border-[#347F8C] shadow-sm'
+                            : 'bg-white text-[#2C2C2C] border border-[#D4CFC0] hover:border-[#347F8C]/40 hover:bg-[#F5F1E6]/40'
                         }`}
                       >
                         <span className="block text-xs font-mono">{d.label}</span>
@@ -580,7 +580,7 @@ export function ItineraryBuilder() {
 
                 {/* Budget Selection */}
                 <div>
-                  <label className="block text-[11px] font-mono text-[#3E4541]/70 uppercase tracking-wider mb-2 font-semibold">
+                  <label className="block text-[11px] font-mono text-[#2C2C2C]/70 uppercase tracking-wider mb-2 font-semibold">
                     Total Budget Allocation (INR)
                   </label>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-2">
@@ -591,8 +591,8 @@ export function ItineraryBuilder() {
                         onClick={() => setTotalBudget(b.amount)}
                         className={`cursor-pointer p-2.5 rounded-xl text-xs font-mono text-center border transition-all active:scale-95 ${
                           totalBudget === b.amount
-                            ? 'bg-[#347F8C] text-[#F7F4EA] font-bold border-[#347F8C] shadow-sm'
-                            : 'bg-white text-[#3E4541] border border-[#D8D4C8] hover:border-[#347F8C]/40 hover:bg-[#F7F4EA]/40'
+                            ? 'bg-[#347F8C] text-[#F5F1E6] font-bold border-[#347F8C] shadow-sm'
+                            : 'bg-white text-[#2C2C2C] border border-[#D4CFC0] hover:border-[#347F8C]/40 hover:bg-[#F5F1E6]/40'
                         }`}
                       >
                         {b.label}
@@ -606,13 +606,13 @@ export function ItineraryBuilder() {
                     value={totalBudget}
                     onChange={(e) => setTotalBudget(e.target.value)}
                     placeholder="Or enter custom budget"
-                    className="w-full text-xs font-mono bg-white border border-[#D8D4C8] rounded-xl px-3 py-2.5 text-[#3E4541] placeholder-[#3E4541]/40 focus:outline-none focus:border-[#347F8C] transition"
+                    className="w-full text-xs font-mono bg-white border border-[#D4CFC0] rounded-xl px-3 py-2.5 text-[#2C2C2C] placeholder-[#2C2C2C]/40 focus:outline-none focus:border-[#347F8C] transition"
                   />
                 </div>
 
                 {/* Cohort Size */}
                 <div>
-                  <label className="block text-[11px] font-mono text-[#3E4541]/70 uppercase tracking-wider mb-2 font-semibold">
+                  <label className="block text-[11px] font-mono text-[#2C2C2C]/70 uppercase tracking-wider mb-2 font-semibold">
                     Cohort Size
                   </label>
                   <div className="flex gap-2">
@@ -623,8 +623,8 @@ export function ItineraryBuilder() {
                         onClick={() => setGroupSize(num)}
                         className={`cursor-pointer flex-1 py-2 rounded-xl text-xs font-mono text-center border transition active:scale-95 ${
                           groupSize === num
-                            ? 'bg-[#347F8C] text-[#F7F4EA] font-bold border-[#347F8C] shadow-sm'
-                            : 'bg-white text-[#3E4541] border border-[#D8D4C8] hover:border-[#347F8C]/40 hover:bg-[#F7F4EA]/40'
+                            ? 'bg-[#347F8C] text-[#F5F1E6] font-bold border-[#347F8C] shadow-sm'
+                            : 'bg-white text-[#2C2C2C] border border-[#D4CFC0] hover:border-[#347F8C]/40 hover:bg-[#F5F1E6]/40'
                         }`}
                       >
                         {num} {num === '1' ? 'Person' : 'People'}
@@ -633,14 +633,14 @@ export function ItineraryBuilder() {
                   </div>
                 </div>
 
-                <div className="pt-4 border-t border-[#D8D4C8] flex items-center justify-between">
+                <div className="pt-4 border-t border-[#D4CFC0] flex items-center justify-between">
                   <button
                     type="button"
                     onClick={() => {
                       setError(null);
                       setActiveStep(2);
                     }}
-                    className="cursor-pointer text-xs font-mono text-[#3E4541]/70 hover:text-[#347F8C] uppercase tracking-wider transition"
+                    className="cursor-pointer text-xs font-mono text-[#2C2C2C]/70 hover:text-[#347F8C] uppercase tracking-wider transition"
                   >
                     &larr; Back to Interests
                   </button>
@@ -648,7 +648,7 @@ export function ItineraryBuilder() {
                     type="button"
                     disabled={isLoading}
                     onClick={handleBuildRoute}
-                    className="cursor-pointer inline-flex items-center gap-2.5 bg-[#347F8C] hover:bg-[#2A6772] text-[#F7F4EA] text-xs font-mono font-bold uppercase tracking-wider px-7 py-3.5 rounded-xl transition shadow-sm active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="cursor-pointer inline-flex items-center gap-2.5 bg-[#347F8C] hover:bg-[#2A6772] text-[#F5F1E6] text-xs font-mono font-bold uppercase tracking-wider px-7 py-3.5 rounded-xl transition shadow-sm active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isLoading ? (
                       <>

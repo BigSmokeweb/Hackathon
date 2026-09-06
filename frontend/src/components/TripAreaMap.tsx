@@ -15,9 +15,12 @@ interface RealAreaMapProps {
 
 const CITY_COORDINATES: Record<string, { lat: number; lng: number }> = {
   mumbai: { lat: 18.9220, lng: 72.8347 },
-  ahmedabad: { lat: 23.0225, lng: 72.5714 },
-  jaipur: { lat: 26.9124, lng: 75.7873 },
-  varanasi: { lat: 25.3176, lng: 82.9739 },
+  thane: { lat: 19.2183, lng: 72.9781 },
+  'navi-mumbai': { lat: 19.0330, lng: 73.0297 },
+  powai: { lat: 19.1197, lng: 72.9051 },
+  'kanjur-marg': { lat: 19.1300, lng: 72.9300 },
+  panvel: { lat: 18.9894, lng: 73.1175 },
+  'kalyan-dombivli': { lat: 19.2211, lng: 73.0919 },
 };
 
 export function TripAreaMap({
@@ -168,7 +171,7 @@ export function TripAreaMap({
       userMarker.bindPopup(`
         <div style="padding: 6px; font-family: monospace; font-size: 11px;">
           <strong style="color: #347F8C; text-transform: uppercase;">You Are Here</strong>
-          <div style="color: #3E4541; opacity: 0.8; margin-top: 2px;">${userLocation.lat.toFixed(4)}°N, ${userLocation.lng.toFixed(4)}°E</div>
+          <div style="color: #2C2C2C; opacity: 0.8; margin-top: 2px;">${userLocation.lat.toFixed(4)}°N, ${userLocation.lng.toFixed(4)}°E</div>
         </div>
       `);
       layerGroup.addLayer(userMarker);
@@ -186,7 +189,7 @@ export function TripAreaMap({
         const stopIcon = L.divIcon({
           className: 'custom-map-pin',
           html: `
-            <div style="background-color: #347F8C; color: #F7F4EA; border: 2px solid #FFFFFF; box-shadow: 0 4px 10px rgba(52, 127, 140, 0.4); border-radius: 9999px; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-family: monospace; font-weight: bold; font-size: 12px;">
+            <div style="background-color: #347F8C; color: #F5F1E6; border: 2px solid #FFFFFF; box-shadow: 0 4px 10px rgba(52, 127, 140, 0.4); border-radius: 9999px; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-family: monospace; font-weight: bold; font-size: 12px;">
               ${idx + 1}
             </div>
           `,
@@ -200,10 +203,10 @@ export function TripAreaMap({
             <div style="font-size: 9px; font-family: monospace; text-transform: uppercase; color: #347F8C; font-weight: 700; letter-spacing: 0.05em; margin-bottom: 2px;">
               Stop ${idx + 1} &bull; ${stop.category}
             </div>
-            <strong style="font-size: 12px; font-weight: 700; color: #3E4541; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.3; margin-bottom: 3px;">
+            <strong style="font-size: 12px; font-weight: 700; color: #2C2C2C; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.3; margin-bottom: 3px;">
               ${stop.title}
             </strong>
-            <div style="font-size: 10px; font-family: monospace; color: #3E4541; opacity: 0.75; white-space: nowrap;">
+            <div style="font-size: 10px; font-family: monospace; color: #2C2C2C; opacity: 0.75; white-space: nowrap;">
               ₹${stop.priceMin}–₹${stop.priceMax} &bull; ${stop.city}
             </div>
           </div>
@@ -245,15 +248,15 @@ export function TripAreaMap({
               <div style="font-size: 9px; font-family: monospace; text-transform: uppercase; color: #D97706; font-weight: 700; letter-spacing: 0.06em; margin-bottom: 3px; padding-right: 14px; white-space: nowrap;">
                 Recommended Stop
               </div>
-              <strong style="font-size: 12px; font-weight: 700; color: #3E4541; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.3; margin-bottom: 4px;">
+              <strong style="font-size: 12px; font-weight: 700; color: #2C2C2C; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.3; margin-bottom: 4px;">
                 ${cand.title}
               </strong>
-              <div style="font-size: 10px; font-family: monospace; color: #3E4541; opacity: 0.8; margin-bottom: 8px; white-space: nowrap;">
+              <div style="font-size: 10px; font-family: monospace; color: #2C2C2C; opacity: 0.8; margin-bottom: 8px; white-space: nowrap;">
                 ${cand.category} &bull; ★${cand.ratingAverage.toFixed(1)} &bull; ₹${cand.priceMin}
               </div>
               ${
                 onAddStop
-                  ? `<button type="button" class="compact-popup-add-btn" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 5px; background: #347F8C; color: #F7F4EA; border: none; border-radius: 7px; padding: 6px 10px; font-size: 10.5px; font-family: monospace; font-weight: 700; text-transform: uppercase; cursor: pointer; transition: all 0.15s ease; white-space: nowrap;">
+                  ? `<button type="button" class="compact-popup-add-btn" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 5px; background: #347F8C; color: #F5F1E6; border: none; border-radius: 7px; padding: 6px 10px; font-size: 10.5px; font-family: monospace; font-weight: 700; text-transform: uppercase; cursor: pointer; transition: all 0.15s ease; white-space: nowrap;">
                       + Add Stop
                     </button>`
                   : ''
@@ -457,7 +460,7 @@ export function TripAreaMap({
             stMarker.bindPopup(`
               <div style="padding: 4px; font-family: monospace; font-size: 11px;">
                 <strong style="color: #D97706;">🚆 ${st.name}</strong>
-                <div style="color: #3E4541; opacity: 0.8; margin-top: 2px;">
+                <div style="color: #2C2C2C; opacity: 0.8; margin-top: 2px;">
                   ${isBoarding ? 'Board Here' : isAlighting ? 'Alight Here' : 'En-route Station'}
                 </div>
               </div>
@@ -599,18 +602,18 @@ export function TripAreaMap({
   ) || routeTelemetry?.steps?.[0];
 
   return (
-    <div className="bg-white rounded-3xl border border-[#D8D4C8] p-5 sm:p-6 shadow-sm overflow-hidden flex flex-col">
+    <div className="bg-white rounded-3xl border border-[#D4CFC0] p-5 sm:p-6 shadow-sm overflow-hidden flex flex-col">
       {/* Map Header */}
-      <div className="flex flex-wrap items-center justify-between pb-3 border-b border-[#D8D4C8] mb-3 gap-2.5">
+      <div className="flex flex-wrap items-center justify-between pb-3 border-b border-[#C4A265] mb-3 gap-2.5">
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-xl bg-[#347F8C]/15 text-[#347F8C] flex items-center justify-center">
             {travelMode === 'train' ? <Train className="w-4 h-4" /> : <Compass className="w-4 h-4" />}
           </div>
           <div>
-            <h4 className="font-manifold text-sm uppercase tracking-wider text-[#3E4541] font-bold">
+            <h4 className="font-manifold text-sm uppercase tracking-wider text-[#2C2C2C] font-bold">
               {travelMode === 'train' ? 'Mumbai Rail & Track Route' : 'Real Road Navigation'}
             </h4>
-            <p className="text-[11px] font-mono text-[#3E4541]/70">
+            <p className="text-[11px] font-mono text-[#2C2C2C]/70">
               {travelMode === 'train' ? 'Central & Western Suburban Lines' : 'Turn-by-turn road network'} &bull; {city} &bull; {stops.length} stop{stops.length === 1 ? '' : 's'}
             </p>
           </div>
@@ -618,14 +621,14 @@ export function TripAreaMap({
 
         <div className="flex items-center gap-2">
           {/* Mode Switcher: Driving vs Train vs Walking */}
-          <div className="inline-flex bg-[#F7F4EA] p-0.5 rounded-xl border border-[#D8D4C8]">
+          <div className="inline-flex bg-[#F5F1E6] p-0.5 rounded-xl border border-[#D4CFC0]">
             <button
               type="button"
               onClick={() => setTravelMode('driving')}
               className={`inline-flex items-center gap-1 text-[11px] font-mono px-2.5 py-1 rounded-lg transition font-medium cursor-pointer ${
                 travelMode === 'driving'
-                  ? 'bg-[#347F8C] text-[#F7F4EA] shadow-xs font-semibold'
-                  : 'text-[#3E4541]/70 hover:text-[#3E4541]'
+                  ? 'bg-[#347F8C] text-[#F5F1E6] shadow-xs font-semibold'
+                  : 'text-[#2C2C2C]/70 hover:text-[#2C2C2C]'
               }`}
             >
               <Car className="w-3.5 h-3.5" />
@@ -636,8 +639,8 @@ export function TripAreaMap({
               onClick={() => setTravelMode('train')}
               className={`inline-flex items-center gap-1 text-[11px] font-mono px-2.5 py-1 rounded-lg transition font-medium cursor-pointer ${
                 travelMode === 'train'
-                  ? 'bg-[#347F8C] text-[#F7F4EA] shadow-xs font-semibold'
-                  : 'text-[#3E4541]/70 hover:text-[#3E4541]'
+                  ? 'bg-[#347F8C] text-[#F5F1E6] shadow-xs font-semibold'
+                  : 'text-[#2C2C2C]/70 hover:text-[#2C2C2C]'
               }`}
             >
               <Train className="w-3.5 h-3.5" />
@@ -648,8 +651,8 @@ export function TripAreaMap({
               onClick={() => setTravelMode('walking')}
               className={`inline-flex items-center gap-1 text-[11px] font-mono px-2.5 py-1 rounded-lg transition font-medium cursor-pointer ${
                 travelMode === 'walking'
-                  ? 'bg-[#347F8C] text-[#F7F4EA] shadow-xs font-semibold'
-                  : 'text-[#3E4541]/70 hover:text-[#3E4541]'
+                  ? 'bg-[#347F8C] text-[#F5F1E6] shadow-xs font-semibold'
+                  : 'text-[#2C2C2C]/70 hover:text-[#2C2C2C]'
               }`}
             >
               <Footprints className="w-3.5 h-3.5" />
@@ -679,27 +682,27 @@ export function TripAreaMap({
 
       {/* Brand Teal Train Navigation Banner */}
       {travelMode === 'train' && trainRouteTelemetry && (
-        <div className="mb-3 bg-gradient-to-r from-[#347F8C] to-[#2A6772] text-[#F7F4EA] rounded-2xl p-3 shadow-md flex items-center justify-between">
+        <div className="mb-3 bg-gradient-to-r from-[#347F8C] to-[#2A6772] text-[#F5F1E6] rounded-2xl p-3 shadow-md flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-white/15 backdrop-blur-sm flex items-center justify-center shrink-0">
-              <Train className="w-5 h-5 text-[#F7F4EA]" />
+              <Train className="w-5 h-5 text-[#F5F1E6]" />
             </div>
             <div>
               <div className="flex items-baseline gap-2 flex-wrap">
-                <span className="text-xl font-bold font-sans tracking-tight text-[#F7F4EA]">
+                <span className="text-xl font-bold font-sans tracking-tight text-[#F5F1E6]">
                   {trainRouteTelemetry.totalDurationMin} min
                 </span>
-                <span className="text-xs font-mono text-[#F7F4EA]/85">
+                <span className="text-xs font-mono text-[#F5F1E6]/85">
                   ({trainRouteTelemetry.totalDistanceKm} km)
                 </span>
-                <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-white/20 text-[#F7F4EA] font-semibold">
+                <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-white/20 text-[#F5F1E6] font-semibold">
                   Local Fare ₹{trainRouteTelemetry.fareInr}
                 </span>
                 <span className="text-[9px] uppercase font-mono px-1.5 py-0.5 rounded bg-[#D97706]/80 text-white font-bold hidden sm:inline">
                   A* Track Search
                 </span>
               </div>
-              <div className="text-[11px] text-[#F7F4EA]/90 flex items-center gap-1 mt-0.5 line-clamp-1">
+              <div className="text-[11px] text-[#F5F1E6]/90 flex items-center gap-1 mt-0.5 line-clamp-1">
                 <ArrowUpRight className="w-3.5 h-3.5 shrink-0 opacity-80" />
                 <span>
                   {trainRouteTelemetry.summaryText || `Walk to ${trainRouteTelemetry.startStation.name} • Local to ${trainRouteTelemetry.destStation.name} (${trainRouteTelemetry.trainStationsOnRoute.length} stations)`}
@@ -711,7 +714,7 @@ export function TripAreaMap({
           <button
             type="button"
             onClick={() => setShowTurnList((prev) => !prev)}
-            className="inline-flex items-center gap-1 text-[11px] font-mono font-medium bg-white/20 hover:bg-white/30 text-[#F7F4EA] px-2.5 py-1.5 rounded-xl transition cursor-pointer shrink-0 ml-2"
+            className="inline-flex items-center gap-1 text-[11px] font-mono font-medium bg-white/20 hover:bg-white/30 text-[#F5F1E6] px-2.5 py-1.5 rounded-xl transition cursor-pointer shrink-0 ml-2"
           >
             <span>{showTurnList ? 'Hide Plan' : 'Plan'}</span>
             {showTurnList ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
@@ -721,27 +724,27 @@ export function TripAreaMap({
 
       {/* Brand Teal Driving/Walking Road Navigation Banner */}
       {travelMode !== 'train' && routeTelemetry && (
-        <div className="mb-3 bg-gradient-to-r from-[#347F8C] to-[#2A6772] text-[#F7F4EA] rounded-2xl p-3 shadow-md flex items-center justify-between">
+        <div className="mb-3 bg-gradient-to-r from-[#347F8C] to-[#2A6772] text-[#F5F1E6] rounded-2xl p-3 shadow-md flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-white/15 backdrop-blur-sm flex items-center justify-center shrink-0">
-              <Navigation className="w-5 h-5 text-[#F7F4EA] transform -rotate-45" />
+              <Navigation className="w-5 h-5 text-[#F5F1E6] transform -rotate-45" />
             </div>
             <div>
               <div className="flex items-baseline gap-2">
-                <span className="text-xl font-bold font-sans tracking-tight text-[#F7F4EA]">
+                <span className="text-xl font-bold font-sans tracking-tight text-[#F5F1E6]">
                   {routeTelemetry.totalDurationMin < 60
                     ? `${routeTelemetry.totalDurationMin} min`
                     : `${Math.floor(routeTelemetry.totalDurationMin / 60)} hr ${routeTelemetry.totalDurationMin % 60} min`}
                 </span>
-                <span className="text-xs font-mono text-[#F7F4EA]/85">
+                <span className="text-xs font-mono text-[#F5F1E6]/85">
                   ({routeTelemetry.totalDistanceKm} km)
                 </span>
-                <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-white/20 text-[#F7F4EA] font-semibold">
+                <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-white/20 text-[#F5F1E6] font-semibold">
                   Fastest Route
                 </span>
               </div>
               {firstManeuver && (
-                <div className="text-[11px] text-[#F7F4EA]/90 flex items-center gap-1 mt-0.5 line-clamp-1">
+                <div className="text-[11px] text-[#F5F1E6]/90 flex items-center gap-1 mt-0.5 line-clamp-1">
                   <ArrowUpRight className="w-3.5 h-3.5 shrink-0 opacity-80" />
                   <span>Next: {firstManeuver.instruction}</span>
                 </div>
@@ -753,7 +756,7 @@ export function TripAreaMap({
             <button
               type="button"
               onClick={() => setShowTurnList((prev) => !prev)}
-              className="inline-flex items-center gap-1 text-[11px] font-mono font-medium bg-white/20 hover:bg-white/30 text-[#F7F4EA] px-2.5 py-1.5 rounded-xl transition cursor-pointer shrink-0 ml-2"
+              className="inline-flex items-center gap-1 text-[11px] font-mono font-medium bg-white/20 hover:bg-white/30 text-[#F5F1E6] px-2.5 py-1.5 rounded-xl transition cursor-pointer shrink-0 ml-2"
             >
               <span>{showTurnList ? 'Hide Steps' : 'Steps'}</span>
               {showTurnList ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
@@ -763,13 +766,13 @@ export function TripAreaMap({
       )}
 
       {/* Real Interactive Leaflet Container */}
-      <div className="relative w-full aspect-[16/10] bg-[#F7F4EA] rounded-2xl border border-[#D8D4C8] overflow-hidden shadow-inner">
+      <div className="relative w-full aspect-[16/10] bg-[#F5F1E6] rounded-2xl border border-[#D4CFC0] overflow-hidden shadow-inner">
         <div ref={mapContainerRef} className="w-full h-full z-0" />
 
         {/* Loading overlay when calculating route */}
         {isRouting && (
           <div className="absolute inset-0 z-[500] bg-black/20 backdrop-blur-xs flex items-center justify-center pointer-events-none">
-            <div className="bg-white/95 rounded-2xl px-4 py-2.5 shadow-lg border border-[#D8D4C8] flex items-center gap-2.5 text-xs font-mono text-[#347F8C]">
+            <div className="bg-white/95 rounded-2xl px-4 py-2.5 shadow-lg border border-[#D4CFC0] flex items-center gap-2.5 text-xs font-mono text-[#347F8C]">
               <div className="w-4 h-4 border-2 border-[#347F8C] border-t-transparent rounded-full animate-spin" />
               <span>
                 {travelMode === 'train'
@@ -781,7 +784,7 @@ export function TripAreaMap({
         )}
 
         {/* Legend */}
-        <div className="absolute top-3 right-3 z-[400] bg-white/95 backdrop-blur-sm border border-[#D8D4C8] rounded-xl px-2.5 py-1.5 text-[10px] font-mono text-[#3E4541]/90 shadow-xs space-y-1">
+        <div className="absolute top-3 right-3 z-[400] bg-white/95 backdrop-blur-sm border border-[#D4CFC0] rounded-xl px-2.5 py-1.5 text-[10px] font-mono text-[#2C2C2C]/90 shadow-xs space-y-1">
           <div className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-full bg-[#347F8C] ring-2 ring-[#347F8C]/30" />
             <span>You (Start)</span>
@@ -793,7 +796,7 @@ export function TripAreaMap({
             </div>
           ) : (
             <div className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#8FAF82]" />
+              <span className="w-2.5 h-2.5 rounded-full bg-[#A69B80]" />
               <span>Stops (1-{stops.length || 0})</span>
             </div>
           )}
@@ -802,19 +805,19 @@ export function TripAreaMap({
 
       {/* Turn-by-turn Navigation Steps List Drawer: Train vs Road */}
       {showTurnList && travelMode === 'train' && trainRouteTelemetry && (
-        <div className="mt-3 bg-[#F7F4EA]/60 border border-[#D8D4C8] rounded-2xl p-3.5 max-h-64 overflow-y-auto space-y-2 font-mono text-xs text-[#3E4541]">
-          <div className="flex items-center justify-between pb-1.5 border-b border-[#D8D4C8]/60 text-[11px] font-bold uppercase tracking-wider text-[#347F8C]">
+        <div className="mt-3 bg-[#F5F1E6]/60 border border-[#D4CFC0] rounded-2xl p-3.5 max-h-64 overflow-y-auto space-y-2 font-mono text-xs text-[#2C2C2C]">
+          <div className="flex items-center justify-between pb-1.5 border-b border-[#C4A265]/60 text-[11px] font-bold uppercase tracking-wider text-[#347F8C]">
             <span>Mumbai Transit Plan ({trainRouteTelemetry.steps.length} legs)</span>
             <span>Total: ~{trainRouteTelemetry.totalDurationMin} min &bull; Fare: ₹{trainRouteTelemetry.fareInr}</span>
           </div>
           <div className="space-y-2 pt-1">
             {trainRouteTelemetry.steps.map((st, i) => (
-              <div key={i} className="p-2.5 rounded-xl bg-white/80 border border-[#D8D4C8]/50 space-y-1">
+              <div key={i} className="p-2.5 rounded-xl bg-white/80 border border-[#D4CFC0]/50 space-y-1">
                 <div className="flex items-center gap-2">
                   <div className="w-5 h-5 rounded-full bg-[#347F8C]/15 text-[#347F8C] flex items-center justify-center shrink-0 font-sans font-bold text-[10px]">
                     {st.type === 'train_ride' ? '🚆' : st.type.startsWith('drive') ? '🚖' : '🚶'}
                   </div>
-                  <span className="font-bold text-[#3E4541] text-[11px]">
+                  <span className="font-bold text-[#2C2C2C] text-[11px]">
                     {st.type === 'walk_to_station'
                       ? 'Walk to Railway Station'
                       : st.type === 'drive_to_station'
@@ -825,13 +828,13 @@ export function TripAreaMap({
                       ? 'Auto / Cab to Destination (>5km)'
                       : 'Walk to Destination'}
                   </span>
-                  <span className="ml-auto text-[10px] text-[#3E4541]/60 font-semibold">
+                  <span className="ml-auto text-[10px] text-[#2C2C2C]/60 font-semibold">
                     ~{st.durationMin} min ({st.distanceMeters > 1000 ? `${(st.distanceMeters / 1000).toFixed(1)} km` : `${st.distanceMeters} m`})
                   </span>
                 </div>
-                <p className="text-[11px] text-[#3E4541]/90 pl-7">{st.instruction}</p>
+                <p className="text-[11px] text-[#2C2C2C]/90 pl-7">{st.instruction}</p>
                 {st.stationsList && st.stationsList.length > 0 && (
-                  <div className="pl-7 pt-1 text-[10px] text-[#3E4541]/70 leading-relaxed">
+                  <div className="pl-7 pt-1 text-[10px] text-[#2C2C2C]/70 leading-relaxed">
                     <span className="font-semibold text-[#347F8C]">Stations along route ({st.stationsList.length}):</span>{' '}
                     <span>{st.stationsList.join(' → ')}</span>
                   </div>
@@ -843,20 +846,20 @@ export function TripAreaMap({
       )}
 
       {showTurnList && travelMode !== 'train' && routeTelemetry?.steps && routeTelemetry.steps.length > 0 && (
-        <div className="mt-3 bg-[#F7F4EA]/60 border border-[#D8D4C8] rounded-2xl p-3.5 max-h-56 overflow-y-auto space-y-2 font-mono text-xs text-[#3E4541]">
-          <div className="flex items-center justify-between pb-1.5 border-b border-[#D8D4C8]/60 text-[11px] font-bold uppercase tracking-wider text-[#347F8C]">
+        <div className="mt-3 bg-[#F5F1E6]/60 border border-[#D4CFC0] rounded-2xl p-3.5 max-h-56 overflow-y-auto space-y-2 font-mono text-xs text-[#2C2C2C]">
+          <div className="flex items-center justify-between pb-1.5 border-b border-[#C4A265]/60 text-[11px] font-bold uppercase tracking-wider text-[#347F8C]">
             <span>Turn-by-Turn Navigation ({routeTelemetry.steps.length} steps)</span>
             <span>Est. {routeTelemetry.totalDurationMin} min</span>
           </div>
           <div className="space-y-1.5 pt-1">
             {routeTelemetry.steps.map((st, i) => (
-              <div key={i} className="flex items-start gap-2.5 py-1 px-2 rounded-lg bg-white/70 hover:bg-white border border-[#D8D4C8]/40 transition">
+              <div key={i} className="flex items-start gap-2.5 py-1 px-2 rounded-lg bg-white/70 hover:bg-white border border-[#D4CFC0]/40 transition">
                 <div className="w-5 h-5 rounded-full bg-[#347F8C]/15 text-[#347F8C] flex items-center justify-center shrink-0 font-sans font-bold text-[10px] mt-0.5">
                   {i + 1}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-[#3E4541] truncate">{st.instruction}</p>
-                  <p className="text-[10px] text-[#3E4541]/60">
+                  <p className="font-semibold text-[#2C2C2C] truncate">{st.instruction}</p>
+                  <p className="text-[10px] text-[#2C2C2C]/60">
                     {st.distanceMeters > 1000
                       ? `${(st.distanceMeters / 1000).toFixed(1)} km`
                       : `${st.distanceMeters} m`}{' '}
@@ -870,8 +873,8 @@ export function TripAreaMap({
       )}
 
       {/* Bottom Footer Actions */}
-      <div className="mt-3 pt-3 border-t border-[#D8D4C8] flex items-center justify-between text-xs">
-        <span className="font-mono text-[11px] text-[#3E4541]/70">
+      <div className="mt-3 pt-3 border-t border-[#D4CFC0] flex items-center justify-between text-xs">
+        <span className="font-mono text-[11px] text-[#2C2C2C]/70">
           {travelMode === 'train'
             ? 'Multimodal transit: Auto/Walk to station + Suburban local train + Auto/Walk to destination'
             : stops.length === 0

@@ -19,15 +19,15 @@ function ScoreBar({ label, score, weight, tip }: { label: string; score: number;
   return (
     <div className="space-y-1">
       <div className="flex items-center justify-between text-[10px] font-mono">
-        <span className="text-[#3E4541]/80 uppercase tracking-wider">{label}</span>
-        <span className="text-[#347F8C] font-bold">{pct}% <span className="text-[#3E4541]/50 font-normal">({contribution}pts)</span></span>
+        <span className="text-[#2C2C2C]/80 uppercase tracking-wider">{label}</span>
+        <span className="text-[#347F8C] font-bold">{pct}% <span className="text-[#2C2C2C]/50 font-normal">({contribution}pts)</span></span>
       </div>
-      <div className="h-1.5 w-full bg-[#D8D4C8] rounded-full overflow-hidden">
+      <div className="h-1.5 w-full bg-[#D4CFC0] rounded-full overflow-hidden">
         <div
           className="h-full rounded-full transition-all duration-500"
           style={{
             width: `${pct}%`,
-            background: pct >= 70 ? '#8FAF82' : pct >= 40 ? '#4FA3D1' : '#e5a050',
+            background: pct >= 70 ? '#A69B80' : pct >= 40 ? '#8B7355' : '#e5a050',
           }}
         />
       </div>
@@ -78,9 +78,9 @@ export default function MatchPreviewPanel({ draft, token }: MatchPreviewPanelPro
   const scorePct = preview ? Math.round(preview.estimatedScore * 100) : 0;
 
   return (
-    <div className="bg-white border border-[#D8D4C8] rounded-2xl shadow-sm overflow-hidden">
+    <div className="bg-white border border-[#D4CFC0] rounded-2xl shadow-sm overflow-hidden">
       {/* Header */}
-      <div className="p-4 border-b border-[#D8D4C8] bg-[#F7F4EA]/60 flex items-center justify-between">
+      <div className="p-4 border-b border-[#C4A265] bg-[#F5F1E6]/60 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Sparkles className="w-4 h-4 text-[#347F8C]" />
           <span className="text-[10px] font-mono uppercase tracking-widest text-[#347F8C] font-bold">
@@ -98,7 +98,7 @@ export default function MatchPreviewPanel({ draft, token }: MatchPreviewPanelPro
         )}
 
         {!preview && !loading && !error && (
-          <p className="text-xs font-mono text-[#3E4541]/50 text-center py-4">
+          <p className="text-xs font-mono text-[#2C2C2C]/50 text-center py-4">
             Fill in listing details to see your match preview.
           </p>
         )}
@@ -109,21 +109,21 @@ export default function MatchPreviewPanel({ draft, token }: MatchPreviewPanelPro
             <div className="flex items-center gap-4">
               <div className="relative w-16 h-16 shrink-0">
                 <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
-                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="#D8D4C8" strokeWidth="3" />
+                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="#D4CFC0" strokeWidth="3" />
                   <circle
                     cx="18" cy="18" r="15.9" fill="none"
-                    stroke={scorePct >= 70 ? '#8FAF82' : scorePct >= 40 ? '#4FA3D1' : '#e5a050'}
+                    stroke={scorePct >= 70 ? '#A69B80' : scorePct >= 40 ? '#8B7355' : '#e5a050'}
                     strokeWidth="3"
                     strokeDasharray={`${scorePct} ${100 - scorePct}`}
                     strokeLinecap="round"
                   />
                 </svg>
-                <span className="absolute inset-0 flex items-center justify-center text-sm font-mono font-bold text-[#3E4541]">
+                <span className="absolute inset-0 flex items-center justify-center text-sm font-mono font-bold text-[#2C2C2C]">
                   {scorePct}
                 </span>
               </div>
               <div>
-                <p className="text-xs font-mono font-bold text-[#3E4541] uppercase tracking-wide">
+                <p className="text-xs font-mono font-bold text-[#2C2C2C] uppercase tracking-wide">
                   {scorePct >= 70 ? 'Strong reach' : scorePct >= 40 ? 'Good potential' : 'Needs more detail'}
                 </p>
                 <p className="text-[11px] font-mono text-[#5C6460] leading-snug mt-1 max-w-[180px]">
@@ -135,7 +135,7 @@ export default function MatchPreviewPanel({ draft, token }: MatchPreviewPanelPro
             {/* Publish eligibility badge */}
             <div className={`flex items-center gap-2 px-3 py-2 rounded-lg text-[10px] font-mono font-bold uppercase tracking-wider border ${
               preview.publishEligible
-                ? 'bg-[#8FAF82]/15 border-[#8FAF82]/40 text-[#347F8C]'
+                ? 'bg-[#A69B80]/15 border-[#A69B80]/40 text-[#347F8C]'
                 : 'bg-amber-50 border-amber-200 text-amber-700'
             }`}>
               <TrendingUp className="w-3.5 h-3.5" />
@@ -146,7 +146,7 @@ export default function MatchPreviewPanel({ draft, token }: MatchPreviewPanelPro
 
             {/* Scoring dimensions */}
             <div className="space-y-3">
-              <p className="text-[10px] font-mono uppercase tracking-widest text-[#3E4541]/60 font-bold">
+              <p className="text-[10px] font-mono uppercase tracking-widest text-[#2C2C2C]/60 font-bold">
                 Scoring breakdown
               </p>
               {preview.dimensions.map((d) => (
@@ -163,7 +163,7 @@ export default function MatchPreviewPanel({ draft, token }: MatchPreviewPanelPro
             {/* Nudges */}
             {preview.nudges.length > 0 && (
               <div>
-                <p className="text-[10px] font-mono uppercase tracking-widest text-[#3E4541]/60 font-bold mb-2">
+                <p className="text-[10px] font-mono uppercase tracking-widest text-[#2C2C2C]/60 font-bold mb-2">
                   Improve visibility
                 </p>
                 <NudgesPanel nudges={preview.nudges} compact />

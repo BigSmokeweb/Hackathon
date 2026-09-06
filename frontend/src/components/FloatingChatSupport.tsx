@@ -18,8 +18,8 @@ interface ChatMessage {
 }
 
 const CURATED_PROMPTS = [
-  'Old Ahmedabad Pols & Spice Trail',
-  'Bagru Natural Indigo Block Printing',
+  'Thane Lake & Shrine Enclaves',
+  'Navi Mumbai Flamingo Creek Trail',
   'Colaba Dawn Fisherfolk Walk',
 ];
 
@@ -37,7 +37,7 @@ export function FloatingChatSupport() {
     {
       id: 'welcome',
       sender: 'assistant',
-      text: 'Namaste! I am Celene, your Living Heritage Concierge. Looking for a hidden culinary trail, 7th-generation artisan masterclass, or custom route across Ahmedabad, Mumbai, or Jaipur?',
+      text: 'Namaste! I am Celene, your Living Heritage Concierge. Looking for a hidden culinary trail, artisan masterclass, or custom route across Mumbai, Thane, or Navi Mumbai?',
       timestamp: 'Just now',
     },
   ]);
@@ -137,14 +137,14 @@ export function FloatingChatSupport() {
           replyText =
             'For Mumbai, I arrange dawn access to Sassoon Dock fisherfolk auctions and the 1930s Art Deco apartment circuit along Oval Maidan.';
           action = { label: 'Explore Mumbai Circuit', href: '/cities/mumbai' };
-        } else if (q.includes('ahmedabad') || q.includes('pol') || q.includes('spice') || q.includes('gujarat')) {
+        } else if (q.includes('thane') || q.includes('upvan') || q.includes('lake')) {
           replyText =
-            'In Old Ahmedabad, step inside 600-year-old carved wooden Pol havelis, followed by our midnight Manek Chowk spice lineage tour.';
-          action = { label: 'Explore Ahmedabad Circuit', href: '/cities/ahmedabad' };
-        } else if (q.includes('jaipur') || q.includes('bagru') || q.includes('indigo') || q.includes('rajasthan')) {
+            'In Thane, explore centuries-old lakeside promenades at Upvan, historic Portuguese churches, and sacred shrines in the foothills.';
+          action = { label: 'Explore Thane Circuit', href: '/cities/thane' };
+        } else if (q.includes('navi') || q.includes('flamingo') || q.includes('panvel')) {
           replyText =
-            'In Jaipur, learn mud-resist Dabu printing from 5th-generation Chhipa masters in Bagru and visit private Amer stepwells.';
-          action = { label: 'Explore Jaipur Circuit', href: '/cities/jaipur' };
+            'In Navi Mumbai and Panvel, we guide dawn mangrove boardwalk trails to spot migratory flamingoes and monsoon fort expeditions.';
+          action = { label: 'Explore Navi Mumbai Circuit', href: '/cities/navi-mumbai' };
         } else if (q.includes('itinerary') || q.includes('trip') || q.includes('plan')) {
           replyText =
             'You can compose a seamless continuous journey with verified master craftspeople using our Itinerary Atelier.';
@@ -176,7 +176,7 @@ export function FloatingChatSupport() {
           {
             id: 'asst-' + Date.now(),
             sender: 'assistant',
-            text: 'I can connect you directly with master craftspeople and dawn heritage walks across Mumbai, Ahmedabad, or Jaipur.',
+            text: 'I can connect you directly with master craftspeople and dawn heritage walks across Mumbai, Thane, and Navi Mumbai.',
             timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           },
         ]);
@@ -201,15 +201,15 @@ export function FloatingChatSupport() {
 
       {/* ─── CHAT MODAL (Anchored to Bottom-Right) ─── */}
       <div
-        className={`absolute inset-0 bg-white/95 backdrop-blur-xl border border-[#D8D4C8] rounded-3xl shadow-[0_24px_50px_-12px_rgba(29,78,86,0.22)] flex flex-col overflow-hidden transition-all duration-400 ease-out ${
+        className={`absolute inset-0 bg-white/95 backdrop-blur-xl border border-[#D4CFC0] rounded-3xl shadow-[0_24px_50px_-12px_rgba(29,78,86,0.22)] flex flex-col overflow-hidden transition-all duration-400 ease-out ${
           isOpen
             ? 'opacity-100 pointer-events-auto visible scale-100'
             : 'opacity-0 pointer-events-none invisible scale-95'
         }`}
       >
         {/* Curated Header */}
-        <div className="bg-gradient-to-b from-[#1C4D56] to-[#153B42] text-[#F7F4EA] px-4 py-3.5 flex items-center justify-between border-b border-white/10 shadow-sm relative overflow-hidden shrink-0">
-          <div className="absolute -top-10 -left-10 w-36 h-36 bg-[#8FAF82]/20 rounded-full blur-2xl pointer-events-none" />
+        <div className="bg-gradient-to-b from-[#1C4D56] to-[#153B42] text-[#F5F1E6] px-4 py-3.5 flex items-center justify-between border-b border-white/10 shadow-sm relative overflow-hidden shrink-0">
+          <div className="absolute -top-10 -left-10 w-36 h-36 bg-[#A69B80]/20 rounded-full blur-2xl pointer-events-none" />
 
           <div className="flex items-center gap-3 relative z-10">
             {/* ─── The Header Emoji Box (Landing Destination for Celene) ─── */}
@@ -219,15 +219,15 @@ export function FloatingChatSupport() {
               title="Celene 3D Concierge Box"
             >
               {/* Subtle ambient green beacon ring inside the box */}
-              <div className="w-2 h-2 rounded-full bg-[#8FAF82] opacity-50 animate-ping absolute" />
+              <div className="w-2 h-2 rounded-full bg-[#A69B80] opacity-50 animate-ping absolute" />
             </div>
 
             <div>
-              <h4 className="font-manifold text-xs uppercase tracking-[0.18em] font-bold text-[#F7F4EA]">
+              <h4 className="font-manifold text-xs uppercase tracking-[0.18em] font-bold text-[#F5F1E6]">
                 Celene Concierge
               </h4>
               <div className="flex items-center gap-1.5 text-[10px] font-mono text-[#DCE7E5] mt-0.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#8FAF82] shadow-[0_0_6px_#8FAF82]" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#A69B80] shadow-[0_0_6px_#A69B80]" />
                 <span>Heritage Specialist &bull; Live</span>
               </div>
             </div>
@@ -235,7 +235,7 @@ export function FloatingChatSupport() {
 
           <button
             onClick={() => setIsOpen(false)}
-            className="w-8 h-8 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 flex items-center justify-center transition cursor-pointer text-[#F7F4EA] active:scale-95 relative z-10"
+            className="w-8 h-8 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 flex items-center justify-center transition cursor-pointer text-[#F5F1E6] active:scale-95 relative z-10"
             title="Minimize concierge"
           >
             <X className="w-4 h-4" />
@@ -257,8 +257,8 @@ export function FloatingChatSupport() {
               <div
                 className={`max-w-[82%] rounded-2xl px-4 py-3 text-xs ${
                   m.sender === 'user'
-                    ? 'bg-[#275A63] text-[#F7F4EA] rounded-br-xs shadow-sm font-medium'
-                    : 'bg-white border border-[#E2DDD1] text-[#3E4541] rounded-bl-xs shadow-[0_2px_8px_rgba(62,69,65,0.04)]'
+                    ? 'bg-[#275A63] text-[#F5F1E6] rounded-br-xs shadow-sm font-medium'
+                    : 'bg-white border border-[#E2DDD1] text-[#2C2C2C] rounded-bl-xs shadow-[0_2px_8px_rgba(62,69,65,0.04)]'
                 }`}
               >
                 <p className="leading-relaxed font-light">{m.text}</p>
@@ -296,7 +296,7 @@ export function FloatingChatSupport() {
                   <button
                     key={prompt}
                     onClick={() => handleSend(prompt)}
-                    className="text-left bg-white/80 hover:bg-white border border-[#D8D4C8] hover:border-[#347F8C]/60 text-[#3E4541] text-[11px] font-medium px-3 py-1.5 rounded-xl transition-all flex items-center justify-between group shadow-2xs"
+                    className="text-left bg-white/80 hover:bg-white border border-[#D4CFC0] hover:border-[#347F8C]/60 text-[#2C2C2C] text-[11px] font-medium px-3 py-1.5 rounded-xl transition-all flex items-center justify-between group shadow-2xs"
                   >
                     <span>{prompt}</span>
                     <ArrowRight className="w-3 h-3 text-[#347F8C] opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -320,19 +320,19 @@ export function FloatingChatSupport() {
         {/* Input Bar */}
         <form
           onSubmit={(e) => handleSend(undefined, e)}
-          className="p-3 bg-white border-t border-[#D8D4C8] flex items-center gap-2 shrink-0"
+          className="p-3 bg-white border-t border-[#D4CFC0] flex items-center gap-2 shrink-0"
         >
           <input
             type="text"
             value={inputMessage}
             onChange={(e) => setInputMessage(e.target.value)}
             placeholder="Inquire about sacred weaves, pol houses..."
-            className="flex-1 bg-[#FAF8F2] border border-[#D8D4C8] rounded-xl px-3.5 py-2.5 text-xs text-[#3E4541] placeholder-[#7C8581] focus:outline-none focus:border-[#347F8C] transition-colors font-light"
+            className="flex-1 bg-[#FAF8F2] border border-[#D4CFC0] rounded-xl px-3.5 py-2.5 text-xs text-[#2C2C2C] placeholder-[#7C8581] focus:outline-none focus:border-[#347F8C] transition-colors font-light"
           />
           <button
             type="submit"
             disabled={!inputMessage.trim() || isTyping}
-            className="bg-[#347F8C] hover:bg-[#27646E] disabled:opacity-35 text-[#F7F4EA] p-2.5 rounded-xl transition-all active:scale-95 shadow-md shadow-[#347F8C]/20 cursor-pointer disabled:cursor-not-allowed"
+            className="bg-[#347F8C] hover:bg-[#27646E] disabled:opacity-35 text-[#F5F1E6] p-2.5 rounded-xl transition-all active:scale-95 shadow-md shadow-[#347F8C]/20 cursor-pointer disabled:cursor-not-allowed"
             title="Send query"
           >
             <Send className="w-4 h-4" />

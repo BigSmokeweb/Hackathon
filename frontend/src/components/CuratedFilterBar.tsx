@@ -65,7 +65,7 @@ export function CuratedFilterBar({
   return (
     <form
       onSubmit={handleSubmit}
-      className="flex items-center gap-2 bg-white/95 border border-[#D8D4C8] p-1.5 rounded-2xl focus-within:border-[#347F8C] transition-colors shadow-sm shrink-0"
+      className="flex items-center gap-2 bg-white/95 border border-[#D4CFC0] p-1.5 rounded-2xl focus-within:border-[#347F8C] transition-colors shadow-sm shrink-0"
     >
       <div className="flex items-center gap-2 px-3 text-[#5C6460]">
         <Search className={`w-3.5 h-3.5 text-[#5C6460] ${isPending ? 'animate-spin' : ''}`} />
@@ -74,18 +74,18 @@ export function CuratedFilterBar({
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search master or craft..."
-          className="bg-transparent text-xs text-[#3E4541] placeholder-[#7C8581] focus:outline-none w-36 sm:w-44 font-light"
+          className="bg-transparent text-xs text-[#2C2C2C] placeholder-[#7C8581] focus:outline-none w-36 sm:w-44 font-light"
         />
       </div>
 
-      <div className="h-5 w-px bg-[#D8D4C8]" />
+      <div className="h-5 w-px bg-[#D4CFC0]" />
 
-      <div className="flex items-center gap-1 px-2 text-xs text-[#3E4541]">
+      <div className="flex items-center gap-1 px-2 text-xs text-[#2C2C2C]">
         <MapPin className="w-3 h-3 text-[#347F8C]" />
         <select
           value={selectedCity}
           onChange={handleCityChange}
-          className="bg-transparent text-xs text-[#3E4541] focus:outline-none cursor-pointer [&>option]:bg-white [&>option]:text-[#3E4541]"
+          className="bg-transparent text-xs text-[#2C2C2C] focus:outline-none cursor-pointer [&>option]:bg-white [&>option]:text-[#2C2C2C]"
         >
           {cities.map((c) => (
             <option key={c.value} value={c.value}>
@@ -97,7 +97,7 @@ export function CuratedFilterBar({
 
       <button
         type="submit"
-        className="cursor-pointer bg-[#347F8C] hover:bg-[#2A6772] text-[#F7F4EA] text-xs font-mono font-bold uppercase tracking-wider px-3.5 py-1.5 rounded-xl transition-all active:scale-95 shadow-md shadow-[#347F8C]/20"
+        className="cursor-pointer bg-[#347F8C] hover:bg-[#2A6772] text-[#F5F1E6] text-xs font-mono font-bold uppercase tracking-wider px-3.5 py-1.5 rounded-xl transition-all active:scale-95 shadow-md shadow-[#347F8C]/20"
       >
         Filter
       </button>

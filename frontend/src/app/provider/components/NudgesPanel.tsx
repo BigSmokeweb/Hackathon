@@ -11,7 +11,7 @@ interface NudgesPanelProps {
 export default function NudgesPanel({ nudges, compact = false }: NudgesPanelProps) {
   if (nudges.length === 0) {
     return (
-      <div className="flex items-center gap-2 px-4 py-3 bg-[#8FAF82]/15 border border-[#8FAF82]/40 rounded-xl text-xs font-mono text-[#347F8C]">
+      <div className="flex items-center gap-2 px-4 py-3 bg-[#A69B80]/15 border border-[#A69B80]/40 rounded-xl text-xs font-mono text-[#347F8C]">
         <TrendingUp className="w-4 h-4 shrink-0" />
         <span className="font-semibold">Listing fully optimised — all scoring dimensions covered.</span>
       </div>
@@ -34,7 +34,7 @@ export default function NudgesPanel({ nudges, compact = false }: NudgesPanelProp
           className={`flex items-start gap-3 px-4 py-3 rounded-xl border text-xs font-mono ${
             nudge.impact === 'HIGH'
               ? 'bg-amber-50 border-amber-200 text-amber-800'
-              : 'bg-[#F7F4EA] border-[#D8D4C8] text-[#5C6460]'
+              : 'bg-[#F5F1E6] border-[#D4CFC0] text-[#5C6460]'
           }`}
         >
           <AlertCircle
