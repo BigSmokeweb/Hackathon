@@ -167,79 +167,96 @@ export default async function CityDiscoveryPage({ params }: { params: { slug: st
 
         {/* Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {experiences.map((exp: any) => (
-            <article
-              key={exp.id}
-              className="group relative bg-white border border-[#D4CFC0] hover:border-[#347F8C]/60 rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-md flex flex-col justify-between shadow-sm"
-            >
-              <div className="relative h-60 w-full overflow-hidden bg-[#EAE5D6]">
-                <Image
-                  src={exp.mediaUrls?.[0] || city.heroImage}
-                  alt={exp.title}
-                  fill
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                  className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-80" />
+          {experiences.map((exp: any) => {
+            const expTitle = exp.title || exp.name || 'Local Experience';
+            const expDesc =
+              exp.description ||
+              exp.humanTip ||
+              exp.mustTry ||
+              'Authentic regional immersion hosted by generational craft and heritage lineage keepers.';
+            const expImage =
+              (exp.mediaUrls && exp.mediaUrls.length > 0 && exp.mediaUrls[0]) ||
+              (exp.images && exp.images.length > 0 && exp.images[0]) ||
+              city.heroImage;
+            const priceMin = exp.priceMin ?? exp.entryFee ?? 0;
+            const priceMax = exp.priceMax ?? exp.activityCost ?? 0;
 
-                <div className="absolute top-3.5 left-3.5">
-                  <span className="bg-[#2C2C2C]/85 backdrop-blur-md px-3 py-1 rounded-full text-[11px] font-mono tracking-wider text-[#F5F1E6] uppercase font-semibold">
-                    {exp.category}
-                  </span>
-                </div>
+            return (
+              <article
+                key={exp.id}
+                className="group relative bg-white border border-[#D4CFC0] hover:border-[#347F8C]/60 rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-md flex flex-col justify-between shadow-sm"
+              >
+                <div className="relative h-60 w-full overflow-hidden bg-[#EAE5D6]">
+                  <Image
+                    src={expImage}
+                    alt={expTitle}
+                    fill
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-80" />
 
-                <div className="absolute top-3.5 right-3.5 bg-white/90 backdrop-blur-md px-2.5 py-1 rounded-full text-[11px] font-medium text-[#2C2C2C] border border-[#D4CFC0] flex items-center gap-1 shadow-sm">
-                  <Star className="w-3 h-3 text-amber-500 fill-amber-500" />
-                  <span className="font-semibold">{Number(exp.ratingAverage || 4.9).toFixed(2)}</span>
-                </div>
-
-                <div className="absolute bottom-3 left-4 right-4 flex items-center justify-between text-xs text-white">
-                  <span className="text-[11px] font-mono text-white flex items-center gap-1 font-medium">
-                    <ShieldCheck className="w-3.5 h-3.5 text-[#A69B80]" />
-                    {exp.provider?.businessName ? `Listed by ${exp.provider.businessName}` : 'Presented by a local connoisseur'}
-                  </span>
-                  <span className="text-[11px] font-mono text-white/90 flex items-center gap-1">
-                    <Clock className="w-3 h-3 text-white/80" />
-                    {exp.durationMinutes || 120} min
-                  </span>
-                </div>
-              </div>
-
-              <div className="p-6 flex-1 flex flex-col justify-between">
-                <div>
-                  <h3 className="font-cormorant text-xl sm:text-2xl tracking-normal text-[#2C2C2C] group-hover:text-[#347F8C] transition-colors line-clamp-2 leading-snug font-bold">
-                    {exp.title}
-                  </h3>
-                  <p className="mt-2.5 text-xs sm:text-sm text-[#2C2C2C]/80 line-clamp-2 font-light leading-relaxed">
-                    {exp.description}
-                  </p>
-                </div>
-
-                <div className="mt-6 pt-4 border-t border-[#D4CFC0] flex items-center justify-between">
-                  <div>
-                    <span className="text-[10px] font-mono uppercase tracking-widest text-[#2C2C2C]/60 block">
-                      Starting at
+                  <div className="absolute top-3.5 left-3.5">
+                    <span className="bg-[#2C2C2C]/85 backdrop-blur-md px-3 py-1 rounded-full text-[11px] font-mono tracking-wider text-[#F5F1E6] uppercase font-semibold">
+                      {exp.category}
                     </span>
-                    <p className="font-semibold font-cormorant oldstyle-nums text-[#2C2C2C] text-lg tracking-wide">
-                      {(!exp.priceMin && !exp.priceMax) || (exp.priceMin === 0 && exp.priceMax === 0)
-                        ? 'Free'
-                        : exp.priceMin === 0
-                        ? `Free – ₹${exp.priceMax?.toLocaleString()}`
-                        : `₹${exp.priceMin?.toLocaleString()} – ₹${exp.priceMax?.toLocaleString()}`}
+                  </div>
+
+                  <div className="absolute top-3.5 right-3.5 bg-white/90 backdrop-blur-md px-2.5 py-1 rounded-full text-[11px] font-medium text-[#2C2C2C] border border-[#D4CFC0] flex items-center gap-1 shadow-sm">
+                    <Star className="w-3 h-3 text-amber-500 fill-amber-500" />
+                    <span className="font-semibold">{Number(exp.ratingAverage || 4.9).toFixed(2)}</span>
+                  </div>
+
+                  <div className="absolute bottom-3 left-4 right-4 flex items-center justify-between text-xs text-white">
+                    <span className="text-[11px] font-mono text-white flex items-center gap-1 font-medium truncate max-w-[65%]">
+                      <ShieldCheck className="w-3.5 h-3.5 text-[#A69B80] shrink-0" />
+                      <span className="truncate">
+                        {exp.provider?.businessName ? `Listed by ${exp.provider.businessName}` : 'Presented by a local connoisseur'}
+                      </span>
+                    </span>
+                    <span className="text-[11px] font-mono text-white/90 flex items-center gap-1 shrink-0">
+                      <Clock className="w-3 h-3 text-white/80" />
+                      {exp.durationMinutes || 120} min
+                    </span>
+                  </div>
+                </div>
+
+                <div className="p-6 flex-1 flex flex-col justify-between">
+                  <div>
+                    <h3 className="font-cormorant text-xl sm:text-2xl tracking-normal text-[#2C2C2C] group-hover:text-[#347F8C] transition-colors line-clamp-2 leading-snug font-bold">
+                      {expTitle}
+                    </h3>
+                    <p className="mt-2.5 text-xs sm:text-sm text-[#2C2C2C]/80 line-clamp-2 font-light leading-relaxed">
+                      {expDesc}
                     </p>
                   </div>
-                  <Link
-                    href={`/experiences/${exp.id}`}
-                    aria-label={`Explore ${exp.title}`}
-                    className="group/btn inline-flex items-center gap-1.5 text-xs font-mono uppercase tracking-wider text-[#F5F1E6] bg-[#347F8C] hover:bg-[#2A6772] font-bold px-4 py-2 rounded-xl transition-all duration-300 active:scale-95 shadow-sm"
-                  >
-                    <span>Explore</span>
-                    <span className="inline-block transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover/btn:translate-x-1">&rarr;</span>
-                  </Link>
+
+                  <div className="mt-6 pt-4 border-t border-[#D4CFC0] flex items-center justify-between">
+                    <div>
+                      <span className="text-[10px] font-mono uppercase tracking-widest text-[#2C2C2C]/60 block">
+                        Starting at
+                      </span>
+                      <p className="font-semibold font-cormorant oldstyle-nums text-[#2C2C2C] text-lg tracking-wide">
+                        {(!priceMin && !priceMax) || (priceMin === 0 && priceMax === 0)
+                          ? 'Free'
+                          : priceMin === 0
+                          ? `Free – ₹${priceMax.toLocaleString()}`
+                          : `₹${priceMin.toLocaleString()} – ₹${priceMax.toLocaleString()}`}
+                      </p>
+                    </div>
+                    <Link
+                      href={`/experiences/${exp.id}`}
+                      aria-label={`Explore ${expTitle}`}
+                      className="group/btn inline-flex items-center gap-1.5 text-xs font-mono uppercase tracking-wider text-[#F5F1E6] bg-[#347F8C] hover:bg-[#2A6772] font-bold px-4 py-2 rounded-xl transition-all duration-300 active:scale-95 shadow-sm"
+                    >
+                      <span>Explore</span>
+                      <span className="inline-block transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover/btn:translate-x-1">&rarr;</span>
+                    </Link>
+                  </div>
                 </div>
-              </div>
-            </article>
-          ))}
+              </article>
+            );
+          })}
         </div>
 
         {/* Bottom Go Back Footer */}
