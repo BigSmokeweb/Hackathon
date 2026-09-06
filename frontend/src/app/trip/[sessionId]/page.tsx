@@ -51,9 +51,11 @@ function TripSessionContent() {
 
     try {
       // Check if this page is being loaded from a fellow traveler's shared link
-      const sharedParam = searchParams?.get('route');
-      if (sharedParam) {
-        const decoded = decodeShareableTrip(sharedParam);
+      const stopsParam = searchParams?.get('stops') || searchParams?.get('route');
+      const cityParam = searchParams?.get('city');
+
+      if (stopsParam) {
+        const decoded = decodeShareableTrip(stopsParam, cityParam);
         if (decoded) {
           saveLocalSession(decoded);
           setSession(decoded);
@@ -89,12 +91,12 @@ function TripSessionContent() {
     loadSessionAndRecommendations();
   }, [loadSessionAndRecommendations]);
 
-  // Generate self-contained shareable URL for travelling companions
+  // Generate clean, short shareable URL for travelling companions
   const getShareableUrl = useCallback(() => {
     if (typeof window === 'undefined' || !session) return '';
-    const sharePayload = encodeShareableTrip(session);
+    const shareQuery = encodeShareableTrip(session);
     const origin = window.location.origin;
-    return `${origin}/trip/${session.id}?route=${encodeURIComponent(sharePayload)}`;
+    return `${origin}/trip/${session.id}?${shareQuery}`;
   }, [session]);
 
   const handleCopyShareLink = async () => {
@@ -123,7 +125,7 @@ function TripSessionContent() {
     const url = getShareableUrl();
     const stopsCount = session.selectedExperiences?.length || 0;
     const text = encodeURIComponent(
-      `Hey! Check out our continuous verified itinerary (${stopsCount} stops in ${session.city || 'our trip'}): ${url}`
+      `Check out our verified itinerary (${stopsCount} stops in ${session.city || 'our trip'}):\n${url}`
     );
     window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
   };

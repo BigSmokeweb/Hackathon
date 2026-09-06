@@ -506,49 +506,71 @@ export function saveLocalSession(session: SessionData) {
 }
 
 /**
- * Encodes itinerary data into a URL-safe base64 string for sharing.
+ * Encodes itinerary data into a clean, short URL search query string for sharing.
+ * E.g., stops=exp001,exp002,exp003&city=Thane
  */
 export function encodeShareableTrip(session: SessionData): string {
   try {
-    const payload = {
-      id: session.id,
-      city: session.city || 'Mumbai',
-      userLat: session.userLat,
-      userLng: session.userLng,
-      remainingBudget: session.remainingBudget,
-      totalBudget: session.totalBudget,
-      remainingTimeMinutes: session.remainingTimeMinutes,
-      status: session.status || 'COMPLETED',
-      stops: (session.selectedExperiences || []).map((s) => ({
-        id: s.id,
-        title: s.title,
-        category: s.category,
-        city: s.city,
-        priceMin: s.priceMin,
-        priceMax: s.priceMax,
-        ratingAverage: s.ratingAverage,
-        authenticityRating: s.authenticityRating,
-        mediaUrls: s.mediaUrls,
-        durationMinutes: s.durationMinutes,
-        candidateLat: s.candidateLat,
-        candidateLng: s.candidateLng,
-      })),
-    };
-    const jsonStr = JSON.stringify(payload);
-    if (typeof window !== 'undefined') {
-      return btoa(unescape(encodeURIComponent(jsonStr)));
+    const stops = (session.selectedExperiences || []).map((s) => s.id).filter(Boolean);
+    if (stops.length > 0) {
+      const city = encodeURIComponent(session.city || 'Mumbai');
+      return `stops=${stops.join(',')}&city=${city}`;
     }
-    return Buffer.from(jsonStr).toString('base64');
+    return '';
   } catch {
     return '';
   }
 }
 
 /**
- * Decodes a shareable trip payload from a base64 string.
+ * Decodes a shareable trip payload from clean query params or legacy base64 strings.
  */
-export function decodeShareableTrip(shareStr: string): SessionData | null {
+export function decodeShareableTrip(shareStr: string, cityParam?: string | null): SessionData | null {
   try {
+    // 1. Check if it is a short comma-separated stop ID list
+    if (shareStr.includes(',') || CATALOG_EXPERIENCES.some((c) => c.id === shareStr)) {
+      const stopIds = shareStr.split(',').map((s) => s.trim()).filter(Boolean);
+      const matchedExperiences: SelectedExperience[] = [];
+      const cityName = cityParam || 'Mumbai';
+
+      for (const id of stopIds) {
+        const found = ALL_EXPERIENCES.find((c) => c.id === id) || CATALOG_EXPERIENCES.find((c) => c.id === id);
+        if (found) {
+          const coords = sanitizeExperienceCoordinates(found);
+          matchedExperiences.push({
+            id: found.id,
+            title: found.title,
+            category: found.category,
+            city: found.city || cityName,
+            priceMin: found.priceMin,
+            priceMax: found.priceMax,
+            ratingAverage: found.ratingAverage,
+            authenticityRating: found.authenticityRating,
+            mediaUrls: found.mediaUrls,
+            durationMinutes: found.durationMinutes,
+            candidateLat: coords.lat,
+            candidateLng: coords.lng,
+          });
+        }
+      }
+
+      if (matchedExperiences.length > 0) {
+        return {
+          id: `share_${Date.now().toString(36)}`,
+          status: 'COMPLETED',
+          city: cityName,
+          remainingBudget: 0,
+          totalBudget: 5000,
+          remainingTimeMinutes: 0,
+          selectedExperienceIds: matchedExperiences.map((s) => s.id),
+          selectedCategories: Array.from(new Set(matchedExperiences.map((s) => s.category))),
+          selectedExperiences: matchedExperiences,
+          rejectedExperienceIds: [],
+        };
+      }
+    }
+
+    // 2. Fallback: Parse legacy base64 if someone opens a legacy link
     let jsonStr: string;
     if (typeof window !== 'undefined') {
       jsonStr = decodeURIComponent(escape(atob(shareStr)));
@@ -585,4 +607,5 @@ export function decodeShareableTrip(shareStr: string): SessionData | null {
     return null;
   }
 }
+
 
