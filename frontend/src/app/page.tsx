@@ -2,7 +2,6 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { HeroAnimatedTitle } from '@/components/HeroAnimatedTitle';
 import { HeroParallaxVideo } from '@/components/HeroParallaxVideo';
-import { HeroScrollIndicator } from '@/components/HeroScrollIndicator';
 import { ItineraryBuilder } from '@/components/ItineraryBuilder';
 import { CuratedDirectory } from '@/components/CuratedDirectory';
 import { SeasonalTimeBanner } from '@/components/SeasonalTimeBanner';
@@ -78,10 +77,6 @@ export default async function HomePage() {
             Private culinary lineages &bull; Master ateliers &bull; Centuries of living craft
           </p>
         </div>
-
-
-        {/* Scroll Indicator: breathing thin line & chevron with on-scroll fade-out */}
-        <HeroScrollIndicator />
       </section>
 
       {/* ─── SECTION 2: EXACT CURATED EXPERIENCES DIRECTORY FROM SCREENSHOT ─── */}
